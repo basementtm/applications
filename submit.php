@@ -26,27 +26,26 @@ $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
 // Collect data safely
-$name   = $_POST['name'] ?? '';
-$email  = $_POST['email'] ?? '';
-$gfphone= $_POST['gfphone'] ?? '';
-$reason = $_POST['reason'] ?? '';
-$cage   = $_POST['cage'] ?? 0;
-$isCat  = $_POST['isCat'] ?? '';
-$owner  = $_POST['owner'] ?? ''; // optional owner field
+$name              = $_POST['name'] ?? '';
+$email             = $_POST['email'] ?? '';
+$gfphone           = $_POST['gfphone'] ?? '';
+$reason            = $_POST['reason'] ?? '';
+$cage              = $_POST['cage'] ?? 0;
+$isCat             = $_POST['isCat'] ?? '';
+$owner             = $_POST['owner'] ?? ''; // optional owner field
+$preferredLocation = $_POST['preferredLocation'] ?? ''; // new field
 
 // Insert into database
-$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner)
-        VALUES (?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner, preferredLocation)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssiss", $name, $email, $gfphone, $reason, $cage, $isCat, $owner);
+$stmt->bind_param("ssssisss", $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
 
 $stmt->close();
 $conn->close();
-
-// Display styled HTML page
 ?>
 <!DOCTYPE html>
 <html lang="en">
