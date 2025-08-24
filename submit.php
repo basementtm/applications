@@ -14,8 +14,8 @@ if (file_exists('/var/www/config/maintenance.flag')) {
       </style>
     </head>
     <body>
-      <h1>🚧 Applications Disabled</h1>
-      <p>skill issue try in like an hour</p>
+      <h1>🚧 Applications Closed</h1>
+      <p>Applications are currently closed, check back later!</p>
     </body>
     </html>";
     exit();
