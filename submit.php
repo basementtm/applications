@@ -98,14 +98,14 @@ $conn->close();
 <body>
   <div class="container">
     <?php if ($success): ?>
-      <h1>✅ application sent</h1>
-      <p>thanks <?= htmlspecialchars($name) ?> for "applying" ig check ur email in like an hour</p>
+      <h1>✅ Application Sent</h1>
+      <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, I guess.</p>
     <?php else: ?>
       <h1>❌ error</h1>
       <p>it's either you broke something or i did</p>
       <p>Error: <?= htmlspecialchars($errorMsg) ?></p>
     <?php endif; ?>
-    <a class="button" href="https://apply.emmameowss.gay">go back</a>
+    <a class="button" href="https://apply.emmameowss.gay">Return</a>
   </div>
 </body>
 </html>
