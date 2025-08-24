@@ -1,53 +1,112 @@
 <?php
-session_start();
-if (!isset($_SESSION['username'])) {
-    header("Location: login.html");
-    exit;
+// Maintenance mode check
+if (file_exists('/var/www/config/maintenance.flag')) {
+    http_response_code(503);
+    header("Retry-After: 3600");
+    echo "<!DOCTYPE html>
+    <html lang='en'>
+    <head>
+      <meta charset='UTF-8'>
+      <title>offline</title>
+      <style>
+        body { font-family: Arial; text-align: center; background-color: #ffc0cb; color: #333; padding: 50px; }
+        h1 { color: #ff1493; }
+      </style>
+    </head>
+    <body>
+      <h1>🚧 Applications Disabled</h1>
+      <p>skill issue try in like an hour</p>
+    </body>
+    </html>";
+    exit();
 }
 
 include('/var/www/config/db_config.php');
-
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
-// Get logged in user ID
-$userStmt = $conn->prepare("SELECT id FROM users WHERE username=?");
-$userStmt->bind_param("s", $_SESSION['username']);
-$userStmt->execute();
-$userStmt->bind_result($user_id);
-$userStmt->fetch();
-$userStmt->close();
+// Collect data safely
+$name   = $_POST['name'] ?? '';
+$email  = $_POST['email'] ?? '';
+$gfphone= $_POST['gfphone'] ?? '';
+$reason = $_POST['reason'] ?? '';
+$cage   = $_POST['cage'] ?? 0;
+$isCat  = $_POST['isCat'] ?? '';
+$owner  = $_POST['owner'] ?? ''; // optional owner field
 
-$name   = $_POST['name'];
-$email  = $_POST['email'];
-$gfphone= $_POST['gfphone'] ?: null;
-$reason = $_POST['reason'];
-$cage   = $_POST['cage'];
-$isCat  = $_POST['isCat'];
-$owner  = $_POST['owner'] ?: null;
+// Insert into database
+$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner)
+        VALUES (?, ?, ?, ?, ?, ?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ssssiss", $name, $email, $gfphone, $reason, $cage, $isCat, $owner);
 
-$stmt = $conn->prepare("INSERT INTO applicants (user_id, name, email, gfphone, reason, cage, isCat, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("issssiss", $user_id, $name, $email, $gfphone, $reason, $cage, $isCat, $owner);
-
-if ($stmt->execute()) {
-    echo "<!DOCTYPE html>
-    <html><head><meta charset='UTF-8'><title>Submitted</title>
-    <style>
-      body { font-family: Arial; background:#ffc0cb; text-align:center; padding:50px; }
-      .box { background:#fff0f5; padding:30px; border-radius:15px; display:inline-block; }
-      h1 { color:#ff1493; }
-    </style>
-    </head><body>
-      <div class='box'>
-        <h1>Application Submitted!</h1>
-        <p>Thank you, your application has been received.</p>
-        <a href='form.php'>Submit another</a> | <a href='dashboard.php'>Dashboard</a>
-      </div>
-    </body></html>";
-} else {
-    echo "Error: " . $stmt->error;
-}
+$success = $stmt->execute();
+$errorMsg = $stmt->error;
 
 $stmt->close();
 $conn->close();
+
+// Display styled HTML page
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Application Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffc0cb;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      background-color: #fff0f5;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      color: #ff1493;
+    }
+    p {
+      margin: 15px 0;
+    }
+    a.button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background-color: #ff69b4;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    a.button:hover {
+      background-color: #ff1493;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <?php if ($success): ?>
+      <h1>✅ application sent</h1>
+      <p>thanks <?= htmlspecialchars($name) ?> for "applying" ig check ur email in like an hour</p>
+    <?php else: ?>
+      <h1>❌ error</h1>
+      <p>it's either you broke something or i did</p>
+      <p>Error: <?= htmlspecialchars($errorMsg) ?></p>
+    <?php endif; ?>
+    <a class="button" href="https://apply.emmameowss.gay">go back</a>
+  </div>
+</body>
+</html>
