@@ -35,12 +35,13 @@ $isCat             = $_POST['isCat'] ?? '';
 $owner             = $_POST['owner'] ?? ''; // optional owner field
 $preferredLocation = $_POST['preferredLocation'] ?? ''; // new field
 $agreeTerms = isset($_POST['agreeTerms']) ? 1 : 0; // 1 if checked, 0 if not
+$status = $_POST['status'] ?? '';
 
 // Insert into database
-$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssisssi", $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms);
+$stmt->bind_param("ssssisssis", $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
