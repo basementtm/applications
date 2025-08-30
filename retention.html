@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Retention Policy - basement™</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffc0cb;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #policy-container {
+      background-color: #fff0f5;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      box-sizing: border-box;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      color: #ff1493;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: fadeSlideDown 0.8s forwards;
+    }
+
+    @keyframes fadeSlideDown {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    p {
+      margin: 15px 0;
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+
+    footer {
+      font-size: 0.9rem;
+      color: #333;
+      padding-top: 20px;
+      text-align: center;
+    }
+
+    a.button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background-color: #ff69b4;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    a.button:hover {
+      background-color: #ff1493;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 500px) {
+      #policy-container { padding: 20px; }
+      p { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="policy-container">
+    <h1>Data Retention Policy</h1>
+    <p>
+      All personal data submitted through the basement™ application form is stored securely on our servers for a maximum of 24-48 months.  
+      Once the application has been reviewed by our team, all submitted information is still stored on our systems.
+    </p>
+    <p>
+      This ensures that your personal data is not only used for the purpose of evaluating your application and is kept longer than necessary.
+    </p>
+    <a class="button" href="https://apply.emmameowss.gay/">Back to Application Form</a>
+  </div>
+</body>
+</html>

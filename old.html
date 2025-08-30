@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>basement application form</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #maintenance { text-align: center; padding: 50px; }
+    #maintenance h1 { color: #ff6600; }
+  </style>
+</head>
+<body>
+  <h2>basement application pform</h2>
+
+  <!-- FORM (hidden during maintenance) -->
+  <div id="form-container">
+    <form action="https://submit.emmameowss.gay/submit.php" method="POST">
+      <!-- Name -->
+      <label for="name">name</label><br>
+      <input type="text" id="name" name="name" required><br><br>
+
+      <!-- Email -->
+      <label for="email">email</label><br>
+      <input type="email" id="email" name="email" required><br><br>
+
+      <!-- Girlfriend's Phone Number (optional) -->
+      <label for="gfphone">girlfriend's phone number:</label><br>
+      <input type="tel" id="gfphone" name="gfphone" placeholder="123-456-7890"><br><br>
+
+      <!-- Reason for Applying -->
+      <label for="reason">why did you apply</label><br>
+      <textarea id="reason" name="reason" rows="4" cols="40" required></textarea><br><br>
+
+      <!-- Number of Times Slept in Cage in Past Week -->
+      <label for="cage">how many times haveyou slept in a cage the past week:</label><br>
+      <input type="number" id="cage" name="cage" min="0" required><br><br>
+
+      <!-- Are you a cat? -->
+      <label>are you a cat</label><br>
+      <input type="radio" id="catYes" name="isCat" value="Yes" required>
+      <label for="catYes">Yes</label><br>
+      <input type="radio" id="catNo" name="isCat" value="No" required>
+      <label for="catNo">No</label><br><br>
+
+      <!-- Submit -->
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <!-- MAINTENANCE MESSAGE (hidden by default) -->
+  <div id="maintenance" style="display:none;">
+    <h1>🚧 offline</h1>
+    <p>im fuckin with something so this is offline itll be back soon</p>
+  </div>
+
+  <!-- Script to check backend maintenance status -->
+  <script>
+    fetch("https://submit.emmameowss.gay/status.php")
+      .then(res => res.json())
+      .then(data => {
+        if (data.maintenance) {
+          document.getElementById("form-container").style.display = "none";
+          document.getElementById("maintenance").style.display = "block";
+        }
+      })
+      .catch(err => console.error("Maintenance check failed:", err));
+  </script>
+</body>
+</html>
