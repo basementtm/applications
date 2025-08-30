@@ -771,6 +771,7 @@ while ($row = $stats_result->fetch_assoc()) {
                 </tbody>
             </table>
         </div>
+        </form>
 
         <!-- Pagination -->
         <?php if ($total_pages > 1): ?>
