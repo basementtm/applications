@@ -317,7 +317,7 @@ if ($maintenance_active) {
       <div class='container'>
         <div class='maintenance-icon'>🚧</div>
         <h1>Maintenance</h1>
-        <p><strong>Application status checking is temporarily unavailable.</strong></p>
+        <p><strong>Site Under Maintenance</strong></p>
         <p>We're performing scheduled maintenance to improve our services.</p>
         <p>Please try again later. Thank you for your patience!</p>
       </div>
