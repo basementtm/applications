@@ -65,6 +65,17 @@ $conn->close();
     <style>
         <?php echo getNavbarCSS(); ?>
 
+        --danger-color: #ff4757;
+        --warning-bg: #fff3cd;
+        --warning-border: #ffeaa7;
+        --warning-text: #856404;
+
+        [data-theme="dark"] {
+            --warning-bg: #4a3a2a;
+            --warning-border: #6b5b2a;
+            --warning-text: #ffd93d;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -75,7 +86,7 @@ $conn->close();
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 120px);
             padding: 20px;
         }
 
@@ -90,21 +101,113 @@ $conn->close();
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .page-title {
-            color: var(--danger-color);
+        .warning-box {
+            background-color: var(--warning-bg);
+            border: 2px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 20px;
+            border-radius: 10px;
             margin-bottom: 30px;
-            font-size: 2rem;
+            font-weight: bold;
         }
 
-        --danger-color: #ff4757;
-        --warning-bg: #fff3cd;
-        --warning-border: #ffeaa7;
-        --warning-text: #856404;
+        .app-details {
+            background-color: var(--input-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
 
-        [data-theme="dark"] {
-            --warning-bg: #4a3a2a;
-            --warning-border: #6b5b2a;
-            --warning-text: #ffd93d;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: var(--primary-pink);
+        }
+
+        .detail-value {
+            color: var(--text-color);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .status-unreviewed { background-color: var(--secondary-pink); }
+        .status-stage2 { background-color: #ffa502; }
+        .status-stage3 { background-color: #3742fa; }
+        .status-accepted { background-color: #2ed573; }
+        .status-denied { background-color: var(--danger-color); }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .btn-danger:hover {
+            background-color: #ff3838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #4a2c2a;
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn, .btn-danger {
+                width: 100%;
+            }
         }
 
         .warning-box {
@@ -265,7 +368,7 @@ $conn->close();
     
     <div class="page-container">
         <div class="container">
-            <h1 class="page-title">🗑️ Delete Application</h1>
+            <h1 style="color: var(--danger-color); margin-bottom: 30px; font-size: 2rem;">🗑️ Delete Application</h1>
         
         <?php if (isset($error)): ?>
             <div class="error-message">

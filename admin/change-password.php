@@ -92,7 +92,7 @@ $conn->close();
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 120px);
             padding: 20px;
         }
 
@@ -107,10 +107,104 @@ $conn->close();
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .page-title {
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
             color: var(--primary-pink);
-            margin-bottom: 30px;
-            font-size: 2rem;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 5px rgba(255, 20, 147, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-pink);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        [data-theme="dark"] .message.success {
+            background-color: #1e4620;
+            color: #4caf50;
+        }
+
+        [data-theme="dark"] .message.error {
+            background-color: #4a2c2a;
+            color: #ff6b6b;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary-pink);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .password-requirements {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
         }
 
         .form-group {
@@ -260,7 +354,7 @@ $conn->close();
     
     <div class="page-container">
         <div class="container">
-            <h1 class="page-title">🔐 Change Password</h1>
+            <h1 style="color: var(--primary-pink); margin-bottom: 30px; font-size: 2rem;">🔐 Change Password</h1>
         
         <?php if ($message): ?>
             <div class="message <?= $message_type ?>">

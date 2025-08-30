@@ -55,6 +55,13 @@ if (!$application) {
             box-shadow: 0 4px 10px var(--shadow-color);
         }
 
+        .page-title {
+            color: var(--primary-pink);
+            margin: 0 0 30px 0;
+            font-size: 2rem;
+            text-align: center;
+        }
+
         .application-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -191,7 +198,6 @@ if (!$application) {
     
     <div class="container">
         <h1 class="page-title">📋 Application Details</h1>
-
         <div class="application-details">
             <!-- Basic Information -->
             <div class="detail-section">

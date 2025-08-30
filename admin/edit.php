@@ -300,7 +300,7 @@ $conn->close();
     <?php renderAdminNavbar('edit.php'); ?>
     
     <div class="container">
-        <h1 class="page-title">✏️ Edit Application</h1>
+        <h1 style="color: var(--primary-pink); margin-bottom: 30px; text-align: center; font-size: 2rem;">✏️ Edit Application</h1>
         
         <div class="app-id">
             Application ID: <?= htmlspecialchars($application_data['application_id']) ?>

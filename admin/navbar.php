@@ -31,6 +31,40 @@ function renderAdminNavbar($currentPage = '') {
 // CSS for the navbar - include this in the <style> section
 function getNavbarCSS() {
     return '
+        :root {
+            --bg-color: #ffc0cb;
+            --container-bg: #fff0f5;
+            --text-color: #333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            --input-bg: #fff0f5;
+            --success-color: #2ed573;
+            --danger-color: #ff4757;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
+
         .header {
             background-color: var(--container-bg);
             padding: 15px 20px;
@@ -39,11 +73,14 @@ function getNavbarCSS() {
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            margin-bottom: 30px;
+            border-radius: 10px;
         }
 
         .header h1 {
             color: var(--primary-pink);
             font-size: 1.5rem;
+            margin: 0;
         }
 
         .header-actions {
@@ -94,6 +131,32 @@ function getNavbarCSS() {
         .btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--container-bg);
+            border: 2px solid var(--secondary-pink);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-pink);
+            color: white;
         }
 
         @media (max-width: 768px) {
