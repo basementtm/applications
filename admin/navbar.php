@@ -43,6 +43,7 @@ function renderAdminNavbar($currentPage = '') {
     if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] === 'emma') {
         $navItems['owner.php'] = ['👧', 'Owner Panel'];
         $navItems['action-logs.php'] = ['📊', 'Action Logs'];
+        $navItems['ip-ban-management.php'] = ['🚫', 'IP Bans'];
     }
     
     echo '<div class="header">';
