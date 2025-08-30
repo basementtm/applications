@@ -244,9 +244,6 @@
   box-sizing: border-box;
   font-size: 1rem;
   transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeUp 1s forwards;
   z-index: 1;
 }
 
@@ -286,6 +283,7 @@
 
 .custom-dropdown.active {
   box-shadow: 0 0 5px rgba(255,20,147,0.5);
+  transform: scale(1.02);
 }
 
 .custom-dropdown.active .options {
