@@ -18,29 +18,7 @@ if ($_SESSION['admin_username'] !== 'emma') {
 }
 
 include('/var/www/config/db_config.php');
-$conn = new mysqli($DB_SERVER, $DB_USE                    <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $admin_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
-                            onclick="return confirm('Are you sure you want to <?= $admin_maintenance_active ? 'disable' : 'enable' ?> admin panel maintenance mode?')">
-                        <?= $admin_maintenance_active ? '✅ Disable Admin Maintenance' : '🔒 Enable Admin Maintenance' ?>
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Form Maintenance -->
-            <div style="margin: 20px 0; padding: 15px; background-color: rgba(46, 213, 115, 0.1); border-radius: 8px; border: 1px solid var(--success-color);">
-                <h4 style="color: var(--success-color); margin-bottom: 10px;">📝 Form Maintenance Mode</h4>
-                <p style="margin-bottom: 15px; font-size: 0.9rem;">Blocks public access to the application form but allows logged-in admins to access it</p>
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
-                    <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
-                    <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
-                            onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode?')">
-                        <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
-                    </button>
-                </form>
-            </div>
-        </div>ASSWORD, $DB_NAME);
+$conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
@@ -177,6 +155,7 @@ if ($admin_maintenance_result && $admin_maintenance_result->num_rows > 0) {
     $admin_maintenance_active = ($admin_maintenance_row['setting_value'] === '1');
 }
 
+$form_maintenance_active = false;
 $form_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'form_maintenance_mode' LIMIT 1";
 $form_maintenance_result = $conn->query($form_maintenance_sql);
 if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
