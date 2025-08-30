@@ -404,6 +404,7 @@ $conn->close();
         <h1>🏠 Admin Dashboard</h1>
         <div class="header-actions">
             <span>Welcome, <?= htmlspecialchars($_SESSION['admin_username']) ?></span>
+            <a href="settings.php" class="btn btn-secondary btn-sm">⚙️ Settings</a>
             <a href="change-password.php" class="btn btn-secondary btn-sm">🔐 Change Password</a>
             <a href="users.php" class="btn btn-secondary btn-sm">👥 Manage Users</a>
             <a href="logout.php" class="btn btn-primary btn-sm">🚪 Logout</a>
