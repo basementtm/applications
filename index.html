@@ -302,7 +302,7 @@
         ⚠️ Applications are temporarily closing at 11PM CEST tonight, and will reopen in the morning.
     </div> -->
     <h1>basement application form</h1>
-    <form action="https://submit.emmameowss.gay/submit.php" method="POST" id="applicationForm">
+    <form action="submit.php" method="POST" id="applicationForm">
       <input type="text" name="name" placeholder="name" required>
       <input type="email" name="email" placeholder="email" required>
       <input type="tel" name="gfphone" placeholder="girlfriend's phone number (optional)">
@@ -357,7 +357,7 @@
   </div>
   <script>
     // Maintenance check
-    fetch("https://submit.emmameowss.gay/status.php")
+    fetch("status.php")
       .then(res => res.json())
       .then(data => {
         if (data.maintenance) {
