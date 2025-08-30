@@ -107,7 +107,7 @@ $conn->close();
       <p>it's either you broke something or i did</p>
       <p>Error: <?= htmlspecialchars($errorMsg) ?></p>
     <?php endif; ?>
-    <a class="button" href="https://apply.emmameowss.gay">Return</a>
+    <a class="button" href="https://girlskissing.dev">Return</a>
   </div>
 </body>
 </html>
