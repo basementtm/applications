@@ -126,75 +126,15 @@ $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
   <?php renderBanner($conn); ?>
   
   <div id="policy-container">
-    <h1>🏠 Data Retention Policy</h1>
-    
-    <div class="highlight">
-      <strong>Last Updated:</strong> August 30, 2025
-    </div>
-
-    <h2>📋 What Information We Collect</h2>
-    <p>When you submit an application to basement™, we collect:</p>
-    <ul>
-      <li>Personal information (name, email, phone number)</li>
-      <li>Address information</li>
-      <li>Discord username (if provided)</li>
-      <li>Cage night preferences</li>
-      <li>Cat status (if applicable) 🐱</li>
-      <li>Additional information you provide</li>
-      <li>Application timestamp and status updates</li>
-    </ul>
-
-    <h2>⏰ How Long We Keep Your Data</h2>
-    <p>We retain your application data as follows:</p>
-    <ul>
-      <li><strong>Active Applications:</strong> Indefinitely while under review</li>
-      <li><strong>Accepted Applications:</strong> For the duration of your membership plus 2 years</li>
-      <li><strong>Denied Applications:</strong> 1 year from denial date</li>
-      <li><strong>Withdrawn Applications:</strong> 6 months from withdrawal</li>
-      <li><strong>Inactive Applications:</strong> 2 years from last activity</li>
-    </ul>
-
-    <h2>🗑️ Data Deletion</h2>
-    <p>After the retention period expires, we automatically delete:</p>
-    <ul>
-      <li>All personal information from our databases</li>
-      <li>Associated files and documents</li>
-      <li>Communication logs related to your application</li>
-    </ul>
-
-    <div class="highlight">
-      <strong>Right to Deletion:</strong> You may request immediate deletion of your data at any time by contacting us, regardless of the retention schedule.
-    </div>
-
-    <h2>🔒 Data Security</h2>
-    <p>Your information is protected through:</p>
-    <ul>
-      <li>Encrypted database storage</li>
-      <li>Secure admin access controls</li>
-      <li>Regular security audits</li>
-      <li>Limited access on a need-to-know basis</li>
-    </ul>
-
-    <h2>📬 Your Rights</h2>
-    <p>You have the right to:</p>
-    <ul>
-      <li>Access your stored data</li>
-      <li>Request corrections to your information</li>
-      <li>Request deletion of your data</li>
-      <li>Withdraw your application at any time</li>
-      <li>Receive a copy of your data</li>
-    </ul>
-
-    <div class="contact-info">
-      <h2>📞 Contact Us</h2>
-      <p>For questions about this policy or to exercise your data rights:</p>
-      <p><strong>Email:</strong> privacy@basement.example</p>
-      <p><strong>Response Time:</strong> Within 30 days</p>
-    </div>
-
-    <div class="back-link">
-      <a href="index.php">← Back to Application Form</a>
-    </div>
+    <h1>Data Retention Policy</h1>
+    <p>
+      All personal data submitted through the basement™ application form is stored securely on our servers for a maximum of 24-48 months.  
+      Once the application has been reviewed by our team, all submitted information is still stored on our systems.
+    </p>
+    <p>
+      This ensures that your personal data is not only used for the purpose of evaluating your application and is kept longer than necessary.
+    </p>
+    <a class="button" href="https://girlskissing.dev/">Back to Application Form</a>
   </div>
   
   <?php

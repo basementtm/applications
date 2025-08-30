@@ -706,8 +706,6 @@ if ($maintenance_active) {
 
     /* Banner styles */
     #notice-banner {
-      background-color: var(--banner-bg);
-      color: var(--banner-text);
       padding: 15px 20px;
       margin: 0;
       font-weight: bold;
@@ -717,26 +715,57 @@ if ($maintenance_active) {
       white-space: normal;
       width: 100%;
       box-sizing: border-box;
-      border-bottom: 2px solid var(--secondary-pink);
       opacity: 0;
       transform: translateY(-20px);
       animation: fadeSlideDown 1.2s 0.3s forwards;
-      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      transition: transform 0.2s, box-shadow 0.2s;
       position: fixed;
       top: 0;
       left: 0;
       z-index: 100;
     }
 
-    .banner-info { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
-    .banner-warning { background-color: #fff3cd; color: #856404; border-color: #ffeaa7; }
-    .banner-error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-    .banner-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+    .banner-info { 
+      background-color: #d1ecf1 !important; 
+      color: #0c5460 !important; 
+      border-bottom: 2px solid #bee5eb !important; 
+    }
+    .banner-warning { 
+      background-color: #fff3cd !important; 
+      color: #856404 !important; 
+      border-bottom: 2px solid #ffeaa7 !important; 
+    }
+    .banner-error { 
+      background-color: #f8d7da !important; 
+      color: #721c24 !important; 
+      border-bottom: 2px solid #f5c6cb !important; 
+    }
+    .banner-success { 
+      background-color: #d4edda !important; 
+      color: #155724 !important; 
+      border-bottom: 2px solid #c3e6cb !important; 
+    }
 
-    [data-theme="dark"] .banner-info { background-color: #0c5460; color: #d1ecf1; }
-    [data-theme="dark"] .banner-warning { background-color: #856404; color: #fff3cd; }
-    [data-theme="dark"] .banner-error { background-color: #721c24; color: #f8d7da; }
-    [data-theme="dark"] .banner-success { background-color: #155724; color: #d4edda; }
+    [data-theme="dark"] .banner-info { 
+      background-color: #0c5460 !important; 
+      color: #d1ecf1 !important; 
+      border-bottom: 2px solid #0c5460 !important; 
+    }
+    [data-theme="dark"] .banner-warning { 
+      background-color: #856404 !important; 
+      color: #fff3cd !important; 
+      border-bottom: 2px solid #856404 !important; 
+    }
+    [data-theme="dark"] .banner-error { 
+      background-color: #721c24 !important; 
+      color: #f8d7da !important; 
+      border-bottom: 2px solid #721c24 !important; 
+    }
+    [data-theme="dark"] .banner-success { 
+      background-color: #155724 !important; 
+      color: #d4edda !important; 
+      border-bottom: 2px solid #155724 !important; 
+    }
 
     @media (max-width: 768px) {
       .main-container {
@@ -779,8 +808,18 @@ if ($maintenance_active) {
   </div>
 
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
+    <?php
+    $emoji = '';
+    switch($banner_settings['type']) {
+        case 'info': $emoji = 'ℹ️'; break;
+        case 'warning': $emoji = '⚠️'; break;
+        case 'error': $emoji = '❌'; break;
+        case 'success': $emoji = '✅'; break;
+        default: $emoji = 'ℹ️'; break;
+    }
+    ?>
     <div id="notice-banner" class="banner-<?= htmlspecialchars($banner_settings['type']) ?>">
-      <?= htmlspecialchars($banner_settings['text']) ?>
+      <?= $emoji ?> <?= htmlspecialchars($banner_settings['text']) ?>
     </div>
   <?php endif; ?>
 
