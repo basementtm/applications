@@ -6,11 +6,15 @@ session_start();
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
+// Include action logger for logging
+require_once 'admin/action_logger.php';
+
 // Check if user is an admin (for IP ban bypass)
 $is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
 // Check if IP is banned (skip check for admins)
 $ip_banned = false;
+$ban_reason = null;
 if (!$is_admin && !$conn->connect_error) {
     $user_ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
     
@@ -25,18 +29,25 @@ if (!$is_admin && !$conn->connect_error) {
     // Check if banned_ips table exists and if IP is banned
     $table_check = $conn->query("SHOW TABLES LIKE 'banned_ips'");
     if ($table_check && $table_check->num_rows > 0) {
-        $ban_check_sql = "SELECT id FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
+        $ban_check_sql = "SELECT id, reason FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
         $ban_stmt = $conn->prepare($ban_check_sql);
         $ban_stmt->bind_param("s", $user_ip);
         $ban_stmt->execute();
         $ban_result = $ban_stmt->get_result();
-        $ip_banned = ($ban_result->num_rows > 0);
+        if ($ban_result->num_rows > 0) {
+            $ip_banned = true;
+            $ban_row = $ban_result->fetch_assoc();
+            $ban_reason = $ban_row['reason'];
+        }
         $ban_stmt->close();
     }
 }
 
-// If IP is banned, show banned page and exit
+// If IP is banned, log the attempt and show banned page
 if ($ip_banned) {
+    // Log the banned IP access attempt
+    logBannedIPAccess('retention.php', $ban_reason);
+    
     http_response_code(403);
     echo "<!DOCTYPE html>
     <html lang='en'>

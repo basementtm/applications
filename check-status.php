@@ -6,11 +6,15 @@ session_start();
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
+// Include action logger for logging
+require_once 'admin/action_logger.php';
+
 // Check if user is an admin (for IP ban bypass)
 $is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
 // Check if IP is banned (skip check for admins)
 $ip_banned = false;
+$ban_reason = null;
 if (!$is_admin && !$conn->connect_error) {
     $user_ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
     
@@ -25,18 +29,25 @@ if (!$is_admin && !$conn->connect_error) {
     // Check if banned_ips table exists and if IP is banned
     $table_check = $conn->query("SHOW TABLES LIKE 'banned_ips'");
     if ($table_check && $table_check->num_rows > 0) {
-        $ban_check_sql = "SELECT id FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
+        $ban_check_sql = "SELECT id, reason FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
         $ban_stmt = $conn->prepare($ban_check_sql);
         $ban_stmt->bind_param("s", $user_ip);
         $ban_stmt->execute();
         $ban_result = $ban_stmt->get_result();
-        $ip_banned = ($ban_result->num_rows > 0);
+        if ($ban_result->num_rows > 0) {
+            $ip_banned = true;
+            $ban_row = $ban_result->fetch_assoc();
+            $ban_reason = $ban_row['reason'];
+        }
         $ban_stmt->close();
     }
 }
 
-// If IP is banned, show banned page and exit
+// If IP is banned, log the attempt and show banned page
 if ($ip_banned) {
+    // Log the banned IP access attempt
+    logBannedIPAccess('check-status.php', $ban_reason);
+    
     http_response_code(403);
     echo "<!DOCTYPE html>
     <html lang='en'>
@@ -131,87 +142,6 @@ if ($conn->connect_error) {
     include('/var/www/config/db_config.php');
     $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
-}
-
-// Include action logger for status check logging
-require_once 'admin/action_logger.php';
-
-// Check if IP is banned (skip check for admins)
-$is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
-$ip_banned = false;
-
-if (!$is_admin && !$conn->connect_error) {
-    $user_ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
-    
-    // Handle proxy/forwarded IPs
-    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $forwarded_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $user_ip = trim($forwarded_ips[0]);
-    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
-        $user_ip = $_SERVER['HTTP_X_REAL_IP'];
-    }
-    
-    // Check if banned_ips table exists and if IP is banned
-    $table_check = $conn->query("SHOW TABLES LIKE 'banned_ips'");
-    if ($table_check && $table_check->num_rows > 0) {
-        $ban_check_sql = "SELECT id FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
-        $ban_stmt = $conn->prepare($ban_check_sql);
-        $ban_stmt->bind_param("s", $user_ip);
-        $ban_stmt->execute();
-        $ban_result = $ban_stmt->get_result();
-        $ip_banned = ($ban_result->num_rows > 0);
-        $ban_stmt->close();
-    }
-}
-
-if ($ip_banned) {
-    http_response_code(403);
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Access Restricted - basement application form</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #ffc0cb;
-                color: #333;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                text-align: center;
-            }
-            .restricted-notice {
-                background: #fff0f5;
-                padding: 40px;
-                border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                max-width: 500px;
-                border: 3px solid #ff1493;
-            }
-            .restricted-notice h1 { color: #ff1493; }
-            .icon { font-size: 3rem; margin-bottom: 20px; }
-            a { color: #ff1493; text-decoration: underline; }
-        </style>
-    </head>
-    <body>
-        <div class="restricted-notice">
-            <div class="icon">🚫</div>
-            <h1>Access Restricted</h1>
-            <p>Your IP address has been restricted from submitting applications and/or checking application status.</p>
-            <p>If you believe this is an error, please contact support.</p>
-        </div>
-    </body>
-    </html>
-    <?php
-    if (isset($conn)) {
-        $conn->close();
-    }
-    exit();
 }
 
 $application_id = $_POST['application_id'] ?? '';

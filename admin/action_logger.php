@@ -199,4 +199,60 @@ function logStatusCheck($application_id, $status_found = true, $applicant_name =
         error_log("Status check logging error: " . $e->getMessage());
     }
 }
+
+// Special function for logging banned IP access attempts (security logging)
+function logBannedIPAccess($page_accessed, $ban_reason = null) {
+    global $conn;
+    
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+    
+    // Handle proxy/forwarded IPs
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwarded_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip_address = trim($forwarded_ips[0]);
+    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+        $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+    }
+    
+    try {
+        $action_type = 'BANNED_IP_ACCESS_ATTEMPT';
+        $description = "Banned IP attempted to access: $page_accessed";
+        
+        $target_type = 'security';
+        $additional_data = [
+            'page_accessed' => $page_accessed,
+            'banned_ip' => $ip_address,
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? 'Unknown',
+            'referer' => $_SERVER['HTTP_REFERER'] ?? 'Unknown'
+        ];
+        
+        if ($ban_reason) {
+            $additional_data['ban_reason'] = $ban_reason;
+        }
+        
+        $additional_data_json = json_encode($additional_data);
+        
+        $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                VALUES (NULL, 'BANNED_IP', ?, ?, ?, NULL, ?, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Failed to prepare statement for banned IP access: " . $conn->error);
+            return;
+        }
+        
+        $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data_json);
+        
+        if (!$stmt->execute()) {
+            error_log("Failed to log banned IP access: " . $stmt->error);
+        } else {
+            error_log("Successfully logged banned IP access attempt: $ip_address -> $page_accessed");
+        }
+        
+        $stmt->close();
+    } catch (Exception $e) {
+        error_log("Banned IP access logging error: " . $e->getMessage());
+    }
+}
 ?>
