@@ -38,7 +38,31 @@ function processScheduledMaintenance($conn) {
     
     // Include action logger if not already included
     if (!function_exists('logAction')) {
-        require_once 'action_logger.php';
+        // Try different possible paths to the action_logger.php file
+        $action_logger_paths = [
+            __DIR__ . '/../admin/action_logger.php',
+            '/var/www/html/admin/action_logger.php',
+            dirname(dirname(__FILE__)) . '/admin/action_logger.php'
+        ];
+        
+        $logger_loaded = false;
+        foreach ($action_logger_paths as $path) {
+            if (file_exists($path)) {
+                require_once $path;
+                $logger_loaded = true;
+                break;
+            }
+        }
+        
+        if (!$logger_loaded) {
+            // If we can't load the logger, create a simple placeholder function
+            if (!function_exists('logAction')) {
+                function logAction($action_type, $description, $module = null, $record_id = null, $additional_data = null) {
+                    // Placeholder function that does nothing
+                    return true;
+                }
+            }
+        }
     }
     
     // Check if it's time for 1-hour warning banner

@@ -25,8 +25,12 @@ if (!$conn->connect_error) {
     }
     
     // Process scheduled maintenance
-    include('includes/scheduled_maintenance_helper.php');
-    processScheduledMaintenance($conn);
+    if (file_exists('includes/scheduled_maintenance_helper.php')) {
+        include('includes/scheduled_maintenance_helper.php');
+        if (function_exists('processScheduledMaintenance')) {
+            processScheduledMaintenance($conn);
+        }
+    }
 }
 
 // Get banner settings
