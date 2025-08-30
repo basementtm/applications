@@ -2,15 +2,8 @@
 session_start();
 
 // Include auth functions for user status checking
-require_once 'auth_functions.phpif (!empty($action_filter)) {
-    if ($action_filter === 'VISITOR') {
-        $where_conditions[] = "action_type LIKE 'VISITOR_%'";
-    } else {
-        $where_conditions[] = "action_type = ?";
-        $params[] = $action_filter;
-        $param_types .= 's';
-    }
-}
+require_once 'auth_functions.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
@@ -117,9 +110,13 @@ $params = [];
 $param_types = '';
 
 if (!empty($action_filter)) {
-    $where_conditions[] = "action_type LIKE ?";
-    $params[] = "%$action_filter%";
-    $param_types .= 's';
+    if ($action_filter === 'VISITOR') {
+        $where_conditions[] = "action_type LIKE 'VISITOR_%'";
+    } else {
+        $where_conditions[] = "action_type LIKE ?";
+        $params[] = "%$action_filter%";
+        $param_types .= 's';
+    }
 }
 
 if (!empty($user_filter)) {
@@ -615,8 +612,10 @@ while ($row = $usernames_result->fetch_assoc()) {
         <div class="page-header">
             <h1>📊 Action Logs</h1>
             <p>Monitor all admin activities and system actions</p>
-            <div style="margin-top: 15px;">
+            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
                 <button onclick="showAddLogModal()" class="btn btn-primary">➕ Add Manual Log</button>
+                <a href="?action_filter=VISITOR" class="btn" style="background-color: #3498db; color: white;">👀 View Visitor Logs</a>
+                <a href="action-logs.php" class="btn btn-secondary">🔄 Show All Logs</a>
             </div>
         </div>
 
