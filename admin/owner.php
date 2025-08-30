@@ -683,7 +683,7 @@ $users_result = $conn->query($users_sql);
             <div style="margin: 20px 0; padding: 15px; background-color: rgba(46, 213, 115, 0.1); border-radius: 8px; border: 1px solid var(--success-color);">
                 <h4 style="color: var(--success-color); margin-bottom: 10px;">📝 Form Maintenance Mode</h4>
                 <p style="margin-bottom: 15px; font-size: 0.9rem;">Blocks public access to the application form only, but allows logged-in admins to access it</p>
-                <form method="POST" style="display: inline;">
+                <form method="POST" action="maintenance-control.php" style="display: inline;">
                     <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
@@ -699,7 +699,7 @@ $users_result = $conn->query($users_sql);
             <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 165, 2, 0.1); border-radius: 8px; border: 1px solid var(--warning-color);">
                 <h4 style="color: var(--warning-color); margin-bottom: 10px;">🌐 Site Maintenance Mode</h4>
                 <p style="margin-bottom: 15px; font-size: 0.9rem;">Closes the entire site for public users (status checker, applications, etc.)</p>
-                <form method="POST" style="display: inline;">
+                <form method="POST" action="maintenance-control.php" style="display: inline;">
                     <input type="hidden" name="new_maintenance_status" value="<?= $site_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
@@ -714,7 +714,7 @@ $users_result = $conn->query($users_sql);
             <div style="margin: 20px 0; padding: 15px; background-color: rgba(0, 123, 255, 0.1); border-radius: 8px; border: 1px solid #007bff;">
                 <h4 style="color: #007bff; margin-bottom: 10px;">👥 Admin Panel Maintenance Mode</h4>
                 <p style="margin-bottom: 15px; font-size: 0.9rem;">Closes the admin panel for all admins except Emma</p>
-                <form method="POST" style="display: inline;">
+                <form method="POST" action="maintenance-control.php" style="display: inline;">
                     <input type="hidden" name="new_maintenance_status" value="<?= $admin_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="admin_maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
@@ -730,7 +730,17 @@ $users_result = $conn->query($users_sql);
             <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 71, 87, 0.1); border-radius: 8px; border: 1px solid var(--danger-color);">
                 <h4 style="color: var(--danger-color); margin-bottom: 10px;">🌍 Global Maintenance Mode</h4>
                 <p style="margin-bottom: 15px; font-size: 0.9rem;"><strong>WARNING:</strong> This will put the entire site (public site and admin panel) into maintenance mode. Only Emma will be able to access the admin panel.</p>
-                <form method="POST" style="display: inline;">
+                <?php if ($site_maintenance_active && $admin_maintenance_active): ?>
+                <form method="POST" action="maintenance-control.php" style="display: inline;">
+                    <input type="hidden" name="action" value="disable_global_maintenance">
+                    <button type="submit" 
+                            class="btn btn-success"
+                            onclick="return confirm('Are you sure you want to disable global maintenance mode? This will turn off both site and admin maintenance modes.')">
+                        ✅ Disable Global Maintenance
+                    </button>
+                </form>
+                <?php else: ?>
+                <form method="POST" action="maintenance-control.php" style="display: inline;">
                     <input type="hidden" name="action" value="global_maintenance">
                     <button type="submit" 
                             class="btn btn-danger"
@@ -738,6 +748,7 @@ $users_result = $conn->query($users_sql);
                         🔒 Enable Global Maintenance
                     </button>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
 

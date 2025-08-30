@@ -253,6 +253,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'timestamp' => date('Y-m-d H:i:s')
                 ];
             }
+        } elseif (isset($_POST['action']) && $_POST['action'] === 'global_maintenance') {
+            $debug_info[] = "Processing global maintenance mode toggle";
+            
+            // Check if site_settings table exists, create if not
+            $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+            if ($table_check->num_rows === 0) {
+                $create_table_sql = "CREATE TABLE site_settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_name VARCHAR(255) UNIQUE NOT NULL,
+                    setting_value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    updated_by VARCHAR(100)
+                )";
+                $conn->query($create_table_sql);
+            }
+            
+            // Set both maintenance modes to ON
+            $admin_username = $_SESSION['admin_username'];
+            
+            // Update admin_maintenance_mode
+            $stmt1 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                                   VALUES ('admin_maintenance_mode', '1', ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = '1', updated_by = ?");
+            $stmt1->bind_param("ss", $admin_username, $admin_username);
+            $success1 = $stmt1->execute();
+            $stmt1->close();
+            
+            // Update maintenance_mode
+            $stmt2 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                                   VALUES ('maintenance_mode', '1', ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = '1', updated_by = ?");
+            $stmt2->bind_param("ss", $admin_username, $admin_username);
+            $success2 = $stmt2->execute();
+            $stmt2->close();
+            
+            if ($success1 && $success2) {
+                $message = "Global maintenance mode enabled successfully. Both public site and admin panel are now in maintenance mode.";
+                
+                // Log the maintenance mode change
+                logAction('MAINTENANCE_GLOBAL_ENABLED', "Admin enabled global maintenance mode", 'maintenance_system', null, [
+                    'maintenance_type' => 'global',
+                    'new_status' => '1'
+                ]);
+            } else {
+                $error = "Error updating global maintenance mode: " . $conn->error;
+            }
+        } elseif (isset($_POST['action']) && $_POST['action'] === 'disable_global_maintenance') {
+            $debug_info[] = "Processing disable global maintenance mode";
+            
+            // Set both maintenance modes to OFF
+            $admin_username = $_SESSION['admin_username'];
+            
+            // Update admin_maintenance_mode
+            $stmt1 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                                   VALUES ('admin_maintenance_mode', '0', ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = '0', updated_by = ?");
+            $stmt1->bind_param("ss", $admin_username, $admin_username);
+            $success1 = $stmt1->execute();
+            $stmt1->close();
+            
+            // Update maintenance_mode
+            $stmt2 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                                   VALUES ('maintenance_mode', '0', ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = '0', updated_by = ?");
+            $stmt2->bind_param("ss", $admin_username, $admin_username);
+            $success2 = $stmt2->execute();
+            $stmt2->close();
+            
+            if ($success1 && $success2) {
+                $message = "Global maintenance mode disabled successfully. Both public site and admin panel maintenance are now turned off.";
+                
+                // Log the maintenance mode change
+                logAction('MAINTENANCE_GLOBAL_DISABLED', "Admin disabled global maintenance mode", 'maintenance_system', null, [
+                    'maintenance_type' => 'global',
+                    'new_status' => '0'
+                ]);
+            } else {
+                $error = "Error disabling global maintenance mode: " . $conn->error;
+            }
         } elseif (isset($_POST['toggle_maintenance'])) {
             $debug_info[] = "Processing maintenance toggle form submission";
             $new_status = $_POST['new_maintenance_status'];
@@ -327,6 +406,14 @@ $site_maintenance_result = $conn->query($site_maintenance_sql);
 if ($site_maintenance_result && $site_maintenance_result->num_rows > 0) {
     $site_maintenance_row = $site_maintenance_result->fetch_assoc();
     $site_maintenance_active = ($site_maintenance_row['setting_value'] === '1');
+}
+
+$admin_maintenance_active = false;
+$admin_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'admin_maintenance_mode' LIMIT 1";
+$admin_maintenance_result = $conn->query($admin_maintenance_sql);
+if ($admin_maintenance_result && $admin_maintenance_result->num_rows > 0) {
+    $admin_maintenance_row = $admin_maintenance_result->fetch_assoc();
+    $admin_maintenance_active = ($admin_maintenance_row['setting_value'] === '1');
 }
 
 $form_maintenance_active = false;
