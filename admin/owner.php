@@ -708,9 +708,18 @@ $users_result = $conn->query($users_sql);
                                 </td>
                                 <td><?= htmlspecialchars($user['created_by_name'] ?: 'System') ?></td>
                                 <td>
-                                    <a href="user-details.php?id=<?= $user['id'] ?>" class="btn btn-sm btn-primary">
-                                        👤 View Details
-                                    </a>
+                                    <?php if ($user['username'] !== 'emma'): ?>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="action" value="toggle_status">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <button type="submit" class="btn btn-sm <?= $user['active'] ? 'btn-danger' : 'btn-success' ?>" 
+                                                    onclick="return confirm('Are you sure you want to <?= $user['active'] ? 'disable' : 'enable' ?> this user?')">
+                                                <?= $user['active'] ? 'Disable' : 'Enable' ?>
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted">Cannot modify</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
