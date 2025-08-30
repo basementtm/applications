@@ -2,36 +2,67 @@
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+
+// Initialize error tracking
+$debug_errors = [];
+$debug_info = [];
 
 session_start();
 
-// Include auth functions for user status checking
-require_once 'auth_functions.php';
+try {
+    // Include auth functions for user status checking
+    require_once 'auth_functions.php';
+    $debug_info[] = "Auth functions loaded successfully";
+} catch (Exception $e) {
+    $debug_errors[] = "Failed to load auth functions: " . $e->getMessage();
+}
 
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    $debug_errors[] = "User not logged in - redirecting to login";
     header("Location: login.php");
     exit();
 }
 
-// Check if user is still active (not disabled)
-checkUserStatus();
+try {
+    // Check if user is still active (not disabled)
+    checkUserStatus();
+    $debug_info[] = "User status check passed";
+} catch (Exception $e) {
+    $debug_errors[] = "User status check failed: " . $e->getMessage();
+}
 
 // Check if user has permission to access maintenance controls
 if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin') {
+    $debug_errors[] = "User has readonly role - access denied";
     header("Location: dashboard.php?error=access_denied");
     exit();
 }
 
-include('/var/www/config/db_config.php');
-$conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    include('/var/www/config/db_config.php');
+    $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed: " . $conn->connect_error);
+    }
+    $debug_info[] = "Database connection successful";
+} catch (Exception $e) {
+    $debug_errors[] = "Database connection failed: " . $e->getMessage();
+    die("Database connection error: " . $e->getMessage());
 }
 
-// Include action logger and scheduled maintenance helper
-require_once 'action_logger.php';
-require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+try {
+    // Include action logger and scheduled maintenance helper
+    require_once 'action_logger.php';
+    $debug_info[] = "Action logger loaded successfully";
+    
+    // Temporarily disable to debug 500 error
+    // require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+    $debug_info[] = "Scheduled maintenance helper temporarily disabled for debugging";
+} catch (Exception $e) {
+    $debug_errors[] = "Failed to load required files: " . $e->getMessage();
+}
 
 // Check admin maintenance mode - only allow Emma to access during maintenance
 if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
@@ -43,13 +74,15 @@ if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma'
             if ($maintenance_result && $maintenance_result->num_rows > 0) {
                 $maintenance_row = $maintenance_result->fetch_assoc();
                 if ($maintenance_row['setting_value'] === '1') {
+                    $debug_info[] = "Admin maintenance mode active - redirecting non-Emma user";
                     header("Location: maintenance.php");
                     exit();
                 }
             }
         }
+        $debug_info[] = "Admin maintenance mode check completed";
     } catch (Exception $e) {
-        // Continue if there's a database error
+        $debug_errors[] = "Admin maintenance mode check failed: " . $e->getMessage();
     }
 }
 
@@ -61,44 +94,102 @@ $error = '';
 
 // Process scheduled maintenance actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['schedule_maintenance'])) {
-        $start_date = $_POST['start_date'];
-        $start_time = $_POST['start_time'];
-        $end_date = $_POST['end_date'];
-        $end_time = $_POST['end_time'];
-        $reason = $_POST['reason'] ?? '';
-        
-        // Combine date and time for start and end
-        $start_datetime = $start_date . ' ' . $start_time . ':00';
-        $end_datetime = $end_date . ' ' . $end_time . ':00';
-        
-        // Validate times
-        $start_timestamp = strtotime($start_datetime);
-        $end_timestamp = strtotime($end_datetime);
-        $current_timestamp = time();
-        
-        if ($start_timestamp <= $current_timestamp) {
-            $error = "Start time must be in the future.";
-        } elseif ($end_timestamp <= $start_timestamp) {
+    try {
+        if (isset($_POST['schedule_maintenance'])) {
+            $debug_info[] = "Processing schedule maintenance form submission";
+            
+            $start_date = $_POST['start_date'];
+            $start_time = $_POST['start_time'];
+            $end_date = $_POST['end_date'];
+            $end_time = $_POST['end_time'];
+            $reason = $_POST['reason'] ?? '';
+            
+            // Combine date and time for start and end
+            $start_datetime = $start_date . ' ' . $start_time . ':00';
+            $end_datetime = $end_date . ' ' . $end_time . ':00';
+            
+            $debug_info[] = "Scheduled times: $start_datetime to $end_datetime";
+            
+            // Validate times
+            $start_timestamp = strtotime($start_datetime);
+            $end_timestamp = strtotime($end_datetime);
+            $current_timestamp = time();
+            
+            if ($start_timestamp <= $current_timestamp) {
+                $error = "Start time must be in the future.";
+                $debug_errors[] = [
+                    'type' => 'Validation Error',
+                    'message' => 'Start time must be in the future',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+            } elseif ($end_timestamp <= $start_timestamp) {
             $error = "End time must be after start time.";
-        } else {
-            $admin_username = $_SESSION['admin_username'] ?? 'system';
-            if (addScheduledMaintenance($conn, $start_datetime, $end_datetime, $reason, $admin_username)) {
-                $message = "Scheduled maintenance added successfully!";
-                logAction('SCHEDULED_MAINTENANCE_CREATED', "Scheduled maintenance from $start_datetime to $end_datetime", 'scheduled_maintenance', null, ['reason' => $reason]);
+                $debug_errors[] = [
+                    'type' => 'Validation Error',
+                    'message' => 'End time must be after start time',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
             } else {
-                $error = "Error scheduling maintenance: " . $conn->error;
+                $admin_username = $_SESSION['admin_username'] ?? 'system';
+                
+                // Check if function exists before calling
+                if (function_exists('addScheduledMaintenance')) {
+                    if (addScheduledMaintenance($conn, $start_datetime, $end_datetime, $reason, $admin_username)) {
+                        $message = "Scheduled maintenance added successfully!";
+                        $debug_info[] = "Scheduled maintenance added successfully";
+                        
+                        if (function_exists('logAction')) {
+                            logAction('SCHEDULED_MAINTENANCE_CREATED', "Scheduled maintenance from $start_datetime to $end_datetime", 'scheduled_maintenance', null, ['reason' => $reason]);
+                            $debug_info[] = "Scheduled maintenance creation logged";
+                        }
+                    } else {
+                        $error = "Error scheduling maintenance: " . $conn->error;
+                        $debug_errors[] = [
+                            'type' => 'Database Error',
+                            'message' => "Error scheduling maintenance: " . $conn->error,
+                            'timestamp' => date('Y-m-d H:i:s')
+                        ];
+                    }
+                } else {
+                    $error = "Scheduled maintenance functions not available";
+                    $debug_errors[] = [
+                        'type' => 'Function Error',
+                        'message' => 'addScheduledMaintenance function not found',
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ];
+                }
             }
-        }
-    } elseif (isset($_POST['cancel_maintenance'])) {
-        $maintenance_id = $_POST['maintenance_id'];
-        if (cancelScheduledMaintenance($conn, $maintenance_id)) {
-            $message = "Scheduled maintenance cancelled successfully!";
-            logAction('SCHEDULED_MAINTENANCE_CANCELLED', "Cancelled scheduled maintenance ID: $maintenance_id", 'scheduled_maintenance', $maintenance_id);
-        } else {
-            $error = "Error cancelling maintenance: " . $conn->error;
-        }
-    } elseif (isset($_POST['toggle_maintenance'])) {
+        } elseif (isset($_POST['cancel_maintenance'])) {
+            $debug_info[] = "Processing cancel maintenance form submission";
+            $maintenance_id = $_POST['maintenance_id'];
+            
+            if (function_exists('cancelScheduledMaintenance')) {
+                if (cancelScheduledMaintenance($conn, $maintenance_id)) {
+                    $message = "Scheduled maintenance cancelled successfully!";
+                    $debug_info[] = "Scheduled maintenance cancelled successfully";
+                    
+                    if (function_exists('logAction')) {
+                        logAction('SCHEDULED_MAINTENANCE_CANCELLED', "Cancelled scheduled maintenance ID: $maintenance_id", 'scheduled_maintenance', $maintenance_id);
+                        $debug_info[] = "Scheduled maintenance cancellation logged";
+                    }
+                } else {
+                    $error = "Error cancelling maintenance: " . $conn->error;
+                    $debug_errors[] = [
+                        'type' => 'Database Error',
+                        'message' => "Error cancelling maintenance: " . $conn->error,
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ];
+                }
+            } else {
+                $error = "Scheduled maintenance functions not available";
+                $debug_errors[] = [
+                    'type' => 'Function Error',
+                    'message' => 'cancelScheduledMaintenance function not found',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+            }
+        } elseif (isset($_POST['toggle_maintenance'])) {
+            $debug_info[] = "Processing maintenance toggle form submission";
     $new_status = $_POST['new_maintenance_status'];
     $maintenance_type = $_POST['maintenance_type'];
     
@@ -141,6 +232,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         logAction($action_type, $description, 'maintenance_system', null, $additional_data);
+        }
+    } catch (Exception $e) {
+        $error = "Form processing error: " . $e->getMessage();
+        $debug_errors[] = [
+            'type' => 'Form Processing Exception',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+    } catch (Error $e) {
+        $error = "PHP Fatal Error: " . $e->getMessage();
+        $debug_errors[] = [
+            'type' => 'PHP Fatal Error',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
     }
 }
 
@@ -161,12 +271,50 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
     $form_maintenance_active = ($form_maintenance_row['setting_value'] === '1');
 }
 
-// Process scheduled maintenance
-processScheduledMaintenance($conn);
-
-// Get scheduled maintenance data
-$current_scheduled_maintenance = getScheduledMaintenance($conn);
-$all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
+// Process scheduled maintenance with error handling
+try {
+    if (file_exists('/var/www/html/includes/scheduled_maintenance_helper.php')) {
+        require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+        $debug_info[] = "Scheduled maintenance helper loaded successfully";
+        
+        processScheduledMaintenance($conn);
+        $debug_info[] = "Scheduled maintenance processed successfully";
+        
+        // Get scheduled maintenance data
+        $current_scheduled_maintenance = getScheduledMaintenance($conn);
+        $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
+        $debug_info[] = "Scheduled maintenance data retrieved successfully";
+    } else {
+        $debug_errors[] = [
+            'type' => 'File Error',
+            'message' => 'Scheduled maintenance helper file not found',
+            'file' => '/var/www/html/includes/scheduled_maintenance_helper.php',
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+        $current_scheduled_maintenance = null;
+        $all_scheduled_maintenance = [];
+    }
+} catch (Exception $e) {
+    $debug_errors[] = [
+        'type' => 'Scheduled Maintenance Error',
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    $current_scheduled_maintenance = null;
+    $all_scheduled_maintenance = [];
+} catch (Error $e) {
+    $debug_errors[] = [
+        'type' => 'PHP Fatal Error',
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    $current_scheduled_maintenance = null;
+    $all_scheduled_maintenance = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -406,12 +554,121 @@ $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
                 padding: 15px;
             }
         }
+
+        /* Error Display Styles */
+        .debug-panel {
+            background-color: #f8f9fa;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .debug-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+
+        .debug-info {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 8px;
+            margin: 3px 0;
+            border-radius: 4px;
+        }
+
+        .error-details {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .toggle-debug {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
     <?php renderAdminNavbar('maintenance-control.php'); ?>
+
+    <!-- Debug Information Panel -->
+    <?php if (!empty($debug_errors) || !empty($debug_info)): ?>
+    <div class="container">
+        <div class="debug-panel">
+            <button class="toggle-debug" onclick="toggleDebugInfo()">🐛 Toggle Debug Information</button>
+            <div id="debug-content" style="display: none;">
+                
+                <?php if (!empty($debug_errors)): ?>
+                <h4 style="color: #dc3545; margin-bottom: 10px;">🚨 Errors Detected:</h4>
+                <?php foreach ($debug_errors as $error): ?>
+                <div class="debug-error">
+                    <strong><?= htmlspecialchars($error['type'] ?? 'Error') ?>:</strong> 
+                    <?= htmlspecialchars($error['message']) ?>
+                    <?php if (isset($error['file']) && isset($error['line'])): ?>
+                    <div class="error-details">
+                        File: <?= htmlspecialchars($error['file']) ?> (Line <?= $error['line'] ?>)
+                        <?php if (isset($error['timestamp'])): ?>
+                        <br>Time: <?= htmlspecialchars($error['timestamp']) ?>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
+
+                <?php if (!empty($debug_info)): ?>
+                <h4 style="color: #28a745; margin: 15px 0 10px 0;">ℹ️ Debug Information:</h4>
+                <?php foreach ($debug_info as $info): ?>
+                <div class="debug-info"><?= htmlspecialchars($info) ?></div>
+                <?php endforeach; ?>
+                <?php endif; ?>
+
+                <div class="error-details" style="margin-top: 15px;">
+                    <strong>PHP Version:</strong> <?= PHP_VERSION ?><br>
+                    <strong>Memory Usage:</strong> <?= memory_get_usage(true) / 1024 / 1024 ?> MB<br>
+                    <strong>Current Time:</strong> <?= date('Y-m-d H:i:s') ?><br>
+                    <strong>Server:</strong> <?= $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown' ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Log errors to console
+        console.group('🐛 Debug Information');
+        <?php if (!empty($debug_errors)): ?>
+        console.error('Errors detected:', <?= json_encode($debug_errors) ?>);
+        <?php endif; ?>
+        <?php if (!empty($debug_info)): ?>
+        console.info('Debug info:', <?= json_encode($debug_info) ?>);
+        <?php endif; ?>
+        console.groupEnd();
+
+        function toggleDebugInfo() {
+            const content = document.getElementById('debug-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+    <?php endif; ?>
 
     <div class="container">
         <div class="section">
