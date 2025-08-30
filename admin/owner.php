@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle maintenance mode toggle
     if (isset($_POST['toggle_maintenance'])) {
         $new_status = $_POST['new_maintenance_status'];
+        $maintenance_type = $_POST['maintenance_type'];
         
         // Check if site_settings table exists, create if not
         $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
@@ -68,10 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) VALUES (?, ?, ?) 
                                ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?");
         $stmt->bind_param("sssss", $setting_name, $new_status, $admin_username, $new_status, $admin_username);
-        $setting_name = 'maintenance_mode';
+        $setting_name = $maintenance_type;
         
         if ($stmt->execute()) {
-            $message = "Maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
+            $type_label = ($maintenance_type === 'admin_maintenance_mode') ? "Admin Panel" : "Site";
+            $message = "$type_label maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
         } else {
             $error = "Error updating maintenance mode: " . $conn->error;
         }
@@ -135,13 +137,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get current maintenance status
-$maintenance_active = false;
-$maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
-$maintenance_result = $conn->query($maintenance_sql);
-if ($maintenance_result && $maintenance_result->num_rows > 0) {
-    $maintenance_row = $maintenance_result->fetch_assoc();
-    $maintenance_active = ($maintenance_row['setting_value'] === '1');
+// Get current maintenance status for both site and admin panel
+$site_maintenance_active = false;
+$admin_maintenance_active = false;
+
+$site_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+$site_maintenance_result = $conn->query($site_maintenance_sql);
+if ($site_maintenance_result && $site_maintenance_result->num_rows > 0) {
+    $site_maintenance_row = $site_maintenance_result->fetch_assoc();
+    $site_maintenance_active = ($site_maintenance_row['setting_value'] === '1');
+}
+
+$admin_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'admin_maintenance_mode' LIMIT 1";
+$admin_maintenance_result = $conn->query($admin_maintenance_sql);
+if ($admin_maintenance_result && $admin_maintenance_result->num_rows > 0) {
+    $admin_maintenance_row = $admin_maintenance_result->fetch_assoc();
+    $admin_maintenance_active = ($admin_maintenance_row['setting_value'] === '1');
 }
 
 // Get application count
@@ -483,23 +494,49 @@ $users_result = $conn->query($users_sql);
                 <div class="stat-label">Total Applications</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><?= $maintenance_active ? 'ON' : 'OFF' ?></div>
-                <div class="stat-label">Maintenance Mode</div>
+                <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
+                <div class="stat-label">Site Maintenance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $admin_maintenance_active ? 'ON' : 'OFF' ?></div>
+                <div class="stat-label">Admin Panel Maintenance</div>
             </div>
         </div>
 
         <!-- Maintenance Mode Control -->
         <div class="section">
             <h3>🚧 Maintenance Mode Control</h3>
-            <p>Toggle maintenance mode to close/open the admin panel for regular admins.</p>
-            <form method="POST" style="margin-top: 15px;">
-                <input type="hidden" name="new_maintenance_status" value="<?= $maintenance_active ? '0' : '1' ?>">
-                <button type="submit" name="toggle_maintenance" 
-                        class="btn <?= $maintenance_active ? 'btn-success' : 'btn-warning' ?>"
-                        onclick="return confirm('Are you sure you want to <?= $maintenance_active ? 'disable' : 'enable' ?> maintenance mode?')">
-                    <?= $maintenance_active ? '✅ Disable Maintenance Mode' : '🚧 Enable Maintenance Mode' ?>
-                </button>
-            </form>
+            <p>Control maintenance modes separately for the site and admin panel.</p>
+            
+            <!-- Site Maintenance -->
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 165, 2, 0.1); border-radius: 8px; border: 1px solid var(--warning-color);">
+                <h4 style="color: var(--warning-color); margin-bottom: 10px;">🌐 Site Maintenance Mode</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;">Closes the entire site for public users (status checker, applications, etc.)</p>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="new_maintenance_status" value="<?= $site_maintenance_active ? '0' : '1' ?>">
+                    <input type="hidden" name="maintenance_type" value="maintenance_mode">
+                    <button type="submit" name="toggle_maintenance" 
+                            class="btn <?= $site_maintenance_active ? 'btn-success' : 'btn-warning' ?>"
+                            onclick="return confirm('Are you sure you want to <?= $site_maintenance_active ? 'disable' : 'enable' ?> site maintenance mode?')">
+                        <?= $site_maintenance_active ? '✅ Disable Site Maintenance' : '🚧 Enable Site Maintenance' ?>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Admin Panel Maintenance -->
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 71, 87, 0.1); border-radius: 8px; border: 1px solid var(--danger-color);">
+                <h4 style="color: var(--danger-color); margin-bottom: 10px;">👥 Admin Panel Maintenance Mode</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;">Closes the admin panel for all admins except Emma</p>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="new_maintenance_status" value="<?= $admin_maintenance_active ? '0' : '1' ?>">
+                    <input type="hidden" name="maintenance_type" value="admin_maintenance_mode">
+                    <button type="submit" name="toggle_maintenance" 
+                            class="btn <?= $admin_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
+                            onclick="return confirm('Are you sure you want to <?= $admin_maintenance_active ? 'disable' : 'enable' ?> admin panel maintenance mode?')">
+                        <?= $admin_maintenance_active ? '✅ Disable Admin Maintenance' : '� Enable Admin Maintenance' ?>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Dangerous Operations -->

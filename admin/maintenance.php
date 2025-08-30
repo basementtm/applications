@@ -18,7 +18,7 @@ $maintenance_active = false;
 try {
     $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
     if ($table_check && $table_check->num_rows > 0) {
-        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'admin_maintenance_mode' LIMIT 1";
         $maintenance_result = $conn->query($maintenance_sql);
         if ($maintenance_result && $maintenance_result->num_rows > 0) {
             $maintenance_row = $maintenance_result->fetch_assoc();
