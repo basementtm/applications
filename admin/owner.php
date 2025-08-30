@@ -96,7 +96,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = "$type_label maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
             
             // Log the maintenance mode change
-            logMaintenanceAction($new_status === '1');
+            if ($maintenance_type === 'admin_maintenance_mode') {
+                // Use the dedicated function for admin maintenance
+                logMaintenanceAction($new_status === '1');
+            } else {
+                // For other maintenance types, use the general logAction function
+                $action_type = 'MAINTENANCE_' . strtoupper($type_label) . '_' . ($new_status === '1' ? 'ENABLED' : 'DISABLED');
+                $description = "Admin " . ($new_status === '1' ? 'enabled' : 'disabled') . " $type_label maintenance mode";
+                logAction($action_type, $description, 'maintenance_system', null, [
+                    'maintenance_type' => $maintenance_type,
+                    'new_status' => $new_status
+                ]);
+            }
         } else {
             $error = "Error updating maintenance mode: " . $conn->error;
         }
@@ -611,7 +622,7 @@ $users_result = $conn->query($users_sql);
                     <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-success' ?>"
+                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
                             onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode?')">
                         <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
                     </button>

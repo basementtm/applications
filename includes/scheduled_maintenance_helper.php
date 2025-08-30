@@ -100,13 +100,13 @@ function updateMaintenanceBanner($conn, $type, $maintenance) {
     $end_time_formatted = date('g:i A T', strtotime($maintenance['end_time']));
     
     if ($type === 'warning') {
-        $text = "⚠️ SCHEDULED MAINTENANCE ALERT: Maintenance will begin in less than 1 hour at {$start_time_formatted} and end at {$end_time_formatted}";
+        $text = "Notice: Maintenance will begin in less than 1 hour at {$start_time_formatted} and end at {$end_time_formatted}";
         if (!empty($maintenance['reason'])) {
             $text .= ". Reason: " . $maintenance['reason'];
         }
         $banner_type = 'error'; // Red banner
     } else {
-        $text = "📅 SCHEDULED MAINTENANCE: Maintenance is scheduled for {$start_time_formatted} to {$end_time_formatted}";
+        $text = "Notice: Maintenance is scheduled for {$start_time_formatted} to {$end_time_formatted}";
         if (!empty($maintenance['reason'])) {
             $text .= ". Reason: " . $maintenance['reason'];
         }
@@ -197,6 +197,97 @@ function cancelScheduledMaintenance($conn, $maintenance_id) {
     $active_maintenance = getScheduledMaintenance($conn);
     if (empty($active_maintenance)) {
         hideMaintenanceBanner($conn);
+    }
+    
+    return $result;
+}
+
+function startMaintenanceEarly($conn, $maintenance_id) {
+    // Get the maintenance record to verify it's active and not yet started
+    $stmt = $conn->prepare("SELECT * FROM scheduled_maintenance WHERE id = ?");
+    $stmt->bind_param("i", $maintenance_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        $stmt->close();
+        return false; // Maintenance record not found
+    }
+    
+    $maintenance = $result->fetch_assoc();
+    $stmt->close();
+    
+    // Only allow starting early if maintenance has not started yet and is active
+    if ($maintenance['maintenance_started'] == 1 || $maintenance['is_active'] != 1) {
+        return false;
+    }
+    
+    // Check if the started_early column exists
+    $column_check = $conn->query("SHOW COLUMNS FROM scheduled_maintenance LIKE 'started_early'");
+    $has_started_early_column = ($column_check && $column_check->num_rows > 0);
+    
+    // Mark as started now
+    if ($has_started_early_column) {
+        $stmt = $conn->prepare("UPDATE scheduled_maintenance SET 
+                               maintenance_started = 1, 
+                               start_time = NOW(),
+                               started_early = 1
+                               WHERE id = ?");
+    } else {
+        $stmt = $conn->prepare("UPDATE scheduled_maintenance SET 
+                               maintenance_started = 1, 
+                               start_time = NOW()
+                               WHERE id = ?");
+    }
+    
+    $stmt->bind_param("i", $maintenance_id);
+    $result = $stmt->execute();
+    $stmt->close();
+    
+    if ($result) {
+        // Enable maintenance mode
+        enableMaintenanceMode($conn);
+        // Hide warning banners
+        hideMaintenanceBanner($conn);
+    }
+    
+    return $result;
+}
+
+function endMaintenanceEarly($conn, $maintenance_id) {
+    // Get the maintenance record to verify it's active and started
+    $stmt = $conn->prepare("SELECT * FROM scheduled_maintenance WHERE id = ?");
+    $stmt->bind_param("i", $maintenance_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        $stmt->close();
+        return false; // Maintenance record not found
+    }
+    
+    $maintenance = $result->fetch_assoc();
+    $stmt->close();
+    
+    // Only allow ending early if maintenance has started and not completed
+    if ($maintenance['maintenance_started'] != 1 || $maintenance['maintenance_completed'] == 1) {
+        return false;
+    }
+    
+    // Mark as completed, but keep it in history
+    $stmt = $conn->prepare("UPDATE scheduled_maintenance SET 
+                            maintenance_completed = 1, 
+                            is_active = 0,
+                            end_time = NOW(),
+                            ended_early = 1
+                            WHERE id = ?");
+    $stmt->bind_param("i", $maintenance_id);
+    $result = $stmt->execute();
+    $stmt->close();
+    
+    if ($result) {
+        // Disable maintenance mode
+        disableMaintenanceMode($conn);
     }
     
     return $result;

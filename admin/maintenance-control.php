@@ -166,6 +166,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                 }
             }
+        } elseif (isset($_POST['start_maintenance_early'])) {
+            $debug_info[] = "Processing start maintenance early form submission";
+            $maintenance_id = $_POST['maintenance_id'];
+            
+            if (function_exists('startMaintenanceEarly')) {
+                if (startMaintenanceEarly($conn, $maintenance_id)) {
+                    $message = "Maintenance started early successfully!";
+                    $debug_info[] = "Maintenance started early successfully";
+                    
+                    if (function_exists('logAction')) {
+                        logAction('SCHEDULED_MAINTENANCE_STARTED_EARLY', "Started scheduled maintenance early ID: $maintenance_id", 'scheduled_maintenance', $maintenance_id);
+                        $debug_info[] = "Maintenance early start logged";
+                    }
+                } else {
+                    $error = "Error starting maintenance early: " . $conn->error;
+                    $debug_errors[] = [
+                        'type' => 'Database Error',
+                        'message' => "Error starting maintenance early: " . $conn->error,
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ];
+                }
+            } else {
+                $error = "Scheduled maintenance functions not available";
+                $debug_errors[] = [
+                    'type' => 'Function Error',
+                    'message' => 'startMaintenanceEarly function not found',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+            }
+        } elseif (isset($_POST['end_maintenance_early'])) {
+            $debug_info[] = "Processing end maintenance early form submission";
+            $maintenance_id = $_POST['maintenance_id'];
+            
+            if (function_exists('endMaintenanceEarly')) {
+                if (endMaintenanceEarly($conn, $maintenance_id)) {
+                    $message = "Maintenance ended early successfully!";
+                    $debug_info[] = "Maintenance ended early successfully";
+                    
+                    if (function_exists('logAction')) {
+                        logAction('SCHEDULED_MAINTENANCE_ENDED_EARLY', "Ended scheduled maintenance early ID: $maintenance_id", 'scheduled_maintenance', $maintenance_id);
+                        $debug_info[] = "Maintenance early end logged";
+                    }
+                } else {
+                    $error = "Error ending maintenance early: " . $conn->error;
+                    $debug_errors[] = [
+                        'type' => 'Database Error',
+                        'message' => "Error ending maintenance early: " . $conn->error,
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ];
+                }
+            } else {
+                $error = "Scheduled maintenance functions not available";
+                $debug_errors[] = [
+                    'type' => 'Function Error',
+                    'message' => 'endMaintenanceEarly function not found',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+            }
         } elseif (isset($_POST['cancel_maintenance'])) {
             $debug_info[] = "Processing cancel maintenance form submission";
             $maintenance_id = $_POST['maintenance_id'];
@@ -626,50 +684,6 @@ try {
             <div class="message error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <!-- Site Maintenance Control -->
-        <div class="maintenance-control">
-            <h4>🌐 Site Maintenance Mode</h4>
-            <p>Completely closes the entire site for all public users. This includes the application form, status checker, and all public pages. Only admin panel remains accessible.</p>
-            
-            <div class="status-indicator <?= $site_maintenance_active ? 'status-enabled' : 'status-disabled' ?>">
-                Status: <?= $site_maintenance_active ? 'ENABLED - Site is closed' : 'DISABLED - Site is open' ?>
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="new_maintenance_status" value="<?= $site_maintenance_active ? '0' : '1' ?>">
-                    <input type="hidden" name="maintenance_type" value="maintenance_mode">
-                    <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $site_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
-                            onclick="return confirm('Are you sure you want to <?= $site_maintenance_active ? 'disable' : 'enable' ?> site maintenance mode? This will <?= $site_maintenance_active ? 'open' : 'close' ?> the entire site for public users.')">
-                        <?= $site_maintenance_active ? '✅ Disable Site Maintenance' : '🚧 Enable Site Maintenance' ?>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Form Maintenance Control -->
-        <div class="maintenance-control">
-            <h4>📝 Form Maintenance Mode</h4>
-            <p>Blocks public access to the application form only, but allows logged-in admins to access it. Status checker and other public pages remain accessible.</p>
-            
-            <div class="status-indicator <?= $form_maintenance_active ? 'status-enabled' : 'status-disabled' ?>">
-                Status: <?= $form_maintenance_active ? 'ENABLED - Form closed to public' : 'DISABLED - Form is open' ?>
-            </div>
-            
-            <div style="margin-top: 15px;">
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
-                    <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
-                    <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
-                            onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode? This will <?= $form_maintenance_active ? 'open' : 'close' ?> the application form for public users.')">
-                        <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
-                    </button>
-                </form>
-            </div>
-        </div>
-
         <!-- Scheduled Maintenance Control -->
         <div class="maintenance-control">
             <h4>⏰ Scheduled Maintenance</h4>
@@ -680,11 +694,41 @@ try {
                     Scheduled: <?= date('F j, Y \a\t g:i A T', strtotime($current_scheduled_maintenance['start_time'])) ?> 
                     to <?= date('g:i A T', strtotime($current_scheduled_maintenance['end_time'])) ?>
                     <?php if ($current_scheduled_maintenance['reason']): ?>
-                        <br><small>Reason: <?= htmlspecialchars($current_scheduled_maintenance['reason']) ?></small>
+                        <br><small>Reason: <?= htmlspecialchars(is_array($current_scheduled_maintenance['reason']) ? json_encode($current_scheduled_maintenance['reason']) : $current_scheduled_maintenance['reason']) ?></small>
+                    <?php endif; ?>
+                    
+                    <?php if ($current_scheduled_maintenance['maintenance_started'] && !$current_scheduled_maintenance['maintenance_completed'] && !empty($current_scheduled_maintenance['started_early'])): ?>
+                        <br><span style="color: var(--danger-color); font-weight: bold;">🔧 Maintenance currently active (started early)</span>
+                    <?php elseif ($current_scheduled_maintenance['maintenance_started'] && !$current_scheduled_maintenance['maintenance_completed']): ?>
+                        <br><span style="color: var(--danger-color); font-weight: bold;">🔧 Maintenance currently active</span>
+                    <?php elseif ($current_scheduled_maintenance['maintenance_completed'] && !empty($current_scheduled_maintenance['ended_early'])): ?>
+                        <br><span style="color: var(--success-color); font-weight: bold;">✅ Maintenance ended early</span>
+                    <?php elseif ($current_scheduled_maintenance['maintenance_completed']): ?>
+                        <br><span style="color: var(--success-color); font-weight: bold;">✅ Maintenance completed</span>
                     <?php endif; ?>
                 </div>
                 
-                <div style="margin-top: 15px;">
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <?php if ($current_scheduled_maintenance['maintenance_started'] && !$current_scheduled_maintenance['maintenance_completed']): ?>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="maintenance_id" value="<?= $current_scheduled_maintenance['id'] ?>">
+                            <button type="submit" name="end_maintenance_early" 
+                                    class="btn btn-warning"
+                                    onclick="return confirm('Are you sure you want to end this maintenance early? This will disable maintenance mode immediately.')">
+                                ⏱️ End Maintenance Early
+                            </button>
+                        </form>
+                    <?php elseif (!$current_scheduled_maintenance['maintenance_started'] && $current_scheduled_maintenance['is_active']): ?>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="maintenance_id" value="<?= $current_scheduled_maintenance['id'] ?>">
+                            <button type="submit" name="start_maintenance_early" 
+                                    class="btn btn-warning"
+                                    onclick="return confirm('Are you sure you want to start this maintenance early? This will enable maintenance mode immediately.')">
+                                ⏱️ Start Maintenance Early
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                    
                     <form method="POST" style="display: inline;">
                         <input type="hidden" name="maintenance_id" value="<?= $current_scheduled_maintenance['id'] ?>">
                         <button type="submit" name="cancel_maintenance" 
@@ -759,9 +803,17 @@ try {
                             <td style="padding: 8px; border: 1px solid var(--border-color);">
                                 <?php 
                                 if ($maintenance['maintenance_completed']) {
-                                    echo '<span style="color: var(--success-color);">✅ Completed</span>';
+                                    if (!empty($maintenance['ended_early'])) {
+                                        echo '<span style="color: var(--success-color);">✅ Ended Early</span>';
+                                    } else {
+                                        echo '<span style="color: var(--success-color);">✅ Completed</span>';
+                                    }
                                 } elseif ($maintenance['maintenance_started']) {
-                                    echo '<span style="color: var(--danger-color);">🔧 In Progress</span>';
+                                    if (!empty($maintenance['started_early'])) {
+                                        echo '<span style="color: var(--danger-color);">🔧 Started Early</span>';
+                                    } else {
+                                        echo '<span style="color: var(--danger-color);">🔧 In Progress</span>';
+                                    }
                                 } elseif (!$maintenance['is_active']) {
                                     echo '<span style="color: var(--border-color);">❌ Cancelled</span>';
                                 } else {
