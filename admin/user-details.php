@@ -132,6 +132,7 @@ $conn->close();
             --text-color: #e0d0e0;
             --primary-pink: #ff6bb3;
             --secondary-pink: #d147a3;
+            --light-pink: #d147a3;
             --border-color: #666;
             --shadow-color: rgba(0,0,0,0.3);
             --input-bg: #4a3a4a;
