@@ -115,6 +115,7 @@ function logApplicationSubmission($application_id, $applicant_name, $applicant_e
     try {
         $action_type = 'APPLICATION_SUBMITTED';
         $description = "New application submitted: $application_id";
+        $target_type = 'application';
         $additional_data = json_encode([
             'application_id' => $application_id,
             'applicant_name' => $applicant_name,
@@ -125,11 +126,17 @@ function logApplicationSubmission($application_id, $applicant_name, $applicant_e
                 VALUES (NULL, NULL, ?, ?, ?, NULL, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Failed to prepare statement for application submission: " . $conn->error);
+            return;
+        }
+        
         $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data);
-        $target_type = 'application';
         
         if (!$stmt->execute()) {
             error_log("Failed to log application submission: " . $stmt->error);
+        } else {
+            error_log("Successfully logged application submission: $application_id");
         }
         
         $stmt->close();
@@ -158,6 +165,7 @@ function logStatusCheck($application_id, $status_found = true, $applicant_name =
             "Application status checked: $application_id" : 
             "Failed status check attempt for: $application_id";
         
+        $target_type = 'application';
         $additional_data = [
             'application_id' => $application_id,
             'status_found' => $status_found
@@ -173,11 +181,17 @@ function logStatusCheck($application_id, $status_found = true, $applicant_name =
                 VALUES (NULL, NULL, ?, ?, ?, NULL, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Failed to prepare statement for status check: " . $conn->error);
+            return;
+        }
+        
         $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data_json);
-        $target_type = 'application';
         
         if (!$stmt->execute()) {
             error_log("Failed to log status check: " . $stmt->error);
+        } else {
+            error_log("Successfully logged status check: $application_id");
         }
         
         $stmt->close();

@@ -103,7 +103,7 @@ $stmt->bind_param("ssssisssiss", $applicationId, $name, $email, $gfphone, $reaso
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
 
-// Log the application submission if successful
+// Log the application submission if successful (before closing connection)
 if ($success) {
     logApplicationSubmission($applicationId, $name, $email);
 }
