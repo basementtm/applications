@@ -65,6 +65,32 @@ function logApplicationAction($action, $app_id, $app_name) {
     logAction($action_type, $description, 'application', $app_id);
 }
 
+function logApplicationView($app_id, $app_name) {
+    $action_type = 'ADMIN_APPLICATION_VIEWED';
+    $description = "Admin viewed application '$app_name'";
+    
+    $additional_data = [
+        'application_id' => $app_id,
+        'applicant_name' => $app_name
+    ];
+    
+    logAction($action_type, $description, 'application', $app_id, $additional_data);
+}
+
+function logApplicationStatusChange($app_id, $app_name, $old_status, $new_status) {
+    $action_type = 'ADMIN_APPLICATION_STATUS_CHANGED';
+    $description = "Admin changed application status for '$app_name' from '$old_status' to '$new_status'";
+    
+    $additional_data = [
+        'application_id' => $app_id,
+        'applicant_name' => $app_name,
+        'old_status' => $old_status,
+        'new_status' => $new_status
+    ];
+    
+    logAction($action_type, $description, 'application', $app_id, $additional_data);
+}
+
 function logUserAction($action, $target_user_id, $target_username) {
     $action_type = 'ADMIN_USER_' . strtoupper($action);
     $description = "Admin $action user '$target_username'";

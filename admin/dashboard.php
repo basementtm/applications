@@ -8,6 +8,9 @@ ini_set('display_errors', 1);
 // Include auth functions for user status checking
 require_once 'auth_functions.php';
 
+// Include action logging functions
+require_once 'action_logger.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
@@ -130,11 +133,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $new_status = $_POST['new_status'] ?? '';
     
     if (!empty($application_id) && !empty($new_status)) {
-        $update_sql = "UPDATE applicants SET status = ? WHERE application_id = ?";
-        $update_stmt = $conn->prepare($update_sql);
-        $update_stmt->bind_param("ss", $new_status, $application_id);
-        $update_stmt->execute();
-        $update_stmt->close();
+        // Get current application data for logging
+        $current_sql = "SELECT name, status FROM applicants WHERE application_id = ?";
+        $current_stmt = $conn->prepare($current_sql);
+        $current_stmt->bind_param("s", $application_id);
+        $current_stmt->execute();
+        $current_result = $current_stmt->get_result();
+        $current_data = $current_result->fetch_assoc();
+        $current_stmt->close();
+        
+        if ($current_data) {
+            $old_status = $current_data['status'];
+            $applicant_name = $current_data['name'];
+            
+            // Update the status
+            $update_sql = "UPDATE applicants SET status = ? WHERE application_id = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            $update_stmt->bind_param("ss", $new_status, $application_id);
+            $update_stmt->execute();
+            $update_stmt->close();
+            
+            // Log the status change
+            logApplicationStatusChange($application_id, $applicant_name, $old_status, $new_status);
+        }
         
         // Redirect to prevent form resubmission
         header("Location: dashboard.php?updated=" . urlencode($application_id));
@@ -154,6 +175,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
     $bulk_status = $_POST['bulk_status'] ?? '';
     
     if (!empty($selected_applications) && !empty($bulk_status) && is_array($selected_applications)) {
+        // Get current application data for logging
+        $placeholders_select = str_repeat('?,', count($selected_applications) - 1) . '?';
+        $current_sql = "SELECT application_id, name, status FROM applicants WHERE application_id IN ($placeholders_select)";
+        $current_stmt = $conn->prepare($current_sql);
+        $types_select = str_repeat('s', count($selected_applications));
+        $current_stmt->bind_param($types_select, ...$selected_applications);
+        $current_stmt->execute();
+        $current_result = $current_stmt->get_result();
+        
+        $applications_data = [];
+        while ($row = $current_result->fetch_assoc()) {
+            $applications_data[$row['application_id']] = $row;
+        }
+        $current_stmt->close();
+        
+        // Perform bulk update
         $placeholders = str_repeat('?,', count($selected_applications) - 1) . '?';
         $bulk_sql = "UPDATE applicants SET status = ? WHERE application_id IN ($placeholders)";
         $bulk_stmt = $conn->prepare($bulk_sql);
@@ -165,6 +202,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
         $bulk_stmt->execute();
         $affected_rows = $bulk_stmt->affected_rows;
         $bulk_stmt->close();
+        
+        // Log each status change
+        foreach ($selected_applications as $app_id) {
+            if (isset($applications_data[$app_id])) {
+                $app_data = $applications_data[$app_id];
+                $old_status = $app_data['status'];
+                $applicant_name = $app_data['name'];
+                
+                // Only log if status actually changed
+                if ($old_status !== $bulk_status) {
+                    logApplicationStatusChange($app_id, $applicant_name, $old_status, $bulk_status);
+                }
+            }
+        }
+        
+        // Log the bulk action
+        logAction('ADMIN_BULK_STATUS_UPDATE', "Admin performed bulk status update on {$affected_rows} applications to status: {$bulk_status}", 'application', null, [
+            'new_status' => $bulk_status,
+            'affected_count' => $affected_rows,
+            'application_ids' => $selected_applications
+        ]);
         
         // Redirect with success message
         header("Location: dashboard.php?bulk_updated=" . $affected_rows);

@@ -40,6 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $preferredLocation = trim($_POST['preferredLocation'] ?? '');
     $status = $_POST['status'] ?? '';
     
+    // Get current application data for comparison
+    $current_sql = "SELECT * FROM applicants WHERE application_id = ?";
+    $current_stmt = $conn->prepare($current_sql);
+    $current_stmt->bind_param("s", $application_id);
+    $current_stmt->execute();
+    $current_result = $current_stmt->get_result();
+    $current_data = $current_result->fetch_assoc();
+    $current_stmt->close();
+    
     // Validation
     if (empty($name) || empty($email) || $cage < 0 || $cage > 7 || empty($isCat) || empty($status)) {
         $message = "Please fill in all required fields correctly.";
@@ -48,6 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "Please enter a valid email address.";
         $message_type = "error";
     } else {
+        // Check if status changed
+        $status_changed = ($current_data['status'] !== $status);
+        $old_status = $current_data['status'];
+        
         // Update application
         $sql = "UPDATE applicants SET name = ?, email = ?, cage = ?, isCat = ?, preferredLocation = ?, status = ? WHERE application_id = ?";
         $stmt = $conn->prepare($sql);
@@ -59,6 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Log the application edit action
             logApplicationAction('edited', $application_id, $name);
+            
+            // Log status change if it occurred
+            if ($status_changed) {
+                logApplicationStatusChange($application_id, $name, $old_status, $status);
+            }
         } else {
             $message = "Error updating application. Please try again.";
             $message_type = "error";

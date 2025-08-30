@@ -4,6 +4,9 @@ session_start();
 // Include auth functions for user status checking
 require_once 'auth_functions.php';
 
+// Include action logging functions
+require_once 'action_logger.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
@@ -31,6 +34,9 @@ if (!empty($application_id)) {
     
     if ($result->num_rows > 0) {
         $application = $result->fetch_assoc();
+        
+        // Log the application view action
+        logApplicationView($application_id, $application['name']);
     }
     $stmt->close();
 }
