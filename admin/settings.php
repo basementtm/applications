@@ -37,6 +37,11 @@ $username = $_SESSION['admin_username'];
 $message = '';
 $message_type = '';
 
+// Helper function to check if user is read-only
+function isReadOnlyUser() {
+    return isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin';
+}
+
 // Fetch current user settings
 $sql = "SELECT username, email, two_factor_enabled, created_at FROM admin_users WHERE username = ? AND active = 1";
 $stmt = $conn->prepare($sql);
@@ -48,6 +53,12 @@ $stmt->close();
 
 // Handle settings updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Check if user has permission to modify settings
+    if (isReadOnlyUser()) {
+        header("Location: settings.php?error=access_denied");
+        exit();
+    }
+    
     $action = $_POST['action'] ?? '';
     
     switch ($action) {
@@ -471,6 +482,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'access_denied'): ?>
+            <div class="message error">
+                ❌ Access denied. You don't have permission to modify settings in read-only mode.
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isReadOnlyUser()): ?>
+            <div class="message" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7;">
+                📖 You are viewing settings in read-only mode. All modification options are disabled.
+            </div>
+        <?php endif; ?>
+        
         <?php if ($message): ?>
             <div class="message <?= $message_type ?>">
                 <?= htmlspecialchars($message) ?>
@@ -486,9 +509,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="hidden" name="action" value="update_email">
                     <div class="form-group">
                         <label for="email">Email Address:</label>
-                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($user_data['email'] ?? '') ?>" required>
+                        <input type="email" id="email" name="email" value="<?= htmlspecialchars($user_data['email'] ?? '') ?>" required <?= isReadOnlyUser() ? 'disabled' : '' ?>>
                     </div>
+                    <?php if (!isReadOnlyUser()): ?>
                     <button type="submit" class="btn btn-primary">💾 Update Email</button>
+                    <?php else: ?>
+                    <button type="button" class="btn btn-secondary" disabled title="Read-only mode - modifications disabled">💾 Update Email (Read-Only)</button>
+                    <?php endif; ?>
                 </form>
 
                 <div style="margin-top: 30px;">
@@ -526,6 +553,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span class="status-badge <?= $user_data['two_factor_enabled'] ? 'status-enabled' : 'status-disabled' ?>">
                             <?= $user_data['two_factor_enabled'] ? 'Enabled' : 'Disabled' ?>
                         </span>
+                        <?php if (!isReadOnlyUser()): ?>
                         <form method="POST" style="display: inline; margin-left: 10px;">
                             <input type="hidden" name="action" value="toggle_2fa">
                             <input type="hidden" name="enable_2fa" value="<?= $user_data['two_factor_enabled'] ? '0' : '1' ?>">
@@ -533,6 +561,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?= $user_data['two_factor_enabled'] ? '❌ Disable' : '✅ Enable' ?>
                             </button>
                         </form>
+                        <?php else: ?>
+                        <button type="button" class="btn btn-secondary" disabled title="Read-only mode - modifications disabled" style="margin-left: 10px;">
+                            <?= $user_data['two_factor_enabled'] ? '❌ Disable (Read-Only)' : '✅ Enable (Read-Only)' ?>
+                        </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 

@@ -26,14 +26,14 @@ function renderAdminNavbar($currentPage = '') {
     
     // Define nav items with their icons and titles
     $navItems = [
-        'dashboard.php' => ['🏠', 'Dashboard']
+        'dashboard.php' => ['🏠', 'Dashboard'],
+        'settings.php' => ['⚙️', 'Settings']
     ];
     
-    // Add maintenance and settings only for non-readonly users
+    // Add maintenance and banner management only for non-readonly users
     if (!isset($_SESSION['admin_role']) || $_SESSION['admin_role'] !== 'readonly_admin') {
         $navItems['maintenance-control.php'] = ['🚧', 'Maintenance'];
         $navItems['banner.php'] = ['📢', 'Banner Management'];
-        $navItems['settings.php'] = ['⚙️', 'Settings'];
     }
     
     // Add link to return to main form
