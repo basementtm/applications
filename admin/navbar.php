@@ -1,8 +1,19 @@
 <?php
 // Navigation component - include this on all admin pages except settings
 function renderAdminNavbar($currentPage = '') {
+    global $conn; // Access the database connection
     $username = $_SESSION['admin_username'] ?? 'Unknown';
-    $maintenance_active = file_exists('/var/www/config/maintenance.flag');
+    
+    // Check maintenance status from database
+    $maintenance_active = false;
+    if (isset($conn)) {
+        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+        $maintenance_result = $conn->query($maintenance_sql);
+        if ($maintenance_result && $maintenance_result->num_rows > 0) {
+            $maintenance_row = $maintenance_result->fetch_assoc();
+            $maintenance_active = ($maintenance_row['setting_value'] === '1');
+        }
+    }
     
     // Define nav items with their icons and titles
     $navItems = [

@@ -18,18 +18,47 @@ include('navbar.php');
 
 // Handle maintenance toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
-    $maintenance_flag_path = '/var/www/config/maintenance.flag';
+    // Check current maintenance status from database
+    $check_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+    $check_result = $conn->query($check_sql);
     
-    if (file_exists($maintenance_flag_path)) {
+    $current_maintenance = false;
+    if ($check_result && $check_result->num_rows > 0) {
+        $row = $check_result->fetch_assoc();
+        $current_maintenance = ($row['setting_value'] === '1');
+    }
+    
+    if ($current_maintenance) {
         // Turn off maintenance mode
-        unlink($maintenance_flag_path);
-        $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";
-        $maintenance_type = "success";
+        $update_sql = "UPDATE site_settings SET setting_value = '0', updated_at = NOW(), updated_by = ? WHERE setting_name = 'maintenance_mode'";
+        $stmt = $conn->prepare($update_sql);
+        $stmt->bind_param("s", $_SESSION['admin_username']);
+        
+        if ($stmt->execute()) {
+            $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";
+            $maintenance_type = "success";
+        } else {
+            $maintenance_message = "Error: Could not turn off maintenance mode.";
+            $maintenance_type = "error";
+        }
+        $stmt->close();
     } else {
         // Turn on maintenance mode
-        file_put_contents($maintenance_flag_path, date('Y-m-d H:i:s') . " - Maintenance mode enabled by " . $_SESSION['admin_username']);
-        $maintenance_message = "Maintenance mode has been turned on. Applications are now closed to the public.";
-        $maintenance_type = "warning";
+        $insert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
+                       VALUES ('maintenance_mode', '1', NOW(), ?) 
+                       ON DUPLICATE KEY UPDATE 
+                       setting_value = '1', updated_at = NOW(), updated_by = ?";
+        $stmt = $conn->prepare($insert_sql);
+        $stmt->bind_param("ss", $_SESSION['admin_username'], $_SESSION['admin_username']);
+        
+        if ($stmt->execute()) {
+            $maintenance_message = "Maintenance mode has been turned on. Applications are now closed to the public.";
+            $maintenance_type = "warning";
+        } else {
+            $maintenance_message = "Error: Could not turn on maintenance mode.";
+            $maintenance_type = "error";
+        }
+        $stmt->close();
     }
     
     // Redirect to prevent form resubmission
@@ -522,7 +551,14 @@ $conn->close();
         <?php endif; ?>
 
         <?php 
-        $maintenance_active = file_exists('/var/www/config/maintenance.flag');
+        // Check maintenance status from database
+        $maintenance_active = false;
+        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+        $maintenance_result = $conn->query($maintenance_sql);
+        if ($maintenance_result && $maintenance_result->num_rows > 0) {
+            $maintenance_row = $maintenance_result->fetch_assoc();
+            $maintenance_active = ($maintenance_row['setting_value'] === '1');
+        }
         ?>
         <div class="maintenance-panel">
             <div class="maintenance-status <?= $maintenance_active ? 'maintenance-active' : 'maintenance-inactive' ?>">
