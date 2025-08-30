@@ -235,81 +235,86 @@ if ($maintenance_active) {
     ?>
     <!DOCTYPE html>
     <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Maintenance Mode - basement application form</title>
-        <style>
-            :root {
-                --bg-color: #ffc0cb;
-                --container-bg: #fff0f5;
-                --text-color: #333;
-                --primary-pink: #ff1493;
-                --shadow-color: rgba(0,0,0,0.1);
-            }
+     <head>
+      <meta charset='UTF-8'>
+      <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+      <title>Maintenance</title>
+      <style>
+        :root {
+          --bg-color: #ffc0cb;
+          --container-bg: #fff0f5;
+          --text-color: #333;
+          --primary-pink: #ff1493;
+          --shadow-color: rgba(0,0,0,0.1);
+        }
 
-            [data-theme="dark"] {
-                --bg-color: #2d1b2e;
-                --container-bg: #3d2b3e;
-                --text-color: #e0d0e0;
-                --primary-pink: #ff6bb3;
-                --shadow-color: rgba(0,0,0,0.3);
-            }
+        [data-theme='dark'] {
+          --bg-color: #2d1b2e;
+          --container-bg: #3d2b3e;
+          --text-color: #e0d0e0;
+          --primary-pink: #ff6bb3;
+          --shadow-color: rgba(0,0,0,0.3);
+        }
 
-            body {
-                font-family: Arial, sans-serif;
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                text-align: center;
-                transition: background-color 0.3s ease, color 0.3s ease;
-            }
-            .maintenance-notice {
-                background: var(--container-bg);
-                padding: 40px;
-                border-radius: 15px;
-                box-shadow: 0 4px 15px var(--shadow-color);
-                max-width: 500px;
-                transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            }
-            h1 {
-                color: var(--primary-pink);
-                transition: color 0.3s ease;
-            }
-            .theme-switcher {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 1000;
-                background-color: var(--container-bg);
-                border: 2px solid var(--primary-pink);
-                border-radius: 50%;
-                width: 50px;
-                height: 50px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 10px var(--shadow-color);
-            }
-            .theme-switcher:hover {
-                transform: scale(1.1);
-                background-color: var(--primary-pink);
-                color: white;
-            }
-        </style>
+        body { 
+          font-family: Arial, sans-serif; 
+          text-align: center; 
+          background-color: var(--bg-color); 
+          color: var(--text-color); 
+          padding: 50px; 
+          margin: 0; 
+          min-height: 100vh; 
+          display: flex; 
+          flex-direction: column; 
+          justify-content: center; 
+          align-items: center; 
+          transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container { 
+          background-color: var(--container-bg); 
+          padding: 40px; 
+          border-radius: 15px; 
+          box-shadow: 0 4px 10px var(--shadow-color); 
+          max-width: 600px; 
+          transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        h1 { 
+          color: var(--primary-pink); 
+          margin-bottom: 20px; 
+          transition: color 0.3s ease;
+        }
+        p { margin: 15px 0; line-height: 1.6; }
+        .maintenance-icon { font-size: 4rem; margin-bottom: 20px; }
+        .theme-switcher {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+          background-color: var(--container-bg);
+          border: 2px solid var(--primary-pink);
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 10px var(--shadow-color);
+        }
+        .theme-switcher:hover {
+          transform: scale(1.1);
+          background-color: var(--primary-pink);
+          color: white;
+        }
+      </style>
     </head>
     <body>
-        <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
-            🌙
-        </div>
-        <div class='container'>
+      <div class='theme-switcher' id='themeSwitcher' title='Toggle Dark Mode'>
+        🌙
+      </div>
+      <div class='container'>
         <div class='maintenance-icon'>🚧</div>
         <h1>Maintenance</h1>
         <p><strong>Application status checking is temporarily unavailable.</strong></p>
@@ -317,33 +322,33 @@ if ($maintenance_active) {
         <p>Please try again later. Thank you for your patience!</p>
       </div>
 
-        <script>
-            // Theme switcher functionality
-            const themeSwitcher = document.getElementById('themeSwitcher');
-            const body = document.body;
+      <script>
+        // Theme switcher functionality
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        const body = document.body;
 
-            // Load saved theme
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            if (currentTheme === 'dark') {
-                body.setAttribute('data-theme', 'dark');
-                themeSwitcher.textContent = '☀️';
-            }
+        // Load saved theme
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+          body.setAttribute('data-theme', 'dark');
+          themeSwitcher.textContent = '☀️';
+        }
 
-            // Theme toggle
-            themeSwitcher.addEventListener('click', () => {
-                const isDark = body.getAttribute('data-theme') === 'dark';
-                
-                if (isDark) {
-                    body.removeAttribute('data-theme');
-                    themeSwitcher.textContent = '🌙';
-                    localStorage.setItem('theme', 'light');
-                } else {
-                    body.setAttribute('data-theme', 'dark');
-                    themeSwitcher.textContent = '☀️';
-                    localStorage.setItem('theme', 'dark');
-                }
-            });
-        </script>
+        // Theme toggle
+        themeSwitcher.addEventListener('click', () => {
+          const isDark = body.getAttribute('data-theme') === 'dark';
+          
+          if (isDark) {
+            body.removeAttribute('data-theme');
+            themeSwitcher.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+          } else {
+            body.setAttribute('data-theme', 'dark');
+            themeSwitcher.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+          }
+        });
+      </script>
     </body>
     </html>
     <?php
