@@ -1,4 +1,7 @@
 <?php
+// Start session for potential logging
+session_start();
+
 // Database maintenance mode check with fallback
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -71,6 +74,9 @@ if ($conn->connect_error) {
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 }
 
+// Include action logger for application submission logging
+require_once 'admin/action_logger.php';
+
 // Collect data safely
 $name              = $_POST['name'] ?? '';
 $email             = $_POST['email'] ?? '';
@@ -96,6 +102,11 @@ $stmt->bind_param("ssssisssiss", $applicationId, $name, $email, $gfphone, $reaso
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
+
+// Log the application submission if successful
+if ($success) {
+    logApplicationSubmission($applicationId, $name, $email);
+}
 
 $stmt->close();
 $conn->close();

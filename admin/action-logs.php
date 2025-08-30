@@ -311,6 +311,8 @@ while ($row = $usernames_result->fetch_assoc()) {
         .action-login-failed { background: #dc3545; color: white; }
         .action-user { background: #17a2b8; color: white; }
         .action-application { background: #ffc107; color: #000; }
+        .action-application-submitted { background: #28a745; color: white; }
+        .action-application-status { background: #17a2b8; color: white; }
         .action-maintenance { background: #6f42c1; color: white; }
         .action-settings { background: #fd7e14; color: white; }
         .action-file { background: #20c997; color: white; }
@@ -504,6 +506,10 @@ while ($row = $usernames_result->fetch_assoc()) {
                                     $action_class = strpos($log['action_type'], 'SUCCESS') !== false ? 'action-login-success' : 'action-login-failed';
                                 } elseif (strpos($log['action_type'], 'USER') !== false) {
                                     $action_class = 'action-user';
+                                } elseif (strpos($log['action_type'], 'APPLICATION_SUBMITTED') !== false) {
+                                    $action_class = 'action-application-submitted';
+                                } elseif (strpos($log['action_type'], 'APPLICATION_STATUS') !== false) {
+                                    $action_class = 'action-application-status';
                                 } elseif (strpos($log['action_type'], 'APPLICATION') !== false) {
                                     $action_class = 'action-application';
                                 } elseif (strpos($log['action_type'], 'MAINTENANCE') !== false) {

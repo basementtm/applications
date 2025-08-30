@@ -1,4 +1,7 @@
 <?php
+// Start session for potential logging
+session_start();
+
 // Database maintenance mode check with fallback
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -72,6 +75,9 @@ if ($conn->connect_error) {
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 }
 
+// Include action logger for status check logging
+require_once 'admin/action_logger.php';
+
 $application_id = $_POST['application_id'] ?? '';
 $application_data = null;
 $errorMsg = '';
@@ -91,8 +97,12 @@ if (!empty($application_id)) {
         
         if ($result->num_rows > 0) {
             $application_data = $result->fetch_assoc();
+            // Log successful status check
+            logStatusCheck($application_id, true, $application_data['name']);
         } else {
             $errorMsg = "Application not found. Please check your application ID and try again.";
+            // Log failed status check attempt
+            logStatusCheck($application_id, false);
         }
         $stmt->close();
     }

@@ -97,4 +97,92 @@ function logFileAction($action, $filename, $file_type = 'file') {
     
     logAction($action_type, $description, $file_type, null, ['filename' => $filename]);
 }
+
+// Special function for logging public application submissions (non-admin actions)
+function logApplicationSubmission($application_id, $applicant_name, $applicant_email) {
+    global $conn;
+    
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+    
+    // Handle proxy/forwarded IPs
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+        $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+    }
+    
+    try {
+        $action_type = 'APPLICATION_SUBMITTED';
+        $description = "New application submitted: $application_id";
+        $additional_data = json_encode([
+            'application_id' => $application_id,
+            'applicant_name' => $applicant_name,
+            'applicant_email' => $applicant_email
+        ]);
+        
+        $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                VALUES (NULL, NULL, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssss", $action_type, $description, $target_type, $application_id, $ip_address, $user_agent, $additional_data);
+        $target_type = 'application';
+        
+        if (!$stmt->execute()) {
+            error_log("Failed to log application submission: " . $stmt->error);
+        }
+        
+        $stmt->close();
+    } catch (Exception $e) {
+        error_log("Application submission logging error: " . $e->getMessage());
+    }
+}
+
+// Special function for logging application status checks (non-admin actions)
+function logStatusCheck($application_id, $status_found = true, $applicant_name = null) {
+    global $conn;
+    
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+    
+    // Handle proxy/forwarded IPs
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+        $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+    }
+    
+    try {
+        $action_type = $status_found ? 'APPLICATION_STATUS_CHECKED' : 'APPLICATION_STATUS_CHECK_FAILED';
+        $description = $status_found ? 
+            "Application status checked: $application_id" : 
+            "Failed status check attempt for: $application_id";
+        
+        $additional_data = [
+            'application_id' => $application_id,
+            'status_found' => $status_found
+        ];
+        
+        if ($applicant_name) {
+            $additional_data['applicant_name'] = $applicant_name;
+        }
+        
+        $additional_data_json = json_encode($additional_data);
+        
+        $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                VALUES (NULL, NULL, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssss", $action_type, $description, $target_type, $application_id, $ip_address, $user_agent, $additional_data_json);
+        $target_type = 'application';
+        
+        if (!$stmt->execute()) {
+            error_log("Failed to log status check: " . $stmt->error);
+        }
+        
+        $stmt->close();
+    } catch (Exception $e) {
+        error_log("Status check logging error: " . $e->getMessage());
+    }
+}
 ?>
