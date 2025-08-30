@@ -45,6 +45,13 @@ $stmt->bind_param("ssssisssis", $name, $email, $gfphone, $reason, $cage, $isCat,
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
+$applicationId = null;
+
+if ($success) {
+    // Generate application ID using timestamp and database ID
+    $dbId = $conn->insert_id;
+    $applicationId = 'APP-' . date('Ymd') . '-' . str_pad($dbId, 6, '0', STR_PAD_LEFT);
+}
 
 $stmt->close();
 $conn->close();
@@ -79,6 +86,15 @@ $conn->close();
     h1 {
       color: #ff1493;
     }
+    .application-id {
+      background-color: #ff69b4;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
     p {
       margin: 15px 0;
     }
@@ -101,7 +117,13 @@ $conn->close();
   <div class="container">
     <?php if ($success): ?>
       <h1>✅ Application Sent</h1>
+      <?php if ($applicationId): ?>
+        <div class="application-id">
+          📋 Application ID: <?= htmlspecialchars($applicationId) ?>
+        </div>
+      <?php endif; ?>
       <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, I guess.</p>
+      <p><small>Keep your application ID for reference.</small></p>
     <?php else: ?>
       <h1>❌ error</h1>
       <p>it's either you broke something or i did</p>
