@@ -311,7 +311,371 @@ if ($maintenance_active) {
       text-decoration: underline;
     }
 
+    /* All the missing CSS from index.html */
+    #notice-banner {
+      background-color: var(--banner-bg);
+      color: var(--banner-text);
+      padding: 15px 20px;
+      margin: 0;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      word-wrap: break-word;
+      white-space: normal;
+      width: 100%;
+      box-sizing: border-box;
+      border-bottom: 2px solid var(--secondary-pink);
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeSlideDown 1.2s 0.3s forwards;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    #notice-banner:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255,20,147,0.2);
+    }
+
+    #form-container, #maintenance {
+      background-color: var(--container-bg);
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-sizing: border-box;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s forwards;
+      margin-top: 60px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    h1 {
+      color: var(--primary-pink);
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: fadeSlideDown 0.8s forwards;
+      transition: color 0.3s ease;
+    }
+
+    @keyframes fadeSlideDown {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus,
+    input[type="number"]:focus, textarea:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 5px rgba(255,20,147,0.5);
+      outline: none;
+    }
+
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+
+    .radio-group label {
+      background-color: var(--secondary-pink);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s, transform 0.2s;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .radio-group input[type="radio"] { display: none; }
+
+    .radio-group input[type="radio"]:checked + label {
+      background-color: var(--primary-pink);
+      transform: scale(1.05);
+    }
+
+    .radio-group label:hover { transform: scale(1.05); }
+
+    button {
+      padding: 12px 25px;
+      background-color: var(--secondary-pink);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    button:hover {
+      background-color: var(--primary-pink);
+      animation: pulse 0.6s ease-in-out;
+    }
+
+    button:active { transform: scale(0.95); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .form-group {
+      position: relative;
+      margin: 15px 0;
+    }
+
+    .custom-dropdown {
+      position: relative;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--input-bg);
+      cursor: pointer;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease;
+      z-index: 1;
+    }
+
+    .custom-dropdown .selected {
+      color: var(--text-color);
+      transition: color 0.3s ease;
+    }
+
+    .custom-dropdown .options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-top: 5px;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .custom-dropdown .options div {
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s, color 0.3s ease;
+      color: var(--text-color);
+    }
+
+    .custom-dropdown .options div:hover {
+      background-color: var(--secondary-pink);
+      color: #fff;
+      transform: scale(1.02);
+    }
+
+    .custom-dropdown.active {
+      box-shadow: 0 0 5px rgba(255,20,147,0.5);
+      transform: scale(1.02);
+    }
+
+    .custom-dropdown.active .options {
+      display: block;
+      z-index: 10;
+    }
+
+    .checkbox-container {
+      display: block;
+      position: relative;
+      padding-left: 30px;
+      margin: 15px 0;
+      cursor: pointer;
+      font-size: 0.95rem;
+      user-select: none;
+      color: var(--text-color);
+      transition: color 0.3s ease;
+    }
+
+    .checkbox-container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkbox-container .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 20px;
+      width: 20px;
+      background-color: var(--input-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 5px;
+      transition: 0.3s all;
+    }
+
+    .checkbox-container input:checked ~ .checkmark {
+      background-color: var(--primary-pink);
+      border-color: var(--primary-pink);
+    }
+
+    .checkbox-container .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+
+    .checkbox-container input:checked ~ .checkmark:after {
+      display: block;
+      left: 6px;
+      top: 2px;
+      width: 6px;
+      height: 12px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .theme-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeScale 0.3s 0.2s forwards;
+    }
+
+    .theme-switcher:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px var(--shadow-color);
+      background-color: var(--secondary-pink);
+      color: white;
+    }
+
+    @keyframes fadeScale {
+      to { 
+        opacity: 1; 
+        transform: scale(1);
+      }
+    }
+
+    footer { 
+      font-size: 0.9rem; 
+      color: var(--text-color); 
+      padding-top: 20px; 
+      text-align: center; 
+      transition: color 0.3s ease; 
+    }
+
+    @media (max-width: 500px) {
+      #form-container, #maintenance { 
+        padding: 20px; 
+        margin-top: 70px;
+        width: 95%;
+        max-width: none;
+      }
+      input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea { 
+        font-size: 0.9rem; 
+        padding: 12px;
+      }
+      .radio-group { 
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+      .radio-group label { 
+        padding: 12px 20px; 
+        font-size: 0.9rem; 
+        min-width: 120px;
+        width: 100%;
+        max-width: 200px;
+      }
+      button { 
+        font-size: 0.95rem; 
+        max-width: 100%; 
+        padding: 14px 25px;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+      }
+      .custom-dropdown {
+        font-size: 0.9rem;
+        padding: 12px;
+      }
+      .custom-dropdown .options div {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+      .checkbox-container {
+        font-size: 0.9rem;
+        padding-left: 35px;
+      }
+      .checkbox-container .checkmark {
+        height: 22px;
+        width: 22px;
+      }
+      .checkbox-container input:checked ~ .checkmark:after {
+        left: 7px;
+        top: 3px;
+        width: 6px;
+        height: 12px;
+      }
+      .theme-switcher {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        bottom: 15px;
+        right: 15px;
+      }
+    }
+
     <?= getBannerCSS() ?>
+
+  </style>
 
     @media (max-width: 768px) {
       .main-container {
@@ -396,8 +760,6 @@ if ($maintenance_active) {
 </div>
       <!-- Optional owner field -->
       <input type="text" name="owner" id="ownerField" placeholder="Owner's name and/or email address (for cats only)" style="display:none;">
-
-      <button type="submit">Submit</button>
 
         <button type="submit" class="submit-btn">
           🚀 Submit Application
