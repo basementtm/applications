@@ -32,14 +32,13 @@ ON DUPLICATE KEY UPDATE `password` = '$2y$10$YourNewHashHere';
 CREATE TABLE IF NOT EXISTS `user_passkeys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
-  `credential_id` varchar(255) NOT NULL UNIQUE,
-  `public_key` text NOT NULL,
+  `credential_id` text NOT NULL,
+  `public_key` longtext NOT NULL,
   `name` varchar(100) NOT NULL DEFAULT 'Passkey',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_used` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_username` (`username`),
-  KEY `idx_credential_id` (`credential_id`),
   CONSTRAINT `fk_passkey_username` FOREIGN KEY (`username`) REFERENCES `admin_users` (`username`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA & Passkey Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔐 2FA & Passkey Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>1. Browser Compatibility</h2>
+        <div id="browser-test">Testing...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. TOTP Generator Test</h2>
+        <p>Generate and verify TOTP codes:</p>
+        <button onclick="testTOTP()">Test TOTP Functions</button>
+        <div id="totp-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. WebAuthn Test</h2>
+        <p>Test passkey registration without database:</p>
+        <button onclick="testWebAuthn()">Test WebAuthn</button>
+        <div id="webauthn-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Database Connection Test</h2>
+        <button onclick="testDatabase()">Test Database</button>
+        <div id="database-test"></div>
+    </div>
+
+    <script>
+        // Browser Compatibility Test
+        function testBrowserCompatibility() {
+            const results = [];
+            
+            // WebAuthn support
+            if (window.PublicKeyCredential) {
+                results.push('<span class="success">✅ WebAuthn is supported</span>');
+                
+                // Test platform authenticator
+                PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                    .then(available => {
+                        if (available) {
+                            document.getElementById('browser-test').innerHTML += 
+                                '<br><span class="success">✅ Platform authenticator available</span>';
+                        } else {
+                            document.getElementById('browser-test').innerHTML += 
+                                '<br><span class="info">ℹ️ Platform authenticator not available (external required)</span>';
+                        }
+                    });
+            } else {
+                results.push('<span class="error">❌ WebAuthn not supported</span>');
+            }
+            
+            // Secure context
+            if (location.protocol === 'https:' || location.hostname === 'localhost') {
+                results.push('<span class="success">✅ Secure context (HTTPS/localhost)</span>');
+            } else {
+                results.push('<span class="error">❌ Not a secure context</span>');
+            }
+            
+            // Crypto API
+            if (window.crypto && window.crypto.getRandomValues) {
+                results.push('<span class="success">✅ Crypto API available</span>');
+            } else {
+                results.push('<span class="error">❌ Crypto API not available</span>');
+            }
+            
+            document.getElementById('browser-test').innerHTML = results.join('<br>');
+        }
+        
+        // TOTP Test
+        function testTOTP() {
+            const testEl = document.getElementById('totp-test');
+            testEl.innerHTML = '<span class="info">Testing TOTP functions...</span>';
+            
+            try {
+                // Simulate TOTP generation (client-side version)
+                const secret = generateTestSecret();
+                const currentTime = Math.floor(Date.now() / 1000 / 30);
+                
+                testEl.innerHTML = `
+                    <div class="success">✅ TOTP Test Results:</div>
+                    <div><strong>Test Secret:</strong> <code>${secret}</code></div>
+                    <div><strong>Current Time Window:</strong> ${currentTime}</div>
+                    <div><em>Note: Full TOTP verification requires server-side implementation</em></div>
+                `;
+            } catch (error) {
+                testEl.innerHTML = `<span class="error">❌ TOTP Test Failed: ${error.message}</span>`;
+            }
+        }
+        
+        // WebAuthn Test
+        async function testWebAuthn() {
+            const testEl = document.getElementById('webauthn-test');
+            
+            if (!window.PublicKeyCredential) {
+                testEl.innerHTML = '<span class="error">❌ WebAuthn not supported</span>';
+                return;
+            }
+            
+            try {
+                testEl.innerHTML = '<span class="info">Testing WebAuthn credential creation...</span>';
+                
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                
+                const options = {
+                    challenge: challenge,
+                    rp: { name: "Test App", id: location.hostname },
+                    user: {
+                        id: new TextEncoder().encode("test-user"),
+                        name: "test@example.com",
+                        displayName: "Test User"
+                    },
+                    pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                    timeout: 60000,
+                    attestation: "none"
+                };
+                
+                const credential = await navigator.credentials.create({ publicKey: options });
+                
+                if (credential) {
+                    testEl.innerHTML = `
+                        <div class="success">✅ WebAuthn credential created successfully!</div>
+                        <div><strong>Credential ID:</strong> <code>${credential.id}</code></div>
+                        <div><strong>Type:</strong> ${credential.type}</div>
+                        <div><em>This was a test credential - not saved anywhere</em></div>
+                    `;
+                } else {
+                    testEl.innerHTML = '<span class="error">❌ Failed to create credential</span>';
+                }
+                
+            } catch (error) {
+                testEl.innerHTML = `<span class="error">❌ WebAuthn Test Failed: ${error.message}</span>`;
+            }
+        }
+        
+        // Database Test
+        async function testDatabase() {
+            const testEl = document.getElementById('database-test');
+            testEl.innerHTML = '<span class="info">Testing database connection...</span>';
+            
+            try {
+                const response = await fetch('diagnostic.php');
+                const result = await response.text();
+                
+                testEl.innerHTML = `
+                    <div class="success">✅ Database test completed</div>
+                    <details>
+                        <summary>View Results</summary>
+                        <div style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+                            ${result}
+                        </div>
+                    </details>
+                `;
+            } catch (error) {
+                testEl.innerHTML = `<span class="error">❌ Database Test Failed: ${error.message}</span>`;
+            }
+        }
+        
+        // Helper function
+        function generateTestSecret(length = 20) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            let secret = '';
+            const array = new Uint8Array(length);
+            window.crypto.getRandomValues(array);
+            
+            for (let i = 0; i < length; i++) {
+                secret += chars[array[i] % chars.length];
+            }
+            return secret;
+        }
+        
+        // Run initial test
+        testBrowserCompatibility();
+    </script>
+</body>
+</html>

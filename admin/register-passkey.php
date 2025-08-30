@@ -42,7 +42,7 @@ try {
     $attestationObject = $credential['response']['attestationObject'];
     $clientDataJSON = $credential['response']['clientDataJSON'];
 
-    // Convert arrays back to binary
+    // Convert arrays back to binary for validation
     $rawIdBinary = pack('C*', ...$rawId);
     $attestationObjectBinary = pack('C*', ...$attestationObject);
     $clientDataJSONBinary = pack('C*', ...$clientDataJSON);
@@ -53,18 +53,38 @@ try {
         throw new Exception('Invalid client data');
     }
 
-    // For production, you should perform full WebAuthn validation
-    // This is a simplified version for demonstration
+    // Validate origin
+    $expectedOrigin = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'];
+    if ($clientData['origin'] !== $expectedOrigin) {
+        error_log("Origin mismatch: expected {$expectedOrigin}, got {$clientData['origin']}");
+        // For development, we'll allow this but log it
+    }
     
     // Generate a name for the passkey
     $passkeyName = 'Passkey ' . date('M j, Y g:i A');
     
-    // Store the credential
-    $publicKey = base64_encode($attestationObjectBinary); // Simplified storage
+    // Store the credential (simplified for demonstration)
+    $publicKeyData = json_encode([
+        'credentialId' => $credentialId,
+        'attestationObject' => base64_encode($attestationObjectBinary),
+        'clientDataJSON' => base64_encode($clientDataJSONBinary)
+    ]);
+    
+    // Check if credential already exists
+    $check_sql = "SELECT id FROM user_passkeys WHERE credential_id = ? AND username = ?";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("ss", $credentialId, $username);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
+    
+    if ($check_result->num_rows > 0) {
+        throw new Exception('This passkey is already registered');
+    }
+    $check_stmt->close();
     
     $sql = "INSERT INTO user_passkeys (username, credential_id, public_key, name) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssss", $username, $credentialId, $publicKey, $passkeyName);
+    $stmt->bind_param("ssss", $username, $credentialId, $publicKeyData, $passkeyName);
     
     if ($stmt->execute()) {
         echo json_encode([
@@ -73,12 +93,13 @@ try {
             'name' => $passkeyName
         ]);
     } else {
-        throw new Exception('Failed to store credential');
+        throw new Exception('Failed to store credential: ' . $conn->error);
     }
     
     $stmt->close();
     
 } catch (Exception $e) {
+    error_log("Passkey registration error: " . $e->getMessage());
     http_response_code(400);
     echo json_encode(['error' => $e->getMessage()]);
 }

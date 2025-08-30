@@ -54,12 +54,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         case 'toggle_2fa':
             $enable_2fa = $_POST['enable_2fa'] === '1';
-            $update_sql = "UPDATE admin_users SET two_factor_enabled = ? WHERE username = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("is", $enable_2fa, $username);
+            
+            if ($enable_2fa && empty($user_data['two_factor_secret'])) {
+                // Generate new secret when enabling 2FA
+                $secret = generateRandomSecret();
+                $update_sql = "UPDATE admin_users SET two_factor_enabled = ?, two_factor_secret = ? WHERE username = ?";
+                $update_stmt = $conn->prepare($update_sql);
+                $update_stmt->bind_param("iss", $enable_2fa, $secret, $username);
+            } else {
+                // Just toggle the enabled status
+                $update_sql = "UPDATE admin_users SET two_factor_enabled = ? WHERE username = ?";
+                $update_stmt = $conn->prepare($update_sql);
+                $update_stmt->bind_param("is", $enable_2fa, $username);
+            }
+            
             if ($update_stmt->execute()) {
                 $user_data['two_factor_enabled'] = $enable_2fa;
-                $message = $enable_2fa ? "2FA enabled successfully!" : "2FA disabled successfully!";
+                if (isset($secret)) {
+                    $user_data['two_factor_secret'] = $secret;
+                }
+                $message = $enable_2fa ? "2FA enabled successfully! Please complete setup." : "2FA disabled successfully!";
                 $message_type = "success";
             } else {
                 $message = "Error updating 2FA settings.";
@@ -528,19 +542,17 @@ $conn->close();
                     </div>
                 </div>
 
-                <?php if ($user_data['two_factor_enabled']): ?>
-                <div class="qr-code-container">
-                    <h4>📱 2FA Setup</h4>
-                    <p>Scan this QR code with your authenticator app:</p>
-                    <div id="qrcode"></div>
-                    <p style="margin-top: 10px; font-size: 0.9rem;">
-                        Secret Key: <code><?= base32_encode($username . '_secret_' . date('Y')) ?></code>
-                    </p>
-                    <a href="setup-2fa.php" class="btn btn-info">📲 Setup 2FA</a>
-                </div>
-                <?php endif; ?>
-
-                <!-- Passkey Authentication -->
+        <?php if ($user_data['two_factor_enabled']): ?>
+        <div class="qr-code-container">
+            <h4>📱 2FA Setup</h4>
+            <p>Scan this QR code with your authenticator app:</p>
+            <div id="qrcode"></div>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                Secret Key: <code><?= htmlspecialchars($user_data['two_factor_secret'] ?? 'Not set') ?></code>
+            </p>
+            <a href="setup-2fa.php" class="btn btn-info">📲 Setup 2FA</a>
+        </div>
+        <?php endif; ?>                <!-- Passkey Authentication -->
                 <div class="setting-item">
                     <div class="setting-info">
                         <div class="setting-title">Passkey Authentication</div>
@@ -602,20 +614,20 @@ $conn->close();
         });
 
         // Generate QR Code for 2FA
-        <?php if ($user_data['two_factor_enabled']): ?>
+        <?php if ($user_data['two_factor_enabled'] && !empty($user_data['two_factor_secret'])): ?>
         const qrCodeElement = document.getElementById('qrcode');
         if (qrCodeElement) {
-            const secret = '<?= base32_encode($username . '_secret_' . date('Y')) ?>';
+            const secret = '<?= htmlspecialchars($user_data['two_factor_secret']) ?>';
             const issuer = 'Basement Admin';
             const account = '<?= htmlspecialchars($username) ?>';
-            const otpauth = `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}`;
+            const otpauth = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
             
             QRCode.toCanvas(qrCodeElement, otpauth, {
                 width: 200,
                 margin: 2,
                 color: {
-                    dark: getComputedStyle(document.body).getPropertyValue('--text-color').trim(),
-                    light: getComputedStyle(document.body).getPropertyValue('--container-bg').trim()
+                    dark: '#333333',
+                    light: '#ffffff'
                 }
             });
         }
@@ -623,37 +635,63 @@ $conn->close();
 
         // WebAuthn Passkey Registration
         async function registerPasskey() {
+            const messageEl = document.getElementById('message');
+            
             if (!window.PublicKeyCredential) {
-                alert('WebAuthn is not supported in this browser.');
+                showMessage('WebAuthn is not supported in this browser. Please use Chrome, Firefox, Safari, or Edge.', 'error');
+                return;
+            }
+
+            // Check if we're in a secure context
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                showMessage('WebAuthn requires HTTPS or localhost', 'error');
                 return;
             }
 
             try {
-                // Create credential options
-                const publicKeyCredentialCreationOptions = {
-                    challenge: new Uint8Array(32),
-                    rp: {
-                        name: "Basement Admin",
-                        id: window.location.hostname,
-                    },
-                    user: {
-                        id: new TextEncoder().encode('<?= htmlspecialchars($username) ?>'),
-                        name: '<?= htmlspecialchars($username) ?>',
-                        displayName: '<?= htmlspecialchars($username) ?>',
-                    },
-                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
-                    authenticatorSelection: {
-                        authenticatorAttachment: "platform",
-                        userVerification: "required"
-                    },
-                    timeout: 60000,
-                    attestation: "direct"
-                };
+                showMessage('Getting registration challenge...', 'info');
+
+                // Get challenge from server
+                const challengeResponse = await fetch('get-passkey-challenge.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!challengeResponse.ok) {
+                    const errorText = await challengeResponse.text();
+                    throw new Error(`Server error: ${challengeResponse.status} - ${errorText}`);
+                }
+
+                const credentialCreationOptions = await challengeResponse.json();
+                
+                if (credentialCreationOptions.error) {
+                    throw new Error(credentialCreationOptions.error);
+                }
+
+                // Convert arrays to Uint8Arrays
+                credentialCreationOptions.challenge = new Uint8Array(credentialCreationOptions.challenge);
+                credentialCreationOptions.user.id = new Uint8Array(credentialCreationOptions.user.id);
+                
+                if (credentialCreationOptions.excludeCredentials) {
+                    credentialCreationOptions.excludeCredentials.forEach(cred => {
+                        cred.id = new Uint8Array(cred.id);
+                    });
+                }
+
+                showMessage('Creating passkey... Please follow browser prompts.', 'info');
 
                 // Create the credential
                 const credential = await navigator.credentials.create({
-                    publicKey: publicKeyCredentialCreationOptions
+                    publicKey: credentialCreationOptions
                 });
+
+                if (!credential) {
+                    throw new Error('Failed to create credential - user may have cancelled');
+                }
+
+                showMessage('Passkey created! Registering with server...', 'info');
 
                 // Send to server for storage
                 const response = await fetch('register-passkey.php', {
@@ -674,15 +712,30 @@ $conn->close();
                     })
                 });
 
-                if (response.ok) {
-                    alert('Passkey registered successfully!');
-                    location.reload();
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('Passkey registered successfully!', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    alert('Failed to register passkey.');
+                    throw new Error(result.error || 'Registration failed');
                 }
+                
             } catch (error) {
                 console.error('Error registering passkey:', error);
-                alert('Error registering passkey: ' + error.message);
+                
+                let errorMessage = 'Failed to register passkey: ';
+                if (error.name === 'NotSupportedError') {
+                    errorMessage += 'Your device does not support passkeys or WebAuthn.';
+                } else if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Registration was cancelled or timed out.';
+                } else if (error.name === 'InvalidStateError') {
+                    errorMessage += 'This passkey is already registered.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
             }
         }
     </script>
@@ -690,6 +743,16 @@ $conn->close();
 </html>
 
 <?php
+// Helper function for generating random secret
+function generateRandomSecret($length = 20) {
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $secret = '';
+    for ($i = 0; $i < $length; $i++) {
+        $secret .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $secret;
+}
+
 // Helper function for base32 encoding (simple implementation)
 function base32_encode($data) {
     $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';

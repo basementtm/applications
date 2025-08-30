@@ -26,7 +26,7 @@ $result = $stmt->get_result();
 $user_data = $result->fetch_assoc();
 $stmt->close();
 
-if (!$user_data['two_factor_enabled']) {
+if (!$user_data || !$user_data['two_factor_enabled']) {
     header("Location: settings.php");
     exit();
 }
