@@ -2,6 +2,7 @@
 // Navigation component - include this on all admin pages except settings
 function renderAdminNavbar($currentPage = '') {
     $username = $_SESSION['admin_username'] ?? 'Unknown';
+    $maintenance_active = file_exists('/var/www/config/maintenance.flag');
     
     // Define nav items with their icons and titles
     $navItems = [
@@ -14,6 +15,11 @@ function renderAdminNavbar($currentPage = '') {
     echo '<h1>🏠 Admin Dashboard</h1>';
     echo '<div class="header-actions">';
     echo '<span>Welcome, ' . htmlspecialchars($username) . '</span>';
+    
+    // Add maintenance status indicator
+    if ($maintenance_active) {
+        echo '<span class="maintenance-badge" title="Maintenance Mode Active - Applications Closed">🚧 MAINTENANCE</span>';
+    }
     
     // Render navigation buttons
     foreach ($navItems as $page => $details) {
@@ -93,6 +99,22 @@ function getNavbarCSS() {
         .header-actions span {
             margin-right: 10px;
             font-weight: bold;
+        }
+
+        .maintenance-badge {
+            background-color: #ff4757;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
         .btn {

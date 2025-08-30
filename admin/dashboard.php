@@ -16,6 +16,27 @@ if ($conn->connect_error) {
 // Include navbar component
 include('navbar.php');
 
+// Handle maintenance toggle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
+    $maintenance_flag_path = '/var/www/config/maintenance.flag';
+    
+    if (file_exists($maintenance_flag_path)) {
+        // Turn off maintenance mode
+        unlink($maintenance_flag_path);
+        $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";
+        $maintenance_type = "success";
+    } else {
+        // Turn on maintenance mode
+        file_put_contents($maintenance_flag_path, date('Y-m-d H:i:s') . " - Maintenance mode enabled by " . $_SESSION['admin_username']);
+        $maintenance_message = "Maintenance mode has been turned on. Applications are now closed to the public.";
+        $maintenance_type = "warning";
+    }
+    
+    // Redirect to prevent form resubmission
+    header("Location: dashboard.php?maintenance_updated=1&message=" . urlencode($maintenance_message) . "&type=" . $maintenance_type);
+    exit();
+}
+
 // Handle status updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $application_id = $_POST['application_id'] ?? '';
@@ -325,6 +346,101 @@ $conn->close();
             border: 1px solid #c3e6cb;
         }
 
+        .maintenance-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+
+        [data-theme="dark"] .update-success {
+            background-color: #1e4620;
+            color: #4caf50;
+        }
+
+        [data-theme="dark"] .maintenance-warning {
+            background-color: #4a3a2a;
+            color: #ffd93d;
+        }
+
+        .maintenance-panel {
+            margin-bottom: 30px;
+        }
+
+        .maintenance-status {
+            background-color: var(--container-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+
+        .maintenance-active {
+            border-left-color: #ff4757;
+            background-color: #fff5f5;
+        }
+
+        .maintenance-inactive {
+            border-left-color: #2ed573;
+            background-color: #f0fff0;
+        }
+
+        [data-theme="dark"] .maintenance-active {
+            background-color: #4a2c2a;
+        }
+
+        [data-theme="dark"] .maintenance-inactive {
+            background-color: #1e4620;
+        }
+
+        .maintenance-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .maintenance-indicator {
+            font-size: 2rem;
+        }
+
+        .maintenance-text strong {
+            color: var(--primary-pink);
+        }
+
+        .maintenance-text small {
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .btn-warning {
+            background-color: #ffa502;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #2ed573;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #ff9500;
+        }
+
+        .btn-success:hover {
+            background-color: #20bf6b;
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-status {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+
         /* Theme Switcher */
         .theme-switcher {
             position: fixed;
@@ -398,6 +514,33 @@ $conn->close();
                 🗑️ Application <?= htmlspecialchars($_GET['deleted']) ?> has been permanently deleted.
             </div>
         <?php endif; ?>
+
+        <?php if (isset($_GET['maintenance_updated'])): ?>
+            <div class="update-success <?= $_GET['type'] === 'warning' ? 'maintenance-warning' : '' ?>">
+                <?= $_GET['type'] === 'warning' ? '🚧' : '✅' ?> <?= htmlspecialchars($_GET['message']) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php 
+        $maintenance_active = file_exists('/var/www/config/maintenance.flag');
+        ?>
+        <div class="maintenance-panel">
+            <div class="maintenance-status <?= $maintenance_active ? 'maintenance-active' : 'maintenance-inactive' ?>">
+                <div class="maintenance-info">
+                    <span class="maintenance-indicator"><?= $maintenance_active ? '🚧' : '✅' ?></span>
+                    <span class="maintenance-text">
+                        <strong>Maintenance Mode: <?= $maintenance_active ? 'ACTIVE' : 'INACTIVE' ?></strong><br>
+                        <small><?= $maintenance_active ? 'Site is under maintenance - applications and status checks are closed to the public' : 'Site is operational - applications are open and accepting submissions' ?></small>
+                    </span>
+                </div>
+                <form method="POST" style="display: inline;">
+                    <button type="submit" name="toggle_maintenance" class="btn <?= $maintenance_active ? 'btn-success' : 'btn-warning' ?>" 
+                            onclick="return confirm('Are you sure you want to <?= $maintenance_active ? 'turn off' : 'turn on' ?> maintenance mode?')">
+                        <?= $maintenance_active ? 'Turn off Maintenance' : 'Turn on Maintenance' ?>
+                    </button>
+                </form>
+            </div>
+        </div>
 
         <!-- Statistics -->
         <div class="stats-grid">

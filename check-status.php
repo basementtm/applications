@@ -7,15 +7,42 @@ if (file_exists('/var/www/config/maintenance.flag')) {
     <html lang='en'>
     <head>
       <meta charset='UTF-8'>
-      <title>offline</title>
+      <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+      <title>Maintenance - Status Check Temporarily Unavailable</title>
       <style>
-        body { font-family: Arial; text-align: center; background-color: #ffc0cb; color: #333; padding: 50px; }
-        h1 { color: #ff1493; }
+        body { 
+          font-family: Arial, sans-serif; 
+          text-align: center; 
+          background-color: #ffc0cb; 
+          color: #333; 
+          padding: 50px; 
+          margin: 0; 
+          min-height: 100vh; 
+          display: flex; 
+          flex-direction: column; 
+          justify-content: center; 
+          align-items: center; 
+        }
+        .container { 
+          background-color: #fff0f5; 
+          padding: 40px; 
+          border-radius: 15px; 
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+          max-width: 600px; 
+        }
+        h1 { color: #ff1493; margin-bottom: 20px; }
+        p { margin: 15px 0; line-height: 1.6; }
+        .maintenance-icon { font-size: 4rem; margin-bottom: 20px; }
       </style>
     </head>
     <body>
-      <h1>🚧 Status Check Unavailable</h1>
-      <p>Status checking is currently unavailable, check back later!</p>
+      <div class='container'>
+        <div class='maintenance-icon'>🚧</div>
+        <h1>Maintenance</h1>
+        <p><strong>Application status checking is temporarily unavailable.</strong></p>
+        <p>We're performing scheduled maintenance to improve our services.</p>
+        <p>Please try again later. Thank you for your patience!</p>
+      </div>
     </body>
     </html>";
     exit();
