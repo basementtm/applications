@@ -37,21 +37,19 @@ $preferredLocation = $_POST['preferredLocation'] ?? ''; // new field
 $agreeTerms = isset($_POST['agreeTerms']) ? 1 : 0; // 1 if checked, 0 if not
 $status = $_POST['status'] ?? '';
 
+// Generate application ID first
+$timestamp = date('Ymd');
+$randomSuffix = str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+$applicationId = 'APP-' . $timestamp . '-' . $randomSuffix;
+
 // Insert into database
-$sql = "INSERT INTO applicants (name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO applicants (application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssisssis", $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
+$stmt->bind_param("ssssisssiss", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
-$applicationId = null;
-
-if ($success) {
-    // Generate application ID using timestamp and database ID
-    $dbId = $conn->insert_id;
-    $applicationId = 'APP-' . date('Ymd') . '-' . str_pad($dbId, 6, '0', STR_PAD_LEFT);
-}
 
 $stmt->close();
 $conn->close();
@@ -117,11 +115,9 @@ $conn->close();
   <div class="container">
     <?php if ($success): ?>
       <h1>✅ Application Sent</h1>
-      <?php if ($applicationId): ?>
-        <div class="application-id">
-          📋 Application ID: <?= htmlspecialchars($applicationId) ?>
-        </div>
-      <?php endif; ?>
+      <div class="application-id">
+        📋 Application ID: <?= htmlspecialchars($applicationId) ?>
+      </div>
       <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, I guess.</p>
       <p><small>Keep your application ID for reference.</small></p>
     <?php else: ?>
