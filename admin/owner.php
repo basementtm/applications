@@ -464,7 +464,7 @@ $users_result = $conn->query($users_sql);
 
     <div class="container">
         <div class="section">
-            <h3>👑 Owner's Panel - Welcome Emma</h3>
+            <h3>👑 Owner's Panel</h3>
             <p>This panel contains dangerous operations that can only be performed by the owner. Use with extreme caution.</p>
         </div>
 
