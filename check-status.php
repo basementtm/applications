@@ -125,14 +125,28 @@ $status_display = [
     }
 
     .status-display {
-      background: linear-gradient(135deg, var(--container-bg), #f8f0f8);
+      background: linear-gradient(135deg, var(--container-bg), var(--input-bg));
       border: 2px solid;
       border-radius: 12px;
       padding: 25px;
       margin: 20px 0;
       font-size: 1.1rem;
       font-weight: bold;
+      transition: background 0.3s ease;
     }
+
+    /* Status-specific styling for dark mode compatibility */
+    .status-unreviewed { --status-color: #ff69b4; }
+    .status-denied { --status-color: #ff6b6b; }
+    .status-stage2 { --status-color: #ffa726; }
+    .status-stage3 { --status-color: #5c6bc0; }
+    .status-accepted { --status-color: #66bb6a; }
+
+    [data-theme="dark"] .status-unreviewed { --status-color: #ff8cc8; }
+    [data-theme="dark"] .status-denied { --status-color: #ff7979; }
+    [data-theme="dark"] .status-stage2 { --status-color: #fdcb6e; }
+    [data-theme="dark"] .status-stage3 { --status-color: #a29bfe; }
+    [data-theme="dark"] .status-accepted { --status-color: #6c5ce7; }
 
     .application-details {
       background-color: var(--input-bg);
@@ -149,6 +163,7 @@ $status_display = [
       align-items: center;
       padding: 8px 0;
       border-bottom: 1px solid var(--border-color);
+      transition: border-color 0.3s ease;
     }
 
     .detail-row:last-child {
@@ -159,12 +174,14 @@ $status_display = [
       font-weight: bold;
       color: var(--primary-pink);
       min-width: 120px;
+      transition: color 0.3s ease;
     }
 
     .detail-value {
       color: var(--text-color);
       text-align: right;
       word-break: break-word;
+      transition: color 0.3s ease;
     }
 
     .error-message {
@@ -175,11 +192,13 @@ $status_display = [
       padding: 20px;
       margin: 20px 0;
       font-weight: bold;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
     [data-theme="dark"] .error-message {
       background-color: #4a2c2a;
-      color: #ff6b6b;
+      color: #ff8a80;
+      border-color: #ff6b6b;
     }
 
     a.button {
@@ -267,10 +286,10 @@ $status_display = [
       $status_info = $status_display[$status] ?? $status_display['unreviewed'];
       ?>
       
-      <div class="status-display" style="border-color: <?= $status_info[3] ?>; color: <?= $status_info[3] ?>;">
+      <div class="status-display status-<?= $status ?>" style="border-color: var(--status-color); color: var(--status-color);">
         <div class="status-icon"><?= $status_info[0] ?></div>
         <div style="font-size: 1.3rem; margin-bottom: 10px;"><?= $status_info[1] ?></div>
-        <div style="font-size: 1rem; font-weight: normal; opacity: 0.8;"><?= $status_info[2] ?></div>
+        <div style="font-size: 1rem; font-weight: normal; opacity: 0.8; color: var(--text-color);"><?= $status_info[2] ?></div>
       </div>
 
       <div class="application-details">
