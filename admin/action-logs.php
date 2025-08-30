@@ -149,8 +149,6 @@ while ($row = $usernames_result->fetch_assoc()) {
         }
 
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
@@ -158,7 +156,10 @@ while ($row = $usernames_result->fetch_assoc()) {
             font-family: Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            margin: 0;
+            padding: 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
             line-height: 1.6;
         }
 
