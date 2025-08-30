@@ -452,58 +452,7 @@ while ($row = $stats_result->fetch_assoc()) {
             color: #ffd93d;
         }
 
-        .maintenance-panel {
-            margin-bottom: 30px;
-        }
 
-        .maintenance-status {
-            background-color: var(--container-bg);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 5px var(--shadow-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid;
-            transition: all 0.3s ease;
-        }
-
-        .maintenance-active {
-            border-left-color: #ff4757;
-            background-color: #fff5f5;
-        }
-
-        .maintenance-inactive {
-            border-left-color: #2ed573;
-            background-color: #f0fff0;
-        }
-
-        [data-theme="dark"] .maintenance-active {
-            background-color: #4a2c2a;
-        }
-
-        [data-theme="dark"] .maintenance-inactive {
-            background-color: #1e4620;
-        }
-
-        .maintenance-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .maintenance-indicator {
-            font-size: 2rem;
-        }
-
-        .maintenance-text strong {
-            color: var(--primary-pink);
-        }
-
-        .maintenance-text small {
-            color: var(--text-color);
-            opacity: 0.7;
-        }
 
         .btn-warning {
             background-color: #ffa502;
@@ -617,53 +566,7 @@ while ($row = $stats_result->fetch_assoc()) {
             </div>
         <?php endif; ?>
 
-        <?php 
-        // Check maintenance status from database with fallback
-        $maintenance_active = false;
-        $settings_table_exists = false;
-        
-        // Check if site_settings table exists
-        $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
-        if ($table_check && $table_check->num_rows > 0) {
-            $settings_table_exists = true;
-            $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
-            $maintenance_result = $conn->query($maintenance_sql);
-            if ($maintenance_result && $maintenance_result->num_rows > 0) {
-                $maintenance_row = $maintenance_result->fetch_assoc();
-                $maintenance_active = ($maintenance_row['setting_value'] === '1');
-            }
-        }
-        ?>
-        <div class="maintenance-panel">
-            <?php if (!$settings_table_exists): ?>
-                <div class="maintenance-status" style="border-left-color: #ffa502; background-color: #fff3cd;">
-                    <div class="maintenance-info">
-                        <span class="maintenance-indicator">⚠️</span>
-                        <span class="maintenance-text">
-                            <strong>Database Setup Required</strong><br>
-                            <small>The settings table needs to be created for maintenance mode functionality</small>
-                        </span>
-                    </div>
-                    <a href="create-settings-table.php" class="btn btn-warning">🔧 Setup Database</a>
-                </div>
-            <?php else: ?>
-                <div class="maintenance-status <?= $maintenance_active ? 'maintenance-active' : 'maintenance-inactive' ?>">
-                    <div class="maintenance-info">
-                        <span class="maintenance-indicator"><?= $maintenance_active ? '🚧' : '✅' ?></span>
-                        <span class="maintenance-text">
-                            <strong>Maintenance Mode: <?= $maintenance_active ? 'ACTIVE' : 'INACTIVE' ?></strong><br>
-                            <small><?= $maintenance_active ? 'Site is under maintenance - applications and status checks are closed to the public' : 'Site is operational - applications are open and accepting submissions' ?></small>
-                        </span>
-                    </div>
-                    <form method="POST" style="display: inline;">
-                        <button type="submit" name="toggle_maintenance" class="btn <?= $maintenance_active ? 'btn-success' : 'btn-warning' ?>" 
-                                onclick="return confirm('Are you sure you want to <?= $maintenance_active ? 'turn off' : 'turn on' ?> maintenance mode?')">
-                            <?= $maintenance_active ? 'Turn off Maintenance' : 'Turn on Maintenance' ?>
-                        </button>
-                    </form>
-                </div>
-            <?php endif; ?>
-        </div>
+
 
         <!-- Statistics -->
         <div class="stats-grid">

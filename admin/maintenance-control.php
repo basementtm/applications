@@ -359,15 +359,17 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
                 Status: <?= $site_maintenance_active ? 'ENABLED - Site is closed' : 'DISABLED - Site is open' ?>
             </div>
             
-            <form method="POST" style="display: inline;">
-                <input type="hidden" name="new_maintenance_status" value="<?= $site_maintenance_active ? '0' : '1' ?>">
-                <input type="hidden" name="maintenance_type" value="maintenance_mode">
-                <button type="submit" name="toggle_maintenance" 
-                        class="btn <?= $site_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
-                        onclick="return confirm('Are you sure you want to <?= $site_maintenance_active ? 'disable' : 'enable' ?> site maintenance mode? This will <?= $site_maintenance_active ? 'open' : 'close' ?> the entire site for public users.')">
-                    <?= $site_maintenance_active ? '✅ Disable Site Maintenance' : '🚧 Enable Site Maintenance' ?>
-                </button>
-            </form>
+            <div style="margin-top: 15px;">
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="new_maintenance_status" value="<?= $site_maintenance_active ? '0' : '1' ?>">
+                    <input type="hidden" name="maintenance_type" value="maintenance_mode">
+                    <button type="submit" name="toggle_maintenance" 
+                            class="btn <?= $site_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
+                            onclick="return confirm('Are you sure you want to <?= $site_maintenance_active ? 'disable' : 'enable' ?> site maintenance mode? This will <?= $site_maintenance_active ? 'open' : 'close' ?> the entire site for public users.')">
+                        <?= $site_maintenance_active ? '✅ Disable Site Maintenance' : '🚧 Enable Site Maintenance' ?>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Form Maintenance Control -->
@@ -379,15 +381,17 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
                 Status: <?= $form_maintenance_active ? 'ENABLED - Form closed to public' : 'DISABLED - Form is open' ?>
             </div>
             
-            <form method="POST" style="display: inline;">
-                <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
-                <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
-                <button type="submit" name="toggle_maintenance" 
-                        class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
-                        onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode? This will <?= $form_maintenance_active ? 'open' : 'close' ?> the application form for public users.')">
-                    <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
-                </button>
-            </form>
+            <div style="margin-top: 15px;">
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
+                    <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
+                    <button type="submit" name="toggle_maintenance" 
+                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
+                            onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode? This will <?= $form_maintenance_active ? 'open' : 'close' ?> the application form for public users.')">
+                        <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Information Section -->
