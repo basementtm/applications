@@ -122,10 +122,10 @@ function logApplicationSubmission($application_id, $applicant_name, $applicant_e
         ]);
         
         $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
-                VALUES (NULL, NULL, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (NULL, NULL, ?, ?, ?, NULL, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssss", $action_type, $description, $target_type, $application_id, $ip_address, $user_agent, $additional_data);
+        $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data);
         $target_type = 'application';
         
         if (!$stmt->execute()) {
@@ -170,10 +170,10 @@ function logStatusCheck($application_id, $status_found = true, $applicant_name =
         $additional_data_json = json_encode($additional_data);
         
         $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
-                VALUES (NULL, NULL, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (NULL, NULL, ?, ?, ?, NULL, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssss", $action_type, $description, $target_type, $application_id, $ip_address, $user_agent, $additional_data_json);
+        $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data_json);
         $target_type = 'application';
         
         if (!$stmt->execute()) {
