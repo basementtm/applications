@@ -43,9 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['wipe_applicants'])) {
         $confirm_text = trim($_POST['confirm_text']);
         if ($confirm_text === 'DELETE ALL APPLICATIONS') {
+            // Get count before deletion for logging
+            $count_result = $conn->query("SELECT COUNT(*) as total FROM applicants");
+            $app_count = $count_result ? $count_result->fetch_assoc()['total'] : 0;
+            
             $wipe_sql = "DELETE FROM applicants";
             if ($conn->query($wipe_sql)) {
                 $message = "All applications have been permanently deleted! Count: " . $conn->affected_rows;
+                
+                // Log the mass deletion action
+                logAction('ADMIN_MASS_DELETE', "Admin deleted all applications ($app_count total)", 'applications', null, ['deleted_count' => $app_count]);
             } else {
                 $error = "Error wiping applications: " . $conn->error;
             }
@@ -87,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             $type_label = $type_labels[$maintenance_type] ?? ucfirst(str_replace('_', ' ', $maintenance_type));
             $message = "$type_label maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
+            
+            // Log the maintenance mode change
+            logMaintenanceAction($new_status === '1');
         } else {
             $error = "Error updating maintenance mode: " . $conn->error;
         }
@@ -114,7 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $insert_stmt->bind_param("sssi", $username, $hashed_password, $role, $_SESSION['admin_id']);
                 
                 if ($insert_stmt->execute()) {
+                    $new_user_id = $conn->insert_id;
                     $message = "User '$username' created successfully!";
+                    
+                    // Log the user creation action
+                    logUserAction('created', $new_user_id, $username);
                 } else {
                     $error = "Error creating user: " . $conn->error;
                 }
@@ -152,6 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($update_stmt->execute()) {
                     $status_text = $new_status ? "enabled" : "disabled";
                     $message = "User has been {$status_text} successfully!";
+                    
+                    // Log the user status change action
+                    logUserAction($status_text, $user_id, $user_data['username']);
                 } else {
                     $error = "Error updating user status: " . $conn->error;
                 }

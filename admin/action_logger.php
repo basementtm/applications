@@ -5,6 +5,11 @@ require_once '../config.php';
 function logAction($action_type, $action_description, $target_type = null, $target_id = null, $additional_data = null) {
     global $conn;
     
+    // Only log actions if user is an admin (has admin session)
+    if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+        return; // Don't log non-admin actions
+    }
+    
     $user_id = isset($_SESSION['admin_id']) ? $_SESSION['admin_id'] : null;
     $username = isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : 'System';
     $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
@@ -36,39 +41,47 @@ function logAction($action_type, $action_description, $target_type = null, $targ
     }
 }
 
-// Specific logging functions for common actions
-function logLogin($username, $success, $failure_reason = null) {
-    $action_type = $success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED';
-    $description = $success ? "User logged in successfully" : "Failed login attempt: $failure_reason";
+// Specific logging functions for common admin actions
+function logAdminLogin($username, $success, $failure_reason = null) {
+    // Only log admin login attempts
+    $action_type = $success ? 'ADMIN_LOGIN_SUCCESS' : 'ADMIN_LOGIN_FAILED';
+    $description = $success ? "Admin user logged in successfully" : "Failed admin login attempt: $failure_reason";
     $additional_data = $success ? null : ['failure_reason' => $failure_reason];
     
-    logAction($action_type, $description, 'user', null, $additional_data);
+    // Temporarily set session for logging even failed attempts
+    $temp_admin_logged_in = isset($_SESSION['admin_logged_in']) ? $_SESSION['admin_logged_in'] : false;
+    $_SESSION['admin_logged_in'] = true;
+    
+    logAction($action_type, $description, 'admin_user', null, $additional_data);
+    
+    // Restore original session state
+    $_SESSION['admin_logged_in'] = $temp_admin_logged_in;
 }
 
 function logApplicationAction($action, $app_id, $app_name) {
-    $action_type = 'APPLICATION_' . strtoupper($action);
-    $description = "Application '$app_name' was $action";
+    $action_type = 'ADMIN_APPLICATION_' . strtoupper($action);
+    $description = "Admin $action application '$app_name'";
     
     logAction($action_type, $description, 'application', $app_id);
 }
 
 function logUserAction($action, $target_user_id, $target_username) {
-    $action_type = 'USER_' . strtoupper($action);
-    $description = "User '$target_username' was $action";
+    $action_type = 'ADMIN_USER_' . strtoupper($action);
+    $description = "Admin $action user '$target_username'";
     
-    logAction($action_type, $description, 'user', $target_user_id);
+    logAction($action_type, $description, 'admin_user', $target_user_id);
 }
 
 function logMaintenanceAction($enabled) {
-    $action_type = 'MAINTENANCE_' . ($enabled ? 'ENABLED' : 'DISABLED');
-    $description = "Maintenance mode " . ($enabled ? 'enabled' : 'disabled');
+    $action_type = 'ADMIN_MAINTENANCE_' . ($enabled ? 'ENABLED' : 'DISABLED');
+    $description = "Admin " . ($enabled ? 'enabled' : 'disabled') . " maintenance mode";
     
     logAction($action_type, $description, 'system', null);
 }
 
 function logSettingsChange($setting_name, $old_value, $new_value) {
-    $action_type = 'SETTINGS_CHANGED';
-    $description = "Setting '$setting_name' changed from '$old_value' to '$new_value'";
+    $action_type = 'ADMIN_SETTINGS_CHANGED';
+    $description = "Admin changed setting '$setting_name' from '$old_value' to '$new_value'";
     $additional_data = [
         'setting' => $setting_name,
         'old_value' => $old_value,
@@ -79,8 +92,8 @@ function logSettingsChange($setting_name, $old_value, $new_value) {
 }
 
 function logFileAction($action, $filename, $file_type = 'file') {
-    $action_type = 'FILE_' . strtoupper($action);
-    $description = ucfirst($file_type) . " '$filename' was $action";
+    $action_type = 'ADMIN_FILE_' . strtoupper($action);
+    $description = "Admin $action " . ucfirst($file_type) . " '$filename'";
     
     logAction($action_type, $description, $file_type, null, ['filename' => $filename]);
 }

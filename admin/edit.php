@@ -3,6 +3,8 @@ session_start();
 
 // Include auth functions for user status checking
 require_once 'auth_functions.php';
+// Include action logging functions
+require_once 'action_logger.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
@@ -54,6 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->execute()) {
             $message = "Application updated successfully!";
             $message_type = "success";
+            
+            // Log the application edit action
+            logApplicationAction('edited', $application_id, $name);
         } else {
             $message = "Error updating application. Please try again.";
             $message_type = "error";

@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+// Include action logging functions
+require_once 'action_logger.php';
+
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
     header("Location: dashboard.php");
@@ -143,8 +146,11 @@ function completeLogin($conn, $admin, $method = 'password') {
     $update_stmt->execute();
     $update_stmt->close();
     
-    // Log successful login
+    // Log successful login (both old and new system)
     logLoginAttempt($conn, $admin['username'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', true, $method);
+    
+    // Also log to new admin action logging system
+    logAction('ADMIN_LOGIN_SUCCESS', "Admin user '{$admin['username']}' logged in successfully", 'admin_user', $admin['id'], ['method' => $method]);
     
     header("Location: dashboard.php");
     exit();

@@ -3,6 +3,8 @@ session_start();
 
 // Include auth functions for user status checking
 require_once 'auth_functions.php';
+// Include action logging functions
+require_once 'action_logger.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
@@ -29,20 +31,36 @@ if (empty($application_id)) {
 
 // If confirmed, delete the application
 if ($confirm === 'yes') {
-    $sql = "DELETE FROM applicants WHERE application_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $application_id);
+    // First get the application data for logging
+    $fetch_sql = "SELECT name FROM applicants WHERE application_id = ?";
+    $fetch_stmt = $conn->prepare($fetch_sql);
+    $fetch_stmt->bind_param("s", $application_id);
+    $fetch_stmt->execute();
+    $fetch_result = $fetch_stmt->get_result();
+    $app_data = $fetch_result->fetch_assoc();
+    $fetch_stmt->close();
     
-    if ($stmt->execute()) {
+    if ($app_data) {
+        $sql = "DELETE FROM applicants WHERE application_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $application_id);
+        
+        if ($stmt->execute()) {
+            // Log the application deletion
+            logApplicationAction('deleted', $application_id, $app_data['name']);
+            
+            $stmt->close();
+            // Close connection before redirect since we're exiting
+            $conn->close();
+            header("Location: dashboard.php?deleted=" . urlencode($application_id));
+            exit();
+        } else {
+            $error = "Error deleting application. Please try again.";
+        }
         $stmt->close();
-        // Close connection before redirect since we're exiting
-        $conn->close();
-        header("Location: dashboard.php?deleted=" . urlencode($application_id));
-        exit();
     } else {
-        $error = "Error deleting application. Please try again.";
+        $error = "Application not found.";
     }
-    $stmt->close();
 }
 
 // Fetch application data for confirmation
