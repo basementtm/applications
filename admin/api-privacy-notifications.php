@@ -23,6 +23,11 @@ if (!$table_exists) {
     exit;
 }
 
+// Check if the dismissals table exists
+$dismissals_table_exists = $conn->query("SHOW TABLES LIKE 'privacy_notification_dismissals'")->num_rows > 0;
+
+// If dismissals table doesn't exist, we'll still show notifications but won't track dismissals
+
 // Get active notifications
 $query = "SELECT id, title, message, created_at 
           FROM privacy_notifications 

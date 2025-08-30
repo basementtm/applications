@@ -131,10 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("i", $notification_id);
         
         if ($stmt->execute()) {
-            // Also delete related dismissals
-            $conn->query("DELETE FROM privacy_notification_dismissals WHERE notification_id = $notification_id");
-            
-            $message = "Notification deleted successfully!";
+                // Also delete related dismissals if the table exists
+                $dismissals_table_exists = $conn->query("SHOW TABLES LIKE 'privacy_notification_dismissals'")->num_rows > 0;
+                if ($dismissals_table_exists) {
+                    $conn->query("DELETE FROM privacy_notification_dismissals WHERE notification_id = $notification_id");
+                }            $message = "Notification deleted successfully!";
             
             // Log the action
             logAction('PRIVACY_NOTIFICATION_DELETED', "Deleted privacy notification: $notification_title", 'privacy_notification', $notification_id);
@@ -156,11 +157,19 @@ if ($notifications_result && $notifications_result->num_rows > 0) {
 }
 
 // Count dismissals for each notification
+// First check if the dismissals table exists
+$dismissals_table_exists = $conn->query("SHOW TABLES LIKE 'privacy_notification_dismissals'")->num_rows > 0;
+
 foreach ($notifications as &$notification) {
-    $notification_id = $notification['id'];
-    $count_result = $conn->query("SELECT COUNT(*) as dismiss_count FROM privacy_notification_dismissals WHERE notification_id = $notification_id");
-    $dismiss_count = $count_result->fetch_assoc()['dismiss_count'];
-    $notification['dismiss_count'] = $dismiss_count;
+    if ($dismissals_table_exists) {
+        $notification_id = $notification['id'];
+        $count_result = $conn->query("SELECT COUNT(*) as dismiss_count FROM privacy_notification_dismissals WHERE notification_id = $notification_id");
+        $dismiss_count = $count_result ? $count_result->fetch_assoc()['dismiss_count'] : 0;
+        $notification['dismiss_count'] = $dismiss_count;
+    } else {
+        // If table doesn't exist, set count to 0
+        $notification['dismiss_count'] = 0;
+    }
 }
 ?>
 
@@ -377,6 +386,15 @@ foreach ($notifications as &$notification) {
         <div class="section">
             <h3>🔔 Privacy Policy Notifications</h3>
             <p>Create and manage privacy policy update notifications that will be shown to users.</p>
+            
+            <?php if (!$dismissals_table_exists): ?>
+                <div style="margin-top: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; color: #856404;">
+                    <strong>⚠️ Warning:</strong> The dismissals tracking table does not exist yet. 
+                    <a href="create-privacy-notification-dismissals-table.php" style="color: #856404; text-decoration: underline; font-weight: bold;">
+                        Click here to create it.
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
 
         <?php if ($message): ?>

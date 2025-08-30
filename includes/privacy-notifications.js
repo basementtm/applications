@@ -66,6 +66,25 @@ function showPrivacyNotification(notification) {
         // Store the notification ID in localStorage to mark it as seen
         localStorage.setItem('lastSeenPrivacyNotificationId', notification.id);
         
+        // Try to record the dismissal on the server
+        try {
+            fetch('admin/api-record-dismissal.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    notification_id: notification.id
+                })
+            }).catch(error => {
+                // Silently fail - localStorage will still work as fallback
+                console.log('Error recording dismissal:', error);
+            });
+        } catch (e) {
+            // Silently fail
+            console.log('Error sending dismissal request:', e);
+        }
+        
         // Remove the notification from DOM with animation
         notificationContainer.classList.add('closing');
         setTimeout(() => {
