@@ -1,5 +1,24 @@
 <?php
 session_start();
+
+// Include auth functions for user status checking
+require_once 'auth_functions.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+
+// Check if user is still active (not disabled)
+checkUserStatus();
+
+// Check if user is Emma (owner) - only Emma can view action logs
+if (!isset($_SESSION['admin_username']) || $_SESSION['admin_username'] !== 'emma') {
+    header("Location: dashboard.php?error=access_denied");
+    exit();
+}
+
 include('/var/www/config/db_config.php');
 
 // Create database connection
@@ -8,11 +27,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if user is logged in and is Emma (owner)
-if (!isset($_SESSION['admin_id']) || $_SESSION['admin_username'] !== 'emma') {
-    header("Location: login.php");
-    exit();
-}
+// Include navbar component
+include('navbar.php');
 
 // Pagination settings
 $limit = 50;
@@ -104,128 +120,179 @@ while ($row = $usernames_result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action Log - Admin Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <title>Action Logs - Admin Dashboard</title>
     <style>
         :root {
             --primary-pink: #ff69b4;
-            --secondary-pink: #ff1493;
-            --light-pink: #ffb6c1;
-            --bg-dark: #1a1a1a;
-            --card-dark: #2d2d2d;
-            --text-light: #ffffff;
-            --border-dark: #404040;
+            --bg-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #333;
+            --border-color: #ddd;
+            --hover-bg: #f5f5f5;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --container-bg: rgba(30, 30, 30, 0.95);
+            --text-color: #f0f0f0;
+            --border-color: #444;
+            --hover-bg: #3a3a3a;
+            --shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: var(--bg-color);
             min-height: 100vh;
-            transition: all 0.3s ease;
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
         }
 
-        body.dark-theme {
-            background: linear-gradient(135deg, #2d1b3d, #1a1a2e);
-            color: var(--text-light);
-        }
+        <?= getNavbarCSS() ?>
 
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin: 2rem;
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .dark-theme .main-container {
-            background: rgba(45, 45, 45, 0.95);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .navbar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 2rem;
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 20px;
+            background: var(--container-bg);
             border-radius: 15px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
         }
 
-        .dark-theme .navbar {
-            background: rgba(45, 45, 45, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-pink);
         }
 
-        .navbar-brand {
-            color: white !important;
+        .page-header h1 {
+            color: var(--primary-pink);
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
             font-weight: bold;
-            font-size: 1.5rem;
         }
 
-        .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
-            margin: 0 0.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+        .page-header p {
+            color: var(--text-color);
+            opacity: 0.8;
+            margin: 0;
+            font-size: 1.1rem;
         }
 
-        .navbar-nav .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white !important;
-        }
-
-        .btn-pink {
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-pink));
-            border: none;
-            color: white;
+        .filters {
+            background: rgba(255, 105, 180, 0.1);
             border-radius: 10px;
-            padding: 0.5rem 1.5rem;
-            transition: all 0.3s ease;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 105, 180, 0.2);
         }
 
-        .btn-pink:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
-            color: white;
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
         }
 
-        .table {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
         }
 
-        .dark-theme .table {
-            background: rgba(45, 45, 45, 0.9);
-            color: var(--text-light);
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-color);
         }
 
-        .table th {
-            background: linear-gradient(45deg, var(--primary-pink), var(--secondary-pink));
-            color: white;
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--container-bg);
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+        }
+
+        .btn {
+            padding: 8px 16px;
             border: none;
-            font-weight: 600;
-            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: bold;
         }
 
-        .table td {
-            border-color: rgba(0, 0, 0, 0.1);
-            padding: 0.8rem 1rem;
-            vertical-align: middle;
+        .btn-primary {
+            background-color: var(--primary-pink);
+            color: white;
         }
 
-        .dark-theme .table td {
-            border-color: rgba(255, 255, 255, 0.1);
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--container-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .logs-table th,
+        .logs-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logs-table th {
+            background: var(--primary-pink);
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logs-table tr:hover {
+            background: var(--hover-bg);
         }
 
         .action-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
             text-transform: uppercase;
+            display: inline-block;
         }
 
         .action-login-success { background: #28a745; color: white; }
@@ -237,337 +304,318 @@ while ($row = $usernames_result->fetch_assoc()) {
         .action-file { background: #20c997; color: white; }
         .action-default { background: #6c757d; color: white; }
 
-        .filter-section {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .dark-theme .filter-section {
-            background: rgba(45, 45, 45, 0.8);
-        }
-
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 2px solid rgba(255, 105, 180, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-pink);
-            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
-        }
-
-        .dark-theme .form-control,
-        .dark-theme .form-select {
-            background: var(--card-dark);
-            border-color: var(--border-dark);
-            color: var(--text-light);
-        }
-
-        .dark-theme .form-control:focus,
-        .dark-theme .form-select:focus {
-            background: var(--card-dark);
-            border-color: var(--primary-pink);
-            color: var(--text-light);
-        }
-
-        .pagination .page-link {
-            color: var(--primary-pink);
-            border: 1px solid rgba(255, 105, 180, 0.3);
-            border-radius: 8px;
-            margin: 0 2px;
-        }
-
-        .pagination .page-link:hover {
-            background: var(--primary-pink);
-            color: white;
-            border-color: var(--primary-pink);
-        }
-
-        .pagination .page-item.active .page-link {
-            background: var(--primary-pink);
-            border-color: var(--primary-pink);
-        }
-
-        .dark-theme .pagination .page-link {
-            background: var(--card-dark);
-            color: var(--text-light);
-            border-color: var(--border-dark);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
         .ip-address {
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             background: rgba(0, 0, 0, 0.1);
-            padding: 0.2rem 0.5rem;
-            border-radius: 5px;
-        }
-
-        .dark-theme .ip-address {
-            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
         }
 
         .timestamp {
             font-size: 0.9rem;
-            color: #666;
+            white-space: nowrap;
         }
 
-        .dark-theme .timestamp {
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px 0;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            text-decoration: none;
+            color: var(--primary-pink);
+            border: 1px solid var(--primary-pink);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover,
+        .pagination a.active {
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .pagination a.disabled {
             color: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .stats-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+        }
+
+        .no-logs {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .details-toggle {
+            background: none;
+            border: 1px solid var(--primary-pink);
+            color: var(--primary-pink);
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .details-content {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--primary-pink);
         }
     </style>
 </head>
 <body>
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Theme">
-        <i class="bi bi-moon-fill" id="theme-icon"></i>
-    </button>
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="owner.php">
-                <i class="bi bi-shield-check"></i> Admin Panel
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="owner.php">
-                    <i class="bi bi-house-door"></i> Dashboard
-                </a>
-                <a class="nav-link active" href="action-logs.php">
-                    <i class="bi bi-activity"></i> Action Logs
-                </a>
-                <a class="nav-link" href="logout.php">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-            </div>
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+    
+    <?php renderAdminNavbar('action-logs.php'); ?>
+    <div class="container">
+        <div class="page-header">
+            <h1>📊 Action Logs</h1>
+            <p>Monitor all admin activities and system actions</p>
         </div>
-    </nav>
 
-    <div class="main-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="mb-1">
-                    <i class="bi bi-activity"></i> Action Logs
-                </h1>
-                <p class="text-muted mb-0">Monitor all system activities and user actions</p>
-            </div>
-            <div class="text-end">
-                <small class="text-muted">Total Records: <?= number_format($total_records) ?></small>
-            </div>
+        <div class="stats-info">
+            Total Records: <?= number_format($total_records) ?>
         </div>
 
         <!-- Filters -->
-        <div class="filter-section">
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="action_filter" class="form-label">Action Type</label>
-                    <select class="form-select" id="action_filter" name="action_filter">
-                        <option value="">All Actions</option>
-                        <?php foreach ($action_types as $type): ?>
-                            <option value="<?= htmlspecialchars($type) ?>" <?= $action_filter === $type ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($type) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="user_filter" class="form-label">User</label>
-                    <select class="form-select" id="user_filter" name="user_filter">
-                        <option value="">All Users</option>
-                        <?php foreach ($usernames as $username): ?>
-                            <option value="<?= htmlspecialchars($username) ?>" <?= $user_filter === $username ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($username) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="date_filter" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="date_filter" name="date_filter" value="<?= htmlspecialchars($date_filter) ?>">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-pink me-2">
-                        <i class="bi bi-funnel"></i> Filter
-                    </button>
-                    <a href="action-logs.php" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Clear
-                    </a>
+        <div class="filters">
+            <form method="GET">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="action_filter">Action Type</label>
+                        <select id="action_filter" name="action_filter">
+                            <option value="">All Actions</option>
+                            <?php foreach ($action_types as $type): ?>
+                                <option value="<?= htmlspecialchars($type) ?>" <?= $action_filter === $type ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($type) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="user_filter">User</label>
+                        <select id="user_filter" name="user_filter">
+                            <option value="">All Users</option>
+                            <?php foreach ($usernames as $username): ?>
+                                <option value="<?= htmlspecialchars($username) ?>" <?= $user_filter === $username ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($username) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date_filter">Date</label>
+                        <input type="date" id="date_filter" name="date_filter" value="<?= htmlspecialchars($date_filter) ?>">
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary">🔍 Filter</button>
+                            <a href="action-logs.php" class="btn btn-secondary">✖ Clear</a>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
 
         <!-- Action Logs Table -->
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Description</th>
-                        <th>Target</th>
-                        <th>IP Address</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($result->num_rows > 0): ?>
-                        <?php while ($log = $result->fetch_assoc()): ?>
-                            <tr>
-                                <td>
-                                    <div class="timestamp">
-                                        <?= date('Y-m-d H:i:s', strtotime($log['timestamp'])) ?>
-                                    </div>
-                                </td>
-                                <td>
-                                    <strong><?= htmlspecialchars($log['username'] ?: 'System') ?></strong>
-                                </td>
-                                <td>
-                                    <?php
-                                    $action_class = 'action-default';
-                                    if (strpos($log['action_type'], 'LOGIN') !== false) {
-                                        $action_class = strpos($log['action_type'], 'SUCCESS') !== false ? 'action-login-success' : 'action-login-failed';
-                                    } elseif (strpos($log['action_type'], 'USER') !== false) {
-                                        $action_class = 'action-user';
-                                    } elseif (strpos($log['action_type'], 'APPLICATION') !== false) {
-                                        $action_class = 'action-application';
-                                    } elseif (strpos($log['action_type'], 'MAINTENANCE') !== false) {
-                                        $action_class = 'action-maintenance';
-                                    } elseif (strpos($log['action_type'], 'SETTINGS') !== false) {
-                                        $action_class = 'action-settings';
-                                    } elseif (strpos($log['action_type'], 'FILE') !== false) {
-                                        $action_class = 'action-file';
-                                    }
-                                    ?>
-                                    <span class="action-badge <?= $action_class ?>">
-                                        <?= htmlspecialchars($log['action_type']) ?>
-                                    </span>
-                                </td>
-                                <td><?= htmlspecialchars($log['action_description']) ?></td>
-                                <td>
-                                    <?php if ($log['target_type'] && $log['target_id']): ?>
-                                        <small class="text-muted">
-                                            <?= htmlspecialchars($log['target_type']) ?> #<?= $log['target_id'] ?>
-                                        </small>
-                                    <?php elseif ($log['target_type']): ?>
-                                        <small class="text-muted"><?= htmlspecialchars($log['target_type']) ?></small>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <span class="ip-address"><?= htmlspecialchars($log['ip_address']) ?></span>
-                                </td>
-                                <td>
-                                    <?php if ($log['additional_data']): ?>
-                                        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" 
-                                                data-bs-target="#details-<?= $log['id'] ?>" aria-expanded="false">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
-                                        <div class="collapse mt-2" id="details-<?= $log['id'] ?>">
-                                            <div class="card card-body">
-                                                <small><?= htmlspecialchars($log['additional_data']) ?></small>
-                                            </div>
-                                        </div>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                    <th>Target</th>
+                    <th>IP Address</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($result->num_rows > 0): ?>
+                    <?php while ($log = $result->fetch_assoc()): ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted">
-                                <i class="bi bi-inbox"></i> No action logs found
+                            <td class="timestamp">
+                                <?= date('Y-m-d H:i:s', strtotime($log['timestamp'])) ?>
+                            </td>
+                            <td>
+                                <strong><?= htmlspecialchars($log['username'] ?: 'System') ?></strong>
+                            </td>
+                            <td>
+                                <?php
+                                $action_class = 'action-default';
+                                if (strpos($log['action_type'], 'LOGIN') !== false) {
+                                    $action_class = strpos($log['action_type'], 'SUCCESS') !== false ? 'action-login-success' : 'action-login-failed';
+                                } elseif (strpos($log['action_type'], 'USER') !== false) {
+                                    $action_class = 'action-user';
+                                } elseif (strpos($log['action_type'], 'APPLICATION') !== false) {
+                                    $action_class = 'action-application';
+                                } elseif (strpos($log['action_type'], 'MAINTENANCE') !== false) {
+                                    $action_class = 'action-maintenance';
+                                } elseif (strpos($log['action_type'], 'SETTINGS') !== false) {
+                                    $action_class = 'action-settings';
+                                } elseif (strpos($log['action_type'], 'FILE') !== false) {
+                                    $action_class = 'action-file';
+                                }
+                                ?>
+                                <span class="action-badge <?= $action_class ?>">
+                                    <?= htmlspecialchars($log['action_type']) ?>
+                                </span>
+                            </td>
+                            <td><?= htmlspecialchars($log['action_description']) ?></td>
+                            <td>
+                                <?php if ($log['target_type'] && $log['target_id']): ?>
+                                    <small style="opacity: 0.7;">
+                                        <?= htmlspecialchars($log['target_type']) ?> #<?= $log['target_id'] ?>
+                                    </small>
+                                <?php elseif ($log['target_type']): ?>
+                                    <small style="opacity: 0.7;"><?= htmlspecialchars($log['target_type']) ?></small>
+                                <?php else: ?>
+                                    <span style="opacity: 0.5;">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <span class="ip-address"><?= htmlspecialchars($log['ip_address']) ?></span>
+                            </td>
+                            <td>
+                                <?php if ($log['additional_data']): ?>
+                                    <button class="details-toggle" onclick="toggleDetails('details-<?= $log['id'] ?>')">
+                                        📋 View
+                                    </button>
+                                    <div id="details-<?= $log['id'] ?>" class="details-content" style="display: none;">
+                                        <?= htmlspecialchars($log['additional_data']) ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span style="opacity: 0.5;">-</span>
+                                <?php endif; ?>
                             </td>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="7" class="no-logs">
+                            📝 No action logs found
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
 
         <!-- Pagination -->
         <?php if ($total_pages > 1): ?>
-            <nav aria-label="Action logs pagination" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?page=<?= $page - 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
-                            <i class="bi bi-chevron-left"></i> Previous
-                        </a>
-                    </li>
-                    
-                    <?php
-                    $start_page = max(1, $page - 2);
-                    $end_page = min($total_pages, $page + 2);
-                    
-                    for ($i = $start_page; $i <= $end_page; $i++):
-                    ?>
-                        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                            <a class="page-link" href="?page=<?= $i ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
-                                <?= $i ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                    
-                    <li class="page-item <?= $page >= $total_pages ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?page=<?= $page + 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
-                            Next <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="pagination">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?= $page - 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
+                        ← Previous
+                    </a>
+                <?php endif; ?>
+                
+                <?php
+                $start_page = max(1, $page - 2);
+                $end_page = min($total_pages, $page + 2);
+                
+                for ($i = $start_page; $i <= $end_page; $i++):
+                ?>
+                    <a href="?page=<?= $i ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>" 
+                       class="<?= $i === $page ? 'active' : '' ?>">
+                        <?= $i ?>
+                    </a>
+                <?php endfor; ?>
+                
+                <?php if ($page < $total_pages): ?>
+                    <a href="?page=<?= $page + 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
+                        Next →
+                    </a>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Dark theme functionality
         function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            const isDark = document.body.classList.contains('dark-theme');
-            const icon = document.getElementById('theme-icon');
+            const body = document.body;
+            const themeSwitcher = document.getElementById('themeSwitcher');
             
-            if (isDark) {
-                icon.className = 'bi bi-sun-fill';
-                localStorage.setItem('darkTheme', 'true');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeSwitcher.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
             } else {
-                icon.className = 'bi bi-moon-fill';
-                localStorage.setItem('darkTheme', 'false');
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
             }
         }
 
         // Load saved theme
         document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('darkTheme');
-            if (savedTheme === 'true') {
-                document.body.classList.add('dark-theme');
-                document.getElementById('theme-icon').className = 'bi bi-sun-fill';
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            
+            if (savedTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
             }
         });
+
+        // Theme switcher click event
+        document.getElementById('themeSwitcher').addEventListener('click', toggleTheme);
+
+        // Toggle details function
+        function toggleDetails(elementId) {
+            const element = document.getElementById(elementId);
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
