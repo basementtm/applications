@@ -11,6 +11,18 @@ $error = '';
 $require_2fa = false;
 $temp_user_data = null;
 
+// Handle error messages from URL parameters
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case 'account_disabled':
+            $error = "Your account has been disabled.";
+            break;
+        case 'account_not_found':
+            $error = "Your account no longer exists.";
+            break;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $config_path = '/var/www/config/db_config.php';
     
