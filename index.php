@@ -1428,6 +1428,9 @@ if ($form_maintenance_active && !$is_admin) {
     });
   </script>
   
+  <!-- Privacy Policy Notification System -->
+  <script src="includes/privacy-notifications.js"></script>
+  
   <?php
   // Close database connection at the end
   if (isset($conn)) {

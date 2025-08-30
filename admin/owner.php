@@ -752,6 +752,20 @@ $users_result = $conn->query($users_sql);
             </div>
         </div>
 
+        <!-- Privacy Notifications -->
+        <div class="section">
+            <h3>🔔 Privacy Policy Notifications</h3>
+            <p>Manage privacy policy update notifications that will be shown to users.</p>
+            
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(46, 213, 115, 0.1); border-radius: 8px; border: 1px solid var(--success-color);">
+                <h4 style="color: var(--success-color); margin-bottom: 10px;">📝 Privacy Policy Notifications Management</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;">Create and manage notifications that appear when the privacy policy is updated</p>
+                <a href="privacy-notifications.php" class="btn" style="background-color: var(--success-color); color: white;">
+                    🔔 Manage Privacy Notifications
+                </a>
+            </div>
+        </div>
+
         <!-- Dangerous Operations -->
         <div class="section danger-section">
             <h3>⚠️ Dangerous Operations</h3>
