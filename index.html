@@ -4,13 +4,40 @@
   <meta charset="UTF-8">
   <title>basement application form</title>
   <style>
+    :root {
+      --bg-color: #ffc0cb;
+      --container-bg: #fff0f5;
+      --text-color: #333;
+      --primary-pink: #ff1493;
+      --secondary-pink: #ff69b4;
+      --border-color: #ccc;
+      --shadow-color: rgba(0,0,0,0.1);
+      --input-bg: #fff0f5;
+      --banner-bg: #fff0f5;
+      --banner-text: #ff1493;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d1b2e;
+      --container-bg: #3d2b3e;
+      --text-color: #e0d0e0;
+      --primary-pink: #ff6bb3;
+      --secondary-pink: #d147a3;
+      --border-color: #666;
+      --shadow-color: rgba(0,0,0,0.3);
+      --input-bg: #4a3a4a;
+      --banner-bg: #4a3a4a;
+      --banner-text: #ff6bb3;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background-color: #ffc0cb;
-      color: #333;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       margin: 0;
       padding: 0;
       min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .main-container {
@@ -22,22 +49,22 @@
     }
 
     #notice-banner {
-      background-color: #fff0f5;
-      color: #ff1493;
+      background-color: var(--banner-bg);
+      color: var(--banner-text);
       padding: 15px 20px;
       margin: 0;
       font-weight: bold;
       text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px var(--shadow-color);
       word-wrap: break-word;
       white-space: normal;
       width: 100%;
       box-sizing: border-box;
-      border-bottom: 2px solid #ff69b4;
+      border-bottom: 2px solid var(--secondary-pink);
       opacity: 0;
       transform: translateY(-20px);
       animation: fadeSlideDown 1.2s 0.3s forwards;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
       position: fixed;
       top: 0;
       left: 0;
@@ -50,10 +77,10 @@
     }
 
     #form-container, #maintenance {
-      background-color: #fff0f5;
+      background-color: var(--container-bg);
       padding: 30px 40px;
       border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px var(--shadow-color);
       text-align: center;
       max-width: 400px;
       width: 90%;
@@ -62,14 +89,16 @@
       transform: translateY(20px);
       animation: fadeUp 1s forwards;
       margin-top: 60px; /* Add space for fixed banner */
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     h1 {
-      color: #ff1493;
+      color: var(--primary-pink);
       margin-bottom: 20px;
       opacity: 0;
       transform: translateY(-10px);
       animation: fadeSlideDown 0.8s forwards;
+      transition: color 0.3s ease;
     }
 
     @keyframes fadeSlideDown {
@@ -80,11 +109,13 @@
       width: 100%;
       padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       font-size: 1rem;
       box-sizing: border-box;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      background-color: var(--input-bg);
+      color: var(--text-color);
     }
 
     input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus,
@@ -103,7 +134,7 @@
     }
 
     .radio-group label {
-      background-color: #ff69b4;
+      background-color: var(--secondary-pink);
       color: white;
       padding: 10px 25px;
       border-radius: 12px;
@@ -117,7 +148,7 @@
     .radio-group input[type="radio"] { display: none; }
 
     .radio-group input[type="radio"]:checked + label {
-      background-color: #ff1493;
+      background-color: var(--primary-pink);
       transform: scale(1.05);
     }
 
@@ -126,7 +157,7 @@
     /* Submit button animations */
     button {
       padding: 12px 25px;
-      background-color: #ff69b4;
+      background-color: var(--secondary-pink);
       color: white;
       border: none;
       border-radius: 8px;
@@ -139,7 +170,7 @@
     }
 
     button:hover {
-      background-color: #ff1493;
+      background-color: var(--primary-pink);
       animation: pulse 0.6s ease-in-out;
     }
 
@@ -151,7 +182,7 @@
       100% { transform: scale(1); }
     }
 
-    footer { font-size: 0.9rem; color: #333; padding-top: 20px; text-align: center; }
+    footer { font-size: 0.9rem; color: var(--text-color); padding-top: 20px; text-align: center; transition: color 0.3s ease; }
 
     @media (max-width: 500px) {
       #form-container, #maintenance { padding: 20px; }
@@ -171,16 +202,16 @@
 .animated-input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   box-sizing: border-box;
-  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeUp 1s forwards;
-  background-color: #fff0f5; /* matches form background */
-  color: #333;
+  background-color: var(--input-bg);
+  color: var(--text-color);
   appearance: none; /* removes default arrow in many browsers */
   cursor: pointer;
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width='14'%20height='10'%20viewBox='0%200%2014%2010'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M1%201l6%206%206-6'%20stroke='%23ff1493'%20stroke-width='2'%20fill='none'%20fill-rule='evenodd'/%3E%3C/svg%3E");
@@ -205,14 +236,14 @@
 .custom-dropdown {
   position: relative;
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background-color: #fff0f5;
+  background-color: var(--input-bg);
   cursor: pointer;
   padding: 10px;
   box-sizing: border-box;
   font-size: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeUp 1s forwards;
@@ -220,7 +251,8 @@
 }
 
 .custom-dropdown .selected {
-  color: #333;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
 .custom-dropdown .options {
@@ -228,24 +260,26 @@
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff0f5;
-  border: 1px solid #ccc;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-top: 5px;
   display: none;
   max-height: 200px;
   overflow-y: auto;
   z-index: 10;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .custom-dropdown .options div {
   padding: 10px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: background-color 0.2s, transform 0.2s, color 0.3s ease;
+  color: var(--text-color);
 }
 
 .custom-dropdown .options div:hover {
-  background-color: #ff69b4;
+  background-color: var(--secondary-pink);
   color: #fff;
   transform: scale(1.02);
 }
@@ -267,7 +301,8 @@
   cursor: pointer;
   font-size: 0.95rem;
   user-select: none;
-  color: #333;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
 .checkbox-container input {
@@ -284,15 +319,15 @@
   left: 0;
   height: 20px;
   width: 20px;
-  background-color: #fff0f5;
-  border: 2px solid #ff69b4;
+  background-color: var(--input-bg);
+  border: 2px solid var(--secondary-pink);
   border-radius: 5px;
-  transition: 0.2s all;
+  transition: 0.3s all;
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: #ff1493;
-  border-color: #ff1493;
+  background-color: var(--primary-pink);
+  border-color: var(--primary-pink);
 }
 
 .checkbox-container .checkmark:after {
@@ -312,12 +347,62 @@
   transform: rotate(45deg);
 }
 
+/* Theme Switcher */
+.theme-switcher {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: var(--container-bg);
+  border: 2px solid var(--secondary-pink);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  opacity: 0;
+  transform: scale(0.8);
+  animation: fadeScale 0.3s 0.2s forwards;
+}
+
+.theme-switcher:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px var(--shadow-color);
+  background-color: var(--secondary-pink);
+  color: white;
+}
+
+@keyframes fadeScale {
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 500px) {
+  .theme-switcher {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    bottom: 15px;
+    right: 15px;
+  }
+}
+
   </style>
 </head>
 <body>
   <div id="notice-banner">
         ⚠️ Form has been migrated to girlskissing.dev, the old URL will redirect for a little while.
     </div>
+  <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+    🌙
+  </div>
   <div class="main-container">
     <div id="form-container">
     <div class="container">
@@ -417,6 +502,31 @@ optionsContainer.querySelectorAll("div").forEach(option => {
 document.addEventListener("click", (e) => {
   if (!dropdown.contains(e.target)) {
     dropdown.classList.remove("active");
+  }
+});
+
+// Theme Switcher
+const themeSwitcher = document.getElementById("themeSwitcher");
+const body = document.body;
+
+// Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem("theme") || "light";
+if (currentTheme === "dark") {
+  body.setAttribute("data-theme", "dark");
+  themeSwitcher.textContent = "☀️";
+}
+
+themeSwitcher.addEventListener("click", () => {
+  const isDark = body.getAttribute("data-theme") === "dark";
+  
+  if (isDark) {
+    body.removeAttribute("data-theme");
+    themeSwitcher.textContent = "🌙";
+    localStorage.setItem("theme", "light");
+  } else {
+    body.setAttribute("data-theme", "dark");
+    themeSwitcher.textContent = "☀️";
+    localStorage.setItem("theme", "dark");
   }
 });
   </script>
