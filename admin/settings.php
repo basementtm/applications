@@ -85,8 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -518,23 +516,40 @@ $conn->close();
                     </div>
                 </div>
 
-        <?php if ($user_data['two_factor_enabled']): ?>
-        <div class="qr-code-container">
-            <h4>📱 2FA Setup</h4>
-            <p>Scan this QR code with your authenticator app:</p>
-            <div id="qrcode"></div>
-            <p style="margin-top: 10px; font-size: 0.9rem;">
-                Secret Key: <code><?= htmlspecialchars($user_data['two_factor_secret'] ?? 'Not set') ?></code>
-            </p>
-            <a href="setup-2fa.php" class="btn btn-info">📲 Setup 2FA</a>
-        </div>
+        <?php if ($user_data['two_factor_enabled'] && !empty($user_data['two_factor_secret'])): ?>
+            <?php
+            // Check if 2FA setup is complete by checking for backup codes
+            $setup_complete = false;
+            $backup_check_sql = "SELECT COUNT(*) as count FROM two_factor_backup_codes WHERE username = ?";
+            $backup_check_stmt = $conn->prepare($backup_check_sql);
+            $backup_check_stmt->bind_param("s", $username);
+            $backup_check_stmt->execute();
+            $backup_check_result = $backup_check_stmt->get_result();
+            $backup_count = $backup_check_result->fetch_assoc()['count'];
+            $backup_check_stmt->close();
+            $setup_complete = $backup_count > 0;
+            ?>
+            
+            <?php if (!$setup_complete): ?>
+            <div class="qr-code-container">
+                <h4>📱 Complete 2FA Setup</h4>
+                <p>2FA is enabled but setup is incomplete. Click below to finish setup:</p>
+                <a href="setup-2fa.php" class="btn btn-warning">⚠️ Complete 2FA Setup</a>
+            </div>
+            <?php else: ?>
+            <div class="qr-code-container">
+                <h4>✅ 2FA Setup Complete</h4>
+                <p>Two-factor authentication is active and configured.</p>
+                <a href="setup-2fa.php" class="btn btn-info">� Manage 2FA</a>
+            </div>
+            <?php endif; ?>
         <?php endif; ?>
             </div>
         </div>
     </div>
 
-    <!-- Include WebAuthn and QR Code libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <?php $conn->close(); ?>
+
     <script>
         // Theme Switcher
         const themeSwitcher = document.getElementById("themeSwitcher");
@@ -559,26 +574,6 @@ $conn->close();
                 localStorage.setItem("theme", "dark");
             }
         });
-
-        // Generate QR Code for 2FA
-        <?php if ($user_data['two_factor_enabled'] && !empty($user_data['two_factor_secret'])): ?>
-        const qrCodeElement = document.getElementById('qrcode');
-        if (qrCodeElement) {
-            const secret = '<?= htmlspecialchars($user_data['two_factor_secret']) ?>';
-            const issuer = 'Basement Admin';
-            const account = '<?= htmlspecialchars($username) ?>';
-            const otpauth = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
-            
-            QRCode.toCanvas(qrCodeElement, otpauth, {
-                width: 200,
-                margin: 2,
-                color: {
-                    dark: '#333333',
-                    light: '#ffffff'
-                }
-            });
-        }
-        <?php endif; ?>
     </script>
 </body>
 </html>

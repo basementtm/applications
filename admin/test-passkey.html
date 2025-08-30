@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passkey Test - Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔑 Passkey System Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Browser Compatibility</h2>
+        <div id="browser-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Authentication Challenge Test</h2>
+        <button onclick="testAuthChallenge()">Test Auth Challenge</button>
+        <div id="auth-challenge-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Registration Challenge Test</h2>
+        <button onclick="testRegChallenge()">Test Registration Challenge</button>
+        <div id="reg-challenge-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Full Authentication Flow Test</h2>
+        <p><strong>Note:</strong> This requires having a passkey already registered.</p>
+        <button onclick="testAuthentication()" id="authTestBtn">Test Authentication</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Database Status</h2>
+        <button onclick="checkDatabase()">Check Database</button>
+        <div id="db-result"></div>
+    </div>
+
+    <script>
+        // Check browser compatibility
+        function checkBrowserCompatibility() {
+            const statusEl = document.getElementById('browser-status');
+            let html = '';
+            
+            if (window.PublicKeyCredential) {
+                html += '<div class="status success">✅ WebAuthn is supported</div>';
+                
+                PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                    .then(available => {
+                        if (available) {
+                            statusEl.innerHTML += '<div class="status success">✅ Platform authenticator available</div>';
+                        } else {
+                            statusEl.innerHTML += '<div class="status info">ℹ️ Platform authenticator not available (external required)</div>';
+                        }
+                    });
+            } else {
+                html += '<div class="status error">❌ WebAuthn not supported</div>';
+            }
+            
+            if (location.protocol === 'https:' || location.hostname === 'localhost') {
+                html += '<div class="status success">✅ Secure context</div>';
+            } else {
+                html += '<div class="status error">❌ Not a secure context - HTTPS required</div>';
+            }
+            
+            statusEl.innerHTML = html;
+        }
+
+        // Test authentication challenge
+        async function testAuthChallenge() {
+            const resultEl = document.getElementById('auth-challenge-result');
+            resultEl.innerHTML = '<div class="status info">Testing auth challenge...</div>';
+            
+            try {
+                const response = await fetch('get-auth-challenge.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultEl.innerHTML = `
+                        <div class="status success">✅ Auth challenge successful</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultEl.innerHTML = `
+                        <div class="status error">❌ Auth challenge failed</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Test registration challenge
+        async function testRegChallenge() {
+            const resultEl = document.getElementById('reg-challenge-result');
+            resultEl.innerHTML = '<div class="status info">Testing registration challenge...</div>';
+            
+            try {
+                const response = await fetch('get-passkey-challenge.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultEl.innerHTML = `
+                        <div class="status success">✅ Registration challenge successful</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultEl.innerHTML = `
+                        <div class="status error">❌ Registration challenge failed</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Test full authentication
+        async function testAuthentication() {
+            const resultEl = document.getElementById('auth-result');
+            const btn = document.getElementById('authTestBtn');
+            
+            if (!window.PublicKeyCredential) {
+                resultEl.innerHTML = '<div class="status error">❌ WebAuthn not supported</div>';
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Testing...';
+                resultEl.innerHTML = '<div class="status info">Getting authentication challenge...</div>';
+
+                // Get challenge
+                const challengeResponse = await fetch('get-auth-challenge.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const authOptions = await challengeResponse.json();
+                
+                if (!challengeResponse.ok) {
+                    throw new Error(authOptions.error || 'Failed to get challenge');
+                }
+
+                // Convert to proper format
+                authOptions.challenge = new Uint8Array(authOptions.challenge);
+                if (authOptions.allowCredentials) {
+                    authOptions.allowCredentials.forEach(cred => {
+                        cred.id = new Uint8Array(cred.id);
+                    });
+                }
+
+                resultEl.innerHTML = '<div class="status info">Creating credential assertion...</div>';
+
+                // Get credential
+                const credential = await navigator.credentials.get({
+                    publicKey: authOptions
+                });
+
+                if (!credential) {
+                    throw new Error('No credential returned');
+                }
+
+                resultEl.innerHTML = '<div class="status info">Verifying with server...</div>';
+
+                // Verify with server
+                const authResponse = await fetch('authenticate-passkey.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        credential: {
+                            id: credential.id,
+                            rawId: Array.from(new Uint8Array(credential.rawId)),
+                            type: credential.type,
+                            response: {
+                                authenticatorData: Array.from(new Uint8Array(credential.response.authenticatorData)),
+                                clientDataJSON: Array.from(new Uint8Array(credential.response.clientDataJSON)),
+                                signature: Array.from(new Uint8Array(credential.response.signature)),
+                                userHandle: credential.response.userHandle ? Array.from(new Uint8Array(credential.response.userHandle)) : null
+                            }
+                        }
+                    })
+                });
+
+                const result = await authResponse.json();
+
+                if (result.success) {
+                    resultEl.innerHTML = `
+                        <div class="status success">✅ Authentication successful!</div>
+                        <pre>Username: ${result.username}</pre>
+                    `;
+                } else {
+                    resultEl.innerHTML = `
+                        <div class="status error">❌ Authentication failed</div>
+                        <pre>Error: ${result.error}</pre>
+                    `;
+                }
+
+            } catch (error) {
+                resultEl.innerHTML = `
+                    <div class="status error">❌ Authentication test failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Authentication';
+            }
+        }
+
+        // Check database
+        async function checkDatabase() {
+            const resultEl = document.getElementById('db-result');
+            resultEl.innerHTML = '<div class="status info">Checking database...</div>';
+            
+            try {
+                const response = await fetch('diagnostic.php');
+                const result = await response.text();
+                
+                resultEl.innerHTML = `
+                    <div class="status success">✅ Database check completed</div>
+                    <details>
+                        <summary>View Results</summary>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            ${result}
+                        </div>
+                    </details>
+                `;
+            } catch (error) {
+                resultEl.innerHTML = `<div class="status error">❌ Database check failed: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', checkBrowserCompatibility);
+    </script>
+</body>
+</html>
