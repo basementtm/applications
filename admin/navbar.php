@@ -44,6 +44,7 @@ function renderAdminNavbar($currentPage = '') {
         $navItems['owner.php'] = ['👧', 'Owner Panel'];
         $navItems['action-logs.php'] = ['📊', 'Action Logs'];
         $navItems['ip-ban-management.php'] = ['🚫', 'IP Bans'];
+        $navItems['privacy-notifications.php'] = ['🔔', 'Privacy Notifications'];
     }
     
     echo '<div class="header">';

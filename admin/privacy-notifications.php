@@ -171,6 +171,8 @@ foreach ($notifications as &$notification) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy Notifications - Admin Dashboard</title>
     <style>
+        <?= getNavbarCSS() ?>
+        
         :root {
             --bg-color: #ffc0cb;
             --container-bg: #fff0f5;
@@ -202,13 +204,7 @@ foreach ($notifications as &$notification) {
             box-sizing: border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            line-height: 1.6;
-        }
+        /* Body styling is already included in navbar CSS */
 
         .container {
             max-width: 1200px;
@@ -363,29 +359,7 @@ foreach ($notifications as &$notification) {
             color: white;
         }
 
-        .theme-switcher {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--container-bg);
-            border: 2px solid var(--primary-pink);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px var(--shadow-color);
-        }
-
-        .theme-switcher:hover {
-            transform: scale(1.1);
-            background-color: var(--secondary-pink);
-            color: white;
-        }
+        /* Theme switcher styling is already included in navbar CSS */
 
         @media (max-width: 768px) {
             .container {
@@ -397,7 +371,7 @@ foreach ($notifications as &$notification) {
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <?php renderAdminNavbar('privacy-notifications.php'); ?>
+    <?php renderAdminNavbar('privacy-notifications.php'); // Set the current page ?>
 
     <div class="container">
         <div class="section">
