@@ -45,6 +45,12 @@ function showPrivacyNotification(notification) {
     const applicationForm = document.getElementById('applicationForm');
     const statusContainer = document.getElementById('status-container');
     
+    // Hide any form titles or text
+    const formTitles = document.querySelectorAll('.main-container h1, .main-container h2, .main-container h3');
+    formTitles.forEach(title => {
+        title.style.display = 'none';
+    });
+    
     if (applicationForm) {
         applicationForm.style.display = 'none';
     }
@@ -62,7 +68,7 @@ function showPrivacyNotification(notification) {
             <div class="privacy-notification-message">${notification.message}</div>
             <div class="privacy-notification-actions">
                 <a href="privacy-policy.html" target="_blank" class="privacy-notification-button view-policy">View Privacy Policy</a>
-                <button type="button" class="privacy-notification-button dismiss">Dismiss & Continue</button>
+                <button type="button" class="privacy-notification-button dismiss">Agree & Continue</button>
             </div>
         </div>
     `;
@@ -115,6 +121,12 @@ function showPrivacyNotification(notification) {
             if (statusContainer) {
                 statusContainer.style.display = 'block';
             }
+            
+            // Show any form titles or text that were hidden
+            const formTitles = document.querySelectorAll('.main-container h1, .main-container h2, .main-container h3');
+            formTitles.forEach(title => {
+                title.style.display = 'block';
+            });
         }, 300);
     });
 }
@@ -172,10 +184,11 @@ function addPrivacyNotificationStyles() {
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            width: 100%;
         }
         
         .privacy-notification-button {
-            padding: 10px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 25px;
             cursor: pointer;
@@ -183,17 +196,25 @@ function addPrivacyNotificationStyles() {
             font-weight: bold;
             text-decoration: none;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-width: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .privacy-notification-button.dismiss {
             background-color: var(--primary-pink, #ff1493);
             color: white;
+            flex: 1;
+            text-align: center;
         }
         
         .privacy-notification-button.view-policy {
             background-color: transparent;
             color: var(--primary-pink, #ff1493);
             border: 2px solid var(--primary-pink, #ff1493);
+            flex: 1;
+            text-align: center;
         }
         
         .privacy-notification-button:hover {
