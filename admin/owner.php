@@ -428,6 +428,15 @@ $users_result = $conn->query($users_sql);
         }
 
         .role-super_admin { background-color: var(--primary-pink); color: white; }
+        .role-owner { 
+            background: linear-gradient(135deg, #8B008B, #FF1493); 
+            color: white; 
+            border: 2px solid #FFD700;
+            box-shadow: 0 2px 8px rgba(139, 0, 139, 0.3);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .role-admin { background-color: var(--secondary-pink); color: white; }
         .role-readonly_admin { background-color: var(--warning-color); color: white; }
 

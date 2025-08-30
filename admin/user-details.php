@@ -13,11 +13,8 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 // Check if user is still active (not disabled)
 checkUserStatus();
 
-// Check if user is owner
-if ($_SESSION['admin_role'] !== 'owner') {
-    header("Location: dashboard.php");
-    exit();
-}
+// Allow all admin roles to view user details, but restrict actions to owner
+$is_owner = ($_SESSION['admin_role'] === 'owner');
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -30,8 +27,8 @@ $user_id = $_GET['id'] ?? 0;
 $message = '';
 $error = '';
 
-// Handle user disable/enable action
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+// Handle user disable/enable action (owner only)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $is_owner) {
     if ($_POST['action'] === 'toggle_status' && isset($_POST['user_id'])) {
         $target_user_id = $_POST['user_id'];
         $new_status = $_POST['new_status'] === '1' ? 1 : 0;
@@ -236,6 +233,18 @@ $conn->close();
             color: white;
         }
 
+        .role-owner { 
+            background: linear-gradient(135deg, #8B008B, #FF1493) !important; 
+            color: white !important; 
+            border: 2px solid #FFD700;
+            box-shadow: 0 2px 8px rgba(139, 0, 139, 0.3);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .role-admin { background: var(--secondary-pink) !important; color: white !important; }
+        .role-readonly_admin { background: var(--warning-color) !important; color: white !important; }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -398,7 +407,11 @@ $conn->close();
         </div>
         
         <div class="content">
-            <a href="owner.php" class="back-link">← Back to User Management</a>
+            <?php if ($is_owner): ?>
+                <a href="owner.php" class="back-link">← Back to User Management</a>
+            <?php else: ?>
+                <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+            <?php endif; ?>
             
             <?php if ($message): ?>
                 <div class="message success"><?php echo htmlspecialchars($message); ?></div>
@@ -422,7 +435,9 @@ $conn->close();
                     <div class="info-row">
                         <span class="info-label">Role:</span>
                         <span class="info-value">
-                            <span class="role-badge"><?php echo htmlspecialchars($user['role']); ?></span>
+                            <span class="role-badge role-<?php echo htmlspecialchars($user['role']); ?>">
+                                <?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($user['role']))); ?>
+                            </span>
                         </span>
                     </div>
                     <div class="info-row">
@@ -481,7 +496,7 @@ $conn->close();
                 </div>
             </div>
 
-            <?php if ($user['id'] != $_SESSION['admin_id']): ?>
+            <?php if ($is_owner && $user['id'] != $_SESSION['admin_id']): ?>
                 <div class="actions">
                     <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to <?php echo $user['active'] ? 'disable' : 'enable'; ?> this user?');">
                         <input type="hidden" name="action" value="toggle_status">
@@ -491,6 +506,12 @@ $conn->close();
                             <?php echo $user['active'] ? 'Disable User' : 'Enable User'; ?>
                         </button>
                     </form>
+                </div>
+            <?php elseif (!$is_owner): ?>
+                <div class="actions">
+                    <p style="text-align: center; color: #666; font-style: italic;">
+                        Only owners can enable/disable users.
+                    </p>
                 </div>
             <?php endif; ?>
 
