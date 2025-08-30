@@ -192,6 +192,7 @@ if ($ip_banned) {
             <h1>Access Restricted</h1>
             <p>Your IP address has been restricted from submitting applications and/or checking application status.</p>
             <p>If you believe this is an error, please contact support.</p>
+            <p style="margin-top: 15px;"><a href="https://status.girlskissing.dev" target="_blank" style="color: var(--primary-pink); text-decoration: underline;">Check System Status Page</a></p>
         </div>
 
         <script>
@@ -320,6 +321,7 @@ if ($maintenance_active) {
         <p><strong>Site Under Maintenance</strong></p>
         <p>We're performing scheduled maintenance to improve our services.</p>
         <p>Please try again later. Thank you for your patience!</p>
+        <p style="margin-top: 15px;"><a href="https://status.girlskissing.dev" target="_blank" style="color: var(--primary-pink); text-decoration: underline;">Check System Status Page</a></p>
       </div>
 
       <script>
@@ -467,6 +469,7 @@ if ($form_maintenance_active && !$is_admin) {
             <p>The application form is currently in maintenance mode for admin testing and updates.</p>
             <p>We appreciate your patience while we improve the application process.</p>
             <p>Please check back later or contact us if you have any questions.</p>
+            <p style="margin-top: 15px;"><a href="https://status.girlskissing.dev" target="_blank" style="color: var(--primary-pink); text-decoration: underline;">Check System Status Page</a></p>
         </div>
 
         <script>

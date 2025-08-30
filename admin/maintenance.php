@@ -228,6 +228,10 @@ $username = $_SESSION['admin_username'] ?? 'Unknown';
         <div class="refresh-note">
             This page will automatically check for updates when you refresh.
         </div>
+        
+        <div style="margin-top: 20px;">
+            <a href="https://status.girlskissing.dev" target="_blank" style="color: var(--primary-pink); text-decoration: underline;">Check System Status Page</a>
+        </div>
     </div>
 
     <script>

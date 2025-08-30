@@ -145,6 +145,7 @@ if ($ip_banned) {
         <div class='error-code'>Error 403 - Forbidden</div>
         <p>Your IP address has been banned from accessing this service.</p>
         <p>If you believe this is an error, please contact the website administrator.</p>
+        <p style="margin-top: 15px;"><a href="https://status.girlskissing.dev" target="_blank" style="color: var(--heading-color); text-decoration: underline;">Check System Status Page</a></p>
       </div>
 
       <script>
@@ -287,6 +288,7 @@ if ($maintenance_active) {
         <p><strong>Application status checking is temporarily unavailable.</strong></p>
         <p>We're performing scheduled maintenance to improve our services.</p>
         <p>Please try again later. Thank you for your patience!</p>
+        <p style="margin-top: 15px;"><a href="https://status.girlskissing.dev" target="_blank" style="color: var(--primary-pink); text-decoration: underline;">Check System Status Page</a></p>
       </div>
 
       <script>
