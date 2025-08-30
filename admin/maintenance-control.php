@@ -190,49 +190,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } elseif (isset($_POST['toggle_maintenance'])) {
             $debug_info[] = "Processing maintenance toggle form submission";
-    $new_status = $_POST['new_maintenance_status'];
-    $maintenance_type = $_POST['maintenance_type'];
-    
-    // Check if site_settings table exists, create if not
-    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
-    if ($table_check->num_rows === 0) {
-        $create_table_sql = "CREATE TABLE site_settings (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            setting_name VARCHAR(255) UNIQUE NOT NULL,
-            setting_value TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            updated_by VARCHAR(100)
-        )";
-        $conn->query($create_table_sql);
-    }
-    
-    // Update or insert maintenance setting
-    $admin_username = $_SESSION['admin_username'] ?? 'system';
-    $stmt = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) VALUES (?, ?, ?) 
-                           ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?");
-    $stmt->bind_param("sssss", $setting_name, $new_status, $admin_username, $new_status, $admin_username);
-    $setting_name = $maintenance_type;
-    
-    if ($stmt->execute()) {
-        $type_labels = [
-            'maintenance_mode' => 'Site',
-            'form_maintenance_mode' => 'Form'
-        ];
-        $type_label = $type_labels[$maintenance_type] ?? $maintenance_type;
-        $status_text = ($new_status === '1' ? 'enabled' : 'disabled');
-        $message = "$type_label maintenance mode $status_text successfully!";
-        
-        // Log the maintenance action
-        $action_type = 'MAINTENANCE_' . strtoupper($type_label) . '_' . strtoupper($status_text);
-        $description = "Admin $status_text " . strtolower($type_label) . " maintenance mode";
-        $additional_data = [
-            'maintenance_type' => $maintenance_type,
-            'previous_status' => $new_status === '1' ? '0' : '1',
-            'new_status' => $new_status
-        ];
-        
-        logAction($action_type, $description, 'maintenance_system', null, $additional_data);
-        }
+            $new_status = $_POST['new_maintenance_status'];
+            $maintenance_type = $_POST['maintenance_type'];
+            
+            // Check if site_settings table exists, create if not
+            $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+            if ($table_check->num_rows === 0) {
+                $create_table_sql = "CREATE TABLE site_settings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    setting_name VARCHAR(255) UNIQUE NOT NULL,
+                    setting_value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    updated_by VARCHAR(100)
+                )";
+                $conn->query($create_table_sql);
+            }
+            
+            // Update or insert maintenance setting
+            $admin_username = $_SESSION['admin_username'] ?? 'system';
+            $stmt = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) VALUES (?, ?, ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?");
+            $stmt->bind_param("sssss", $setting_name, $new_status, $admin_username, $new_status, $admin_username);
+            $setting_name = $maintenance_type;
+            
+            if ($stmt->execute()) {
+                $type_labels = [
+                    'maintenance_mode' => 'Site',
+                    'form_maintenance_mode' => 'Form'
+                ];
+                $type_label = $type_labels[$maintenance_type] ?? $maintenance_type;
+                $status_text = ($new_status === '1' ? 'enabled' : 'disabled');
+                $message = "$type_label maintenance mode $status_text successfully!";
+                
+                // Log the maintenance action
+                $action_type = 'MAINTENANCE_' . strtoupper($type_label) . '_' . strtoupper($status_text);
+                $description = "Admin $status_text " . strtolower($type_label) . " maintenance mode";
+                $additional_data = [
+                    'maintenance_type' => $maintenance_type,
+                    'previous_status' => $new_status === '1' ? '0' : '1',
+                    'new_status' => $new_status
+                ];
+                
+                logAction($action_type, $description, 'maintenance_system', null, $additional_data);
+            }
     } catch (Exception $e) {
         $error = "Form processing error: " . $e->getMessage();
         $debug_errors[] = [
@@ -272,28 +272,55 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
 }
 
 // Process scheduled maintenance with error handling
+$debug_info[] = "Starting scheduled maintenance processing";
+$current_scheduled_maintenance = null;
+$all_scheduled_maintenance = [];
+
 try {
-    if (file_exists('/var/www/html/includes/scheduled_maintenance_helper.php')) {
-        require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+    $helper_path = '/var/www/html/includes/scheduled_maintenance_helper.php';
+    $debug_info[] = "Checking for helper file at: $helper_path";
+    
+    if (file_exists($helper_path)) {
+        $debug_info[] = "Helper file exists, attempting to include";
+        require_once $helper_path;
         $debug_info[] = "Scheduled maintenance helper loaded successfully";
         
-        processScheduledMaintenance($conn);
-        $debug_info[] = "Scheduled maintenance processed successfully";
+        if (function_exists('processScheduledMaintenance')) {
+            processScheduledMaintenance($conn);
+            $debug_info[] = "Scheduled maintenance processed successfully";
+        } else {
+            $debug_errors[] = [
+                'type' => 'Function Error',
+                'message' => 'processScheduledMaintenance function not found after include',
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+        }
         
         // Get scheduled maintenance data
-        $current_scheduled_maintenance = getScheduledMaintenance($conn);
-        $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
-        $debug_info[] = "Scheduled maintenance data retrieved successfully";
+        if (function_exists('getScheduledMaintenance')) {
+            $current_scheduled_maintenance = getScheduledMaintenance($conn);
+            $debug_info[] = "Current scheduled maintenance retrieved";
+        }
+        
+        if (function_exists('getAllScheduledMaintenance')) {
+            $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
+            $debug_info[] = "All scheduled maintenance retrieved";
+        }
     } else {
         $debug_errors[] = [
             'type' => 'File Error',
-            'message' => 'Scheduled maintenance helper file not found',
-            'file' => '/var/www/html/includes/scheduled_maintenance_helper.php',
+            'message' => "Scheduled maintenance helper file not found at: $helper_path",
             'timestamp' => date('Y-m-d H:i:s')
         ];
-        $current_scheduled_maintenance = null;
-        $all_scheduled_maintenance = [];
     }
+} catch (ParseError $e) {
+    $debug_errors[] = [
+        'type' => 'Parse Error',
+        'message' => 'Syntax error in scheduled maintenance helper: ' . $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
 } catch (Exception $e) {
     $debug_errors[] = [
         'type' => 'Scheduled Maintenance Error',
@@ -302,8 +329,6 @@ try {
         'line' => $e->getLine(),
         'timestamp' => date('Y-m-d H:i:s')
     ];
-    $current_scheduled_maintenance = null;
-    $all_scheduled_maintenance = [];
 } catch (Error $e) {
     $debug_errors[] = [
         'type' => 'PHP Fatal Error',
@@ -312,8 +337,6 @@ try {
         'line' => $e->getLine(),
         'timestamp' => date('Y-m-d H:i:s')
     ];
-    $current_scheduled_maintenance = null;
-    $all_scheduled_maintenance = [];
 }
 ?>
 <!DOCTYPE html>
