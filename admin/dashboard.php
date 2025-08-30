@@ -695,26 +695,27 @@ while ($row = $stats_result->fetch_assoc()) {
             <a href="dashboard.php" class="btn btn-secondary btn-sm">🔄 Reset</a>
         </form>
 
-        <!-- Bulk Actions -->
-        <form id="bulkForm" method="POST" class="bulk-actions" style="margin: 20px 0; padding: 15px; background: var(--container-bg); border-radius: 8px; border: 1px solid var(--border-color);">
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                <label style="font-weight: bold;">Bulk Actions:</label>
-                <select name="bulk_status" id="bulkStatus" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
-                    <option value="">Select Action</option>
-                    <option value="unreviewed">Set to Unreviewed</option>
-                    <option value="stage2">Set to Stage 2</option>
-                    <option value="stage3">Set to Stage 3</option>
-                    <option value="accepted">Set to Accepted</option>
-                    <option value="denied">Set to Denied</option>
-                    <option value="invalid">Set to Invalid</option>
-                </select>
-                <button type="button" id="bulkSubmit" class="btn btn-warning btn-sm" style="padding: 8px 15px;">Apply to Selected</button>
-                <span id="selectedCount" style="color: var(--text-color); font-size: 0.9rem;">0 selected</span>
+        <!-- Applications Table with Bulk Actions -->
+        <form id="bulkForm" method="POST">
+            <!-- Bulk Actions -->
+            <div class="bulk-actions" style="margin: 20px 0; padding: 15px; background: var(--container-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <label style="font-weight: bold;">Bulk Actions:</label>
+                    <select name="bulk_status" id="bulkStatus" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <option value="">Select Action</option>
+                        <option value="unreviewed">Set to Unreviewed</option>
+                        <option value="stage2">Set to Stage 2</option>
+                        <option value="stage3">Set to Stage 3</option>
+                        <option value="accepted">Set to Accepted</option>
+                        <option value="denied">Set to Denied</option>
+                        <option value="invalid">Set to Invalid</option>
+                    </select>
+                    <button type="button" id="bulkSubmit" class="btn btn-warning btn-sm" style="padding: 8px 15px;">Apply to Selected</button>
+                    <span id="selectedCount" style="color: var(--text-color); font-size: 0.9rem;">0 selected</span>
+                </div>
+                <input type="hidden" name="bulk_update" value="1">
             </div>
-            <input type="hidden" name="bulk_update" value="1">
-        </form>
 
-        <!-- Applications Table -->
         <div class="applications-table">
             <table>
                 <thead>
