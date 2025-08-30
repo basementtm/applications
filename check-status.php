@@ -87,6 +87,10 @@ if (!$conn->connect_error) {
             $maintenance_active = ($row['setting_value'] === '1');
         }
     }
+    
+    // Process scheduled maintenance
+    include('includes/scheduled_maintenance_helper.php');
+    processScheduledMaintenance($conn);
 }
 
 if ($maintenance_active) {

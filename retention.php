@@ -83,6 +83,10 @@ $banner_settings = [
 ];
 
 if (!$conn->connect_error) {
+    // Process scheduled maintenance first
+    include('includes/scheduled_maintenance_helper.php');
+    processScheduledMaintenance($conn);
+    
     $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
     if ($table_check && $table_check->num_rows > 0) {
         $settings_sql = "SELECT setting_name, setting_value FROM site_settings 

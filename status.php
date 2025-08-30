@@ -45,7 +45,6 @@ if (!$is_admin && !$conn->connect_error) {
         $ban_stmt->close();
     }
 }
-
 // If IP is banned, log the attempt and return banned status
 if ($ip_banned) {
     // Log the banned IP access attempt

@@ -29,8 +29,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Include action logger
+// Include action logger and scheduled maintenance helper
 require_once 'action_logger.php';
+require_once '../includes/scheduled_maintenance_helper.php';
 
 // Check admin maintenance mode - only allow Emma to access during maintenance
 if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
@@ -58,8 +59,46 @@ include('navbar.php');
 $message = '';
 $error = '';
 
-// Handle maintenance mode toggles
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
+// Process scheduled maintenance actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['schedule_maintenance'])) {
+        $start_date = $_POST['start_date'];
+        $start_time = $_POST['start_time'];
+        $end_date = $_POST['end_date'];
+        $end_time = $_POST['end_time'];
+        $reason = $_POST['reason'] ?? '';
+        
+        // Combine date and time for start and end
+        $start_datetime = $start_date . ' ' . $start_time . ':00';
+        $end_datetime = $end_date . ' ' . $end_time . ':00';
+        
+        // Validate times
+        $start_timestamp = strtotime($start_datetime);
+        $end_timestamp = strtotime($end_datetime);
+        $current_timestamp = time();
+        
+        if ($start_timestamp <= $current_timestamp) {
+            $error = "Start time must be in the future.";
+        } elseif ($end_timestamp <= $start_timestamp) {
+            $error = "End time must be after start time.";
+        } else {
+            $admin_username = $_SESSION['admin_username'] ?? 'system';
+            if (addScheduledMaintenance($conn, $start_datetime, $end_datetime, $reason, $admin_username)) {
+                $message = "Scheduled maintenance added successfully!";
+                logAction('SCHEDULED_MAINTENANCE_CREATED', "Scheduled maintenance from $start_datetime to $end_datetime", 'scheduled_maintenance', null, ['reason' => $reason]);
+            } else {
+                $error = "Error scheduling maintenance: " . $conn->error;
+            }
+        }
+    } elseif (isset($_POST['cancel_maintenance'])) {
+        $maintenance_id = $_POST['maintenance_id'];
+        if (cancelScheduledMaintenance($conn, $maintenance_id)) {
+            $message = "Scheduled maintenance cancelled successfully!";
+            logAction('SCHEDULED_MAINTENANCE_CANCELLED', "Cancelled scheduled maintenance ID: $maintenance_id", 'scheduled_maintenance', $maintenance_id);
+        } else {
+            $error = "Error cancelling maintenance: " . $conn->error;
+        }
+    } elseif (isset($_POST['toggle_maintenance'])) {
     $new_status = $_POST['new_maintenance_status'];
     $maintenance_type = $_POST['maintenance_type'];
     
@@ -102,10 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])
         ];
         
         logAction($action_type, $description, 'maintenance_system', null, $additional_data);
-    } else {
-        $error = "Error updating maintenance mode: " . $conn->error;
     }
-    $stmt->close();
 }
 
 // Get current maintenance statuses
@@ -124,6 +160,13 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
     $form_maintenance_row = $form_maintenance_result->fetch_assoc();
     $form_maintenance_active = ($form_maintenance_row['setting_value'] === '1');
 }
+
+// Process scheduled maintenance
+processScheduledMaintenance($conn);
+
+// Get scheduled maintenance data
+$current_scheduled_maintenance = getScheduledMaintenance($conn);
+$all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -426,6 +469,118 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
                     </button>
                 </form>
             </div>
+        </div>
+
+        <!-- Scheduled Maintenance Control -->
+        <div class="maintenance-control">
+            <h4>⏰ Scheduled Maintenance</h4>
+            <p>Schedule maintenance to start and stop automatically at specific times in CEST timezone. Banners will automatically appear to warn users.</p>
+            
+            <?php if ($current_scheduled_maintenance): ?>
+                <div class="status-indicator status-enabled">
+                    Scheduled: <?= date('F j, Y \a\t g:i A T', strtotime($current_scheduled_maintenance['start_time'])) ?> 
+                    to <?= date('g:i A T', strtotime($current_scheduled_maintenance['end_time'])) ?>
+                    <?php if ($current_scheduled_maintenance['reason']): ?>
+                        <br><small>Reason: <?= htmlspecialchars($current_scheduled_maintenance['reason']) ?></small>
+                    <?php endif; ?>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="maintenance_id" value="<?= $current_scheduled_maintenance['id'] ?>">
+                        <button type="submit" name="cancel_maintenance" 
+                                class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to cancel this scheduled maintenance?')">
+                            ❌ Cancel Scheduled Maintenance
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="status-indicator status-disabled">
+                    No maintenance currently scheduled
+                </div>
+                
+                <form method="POST" style="margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Start Date:</label>
+                            <input type="date" name="start_date" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg);" min="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Start Time (CEST):</label>
+                            <input type="time" name="start_time" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg);">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">End Date:</label>
+                            <input type="date" name="end_date" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg);" min="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">End Time (CEST):</label>
+                            <input type="time" name="end_time" required style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg);">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Reason (Optional):</label>
+                        <textarea name="reason" placeholder="Enter reason for maintenance..." style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg); min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <button type="submit" name="schedule_maintenance" class="btn btn-warning">
+                        ⏰ Schedule Maintenance
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
+
+        <?php if (!empty($all_scheduled_maintenance)): ?>
+        <!-- Recent Scheduled Maintenance -->
+        <div class="section">
+            <h3>📋 Recent Scheduled Maintenance</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="background-color: var(--primary-pink); color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid var(--border-color);">Start Time</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid var(--border-color);">End Time</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid var(--border-color);">Reason</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid var(--border-color);">Status</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid var(--border-color);">Created By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($all_scheduled_maintenance as $maintenance): ?>
+                        <tr style="background-color: var(--container-bg);">
+                            <td style="padding: 8px; border: 1px solid var(--border-color);">
+                                <?= date('M j, Y g:i A', strtotime($maintenance['start_time'])) ?>
+                            </td>
+                            <td style="padding: 8px; border: 1px solid var(--border-color);">
+                                <?= date('M j, Y g:i A', strtotime($maintenance['end_time'])) ?>
+                            </td>
+                            <td style="padding: 8px; border: 1px solid var(--border-color);">
+                                <?= htmlspecialchars($maintenance['reason'] ?: 'No reason provided') ?>
+                            </td>
+                            <td style="padding: 8px; border: 1px solid var(--border-color);">
+                                <?php 
+                                if ($maintenance['maintenance_completed']) {
+                                    echo '<span style="color: var(--success-color);">✅ Completed</span>';
+                                } elseif ($maintenance['maintenance_started']) {
+                                    echo '<span style="color: var(--danger-color);">🔧 In Progress</span>';
+                                } elseif (!$maintenance['is_active']) {
+                                    echo '<span style="color: var(--border-color);">❌ Cancelled</span>';
+                                } else {
+                                    echo '<span style="color: var(--warning-color);">⏳ Scheduled</span>';
+                                }
+                                ?>
+                            </td>
+                            <td style="padding: 8px; border: 1px solid var(--border-color);">
+                                <?= htmlspecialchars($maintenance['created_by']) ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+
     </div>
 
     <script>

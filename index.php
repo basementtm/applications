@@ -23,6 +23,10 @@ if (!$conn->connect_error) {
             $form_maintenance_active = ($form_row['setting_value'] === '1');
         }
     }
+    
+    // Process scheduled maintenance
+    include('includes/scheduled_maintenance_helper.php');
+    processScheduledMaintenance($conn);
 }
 
 // Get banner settings
