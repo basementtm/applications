@@ -288,21 +288,33 @@
     // Auto-format application ID input
     const appIdInput = document.querySelector('input[name="application_id"]');
     appIdInput.addEventListener('input', function(e) {
-      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
       
-      if (value.length > 3 && !value.startsWith('APP')) {
-        value = 'APP' + value;
+      // Remove any existing dashes to start fresh
+      value = value.replace(/-/g, '');
+      
+      // Ensure it starts with APP
+      if (value.length > 0 && !value.startsWith('APP')) {
+        if (value.startsWith('A')) {
+          value = 'APP' + value.slice(1);
+        } else {
+          value = 'APP' + value;
+        }
       }
       
-      if (value.length > 11) {
-        value = value.slice(0, 11) + '-' + value.slice(11);
+      // Format as APP-YYYYMMDD-XXXXXX
+      let formatted = '';
+      if (value.length > 0) {
+        formatted = value.slice(0, 3); // APP
+        if (value.length > 3) {
+          formatted += '-' + value.slice(3, 11); // -YYYYMMDD
+        }
+        if (value.length > 11) {
+          formatted += '-' + value.slice(11, 17); // -XXXXXX
+        }
       }
       
-      if (value.length > 19) {
-        value = value.slice(0, 19) + '-' + value.slice(19);
-      }
-      
-      e.target.value = value;
+      e.target.value = formatted;
     });
   </script>
 </body>
