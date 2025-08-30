@@ -31,7 +31,8 @@ if ($conn->connect_error) {
 
 // Include action logger and scheduled maintenance helper
 require_once 'action_logger.php';
-require_once '../includes/scheduled_maintenance_helper.php';
+// Temporarily disable scheduled maintenance to fix 500 error
+require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
 
 // Check admin maintenance mode - only allow Emma to access during maintenance
 if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
@@ -162,11 +163,13 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
 }
 
 // Process scheduled maintenance
-processScheduledMaintenance($conn);
+// processScheduledMaintenance($conn);
 
 // Get scheduled maintenance data
-$current_scheduled_maintenance = getScheduledMaintenance($conn);
-$all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
+// $current_scheduled_maintenance = getScheduledMaintenance($conn);
+// $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
+$current_scheduled_maintenance = null;
+$all_scheduled_maintenance = [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
