@@ -36,7 +36,7 @@ if (!empty($application_id)) {
         $application = $result->fetch_assoc();
         
         // Log the application view action
-        logApplicationView($application_id, $application['name']);
+        logApplicationView($application_id, $application_id);
     }
     $stmt->close();
 }

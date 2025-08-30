@@ -83,9 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_banner'])) {
             $stmt->bind_param("sss", $setting_name, $setting_value, $admin_username);
             $stmt->execute();
             $stmt->close();
-            
-            // Log the settings change
-            logSettingsChange($setting_name, $old_value, $setting_value);
         }
         
         // Log the specific banner action

@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             $update_stmt->close();
             
             // Log the status change
-            logApplicationStatusChange($application_id, $applicant_name, $old_status, $new_status);
+            logApplicationStatusChange($application_id, $application_id, $old_status, $new_status);
         }
         
         // Redirect to prevent form resubmission
@@ -208,11 +208,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
             if (isset($applications_data[$app_id])) {
                 $app_data = $applications_data[$app_id];
                 $old_status = $app_data['status'];
-                $applicant_name = $app_data['name'];
                 
                 // Only log if status actually changed
                 if ($old_status !== $bulk_status) {
-                    logApplicationStatusChange($app_id, $applicant_name, $old_status, $bulk_status);
+                    logApplicationStatusChange($app_id, $app_id, $old_status, $bulk_status);
                 }
             }
         }

@@ -71,11 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
             
             // Log the application edit action
-            logApplicationAction('edited', $application_id, $name);
+            logApplicationAction('edited', $application_id, $application_id);
             
             // Log status change if it occurred
             if ($status_changed) {
-                logApplicationStatusChange($application_id, $name, $old_status, $status);
+                logApplicationStatusChange($application_id, $application_id, $old_status, $status);
             }
         } else {
             $message = "Error updating application. Please try again.";
