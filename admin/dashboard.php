@@ -18,47 +18,57 @@ include('navbar.php');
 
 // Handle maintenance toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
-    // Check current maintenance status from database
-    $check_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
-    $check_result = $conn->query($check_sql);
+    // Check if site_settings table exists first
+    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
     
-    $current_maintenance = false;
-    if ($check_result && $check_result->num_rows > 0) {
-        $row = $check_result->fetch_assoc();
-        $current_maintenance = ($row['setting_value'] === '1');
-    }
-    
-    if ($current_maintenance) {
-        // Turn off maintenance mode
-        $update_sql = "UPDATE site_settings SET setting_value = '0', updated_at = NOW(), updated_by = ? WHERE setting_name = 'maintenance_mode'";
-        $stmt = $conn->prepare($update_sql);
-        $stmt->bind_param("s", $_SESSION['admin_username']);
+    if ($table_check && $table_check->num_rows > 0) {
+        // Table exists, proceed with database operations
+        // Check current maintenance status from database
+        $check_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+        $check_result = $conn->query($check_sql);
         
-        if ($stmt->execute()) {
-            $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";
-            $maintenance_type = "success";
-        } else {
-            $maintenance_message = "Error: Could not turn off maintenance mode.";
-            $maintenance_type = "error";
+        $current_maintenance = false;
+        if ($check_result && $check_result->num_rows > 0) {
+            $row = $check_result->fetch_assoc();
+            $current_maintenance = ($row['setting_value'] === '1');
         }
-        $stmt->close();
+        
+        if ($current_maintenance) {
+            // Turn off maintenance mode
+            $update_sql = "UPDATE site_settings SET setting_value = '0', updated_at = NOW(), updated_by = ? WHERE setting_name = 'maintenance_mode'";
+            $stmt = $conn->prepare($update_sql);
+            $stmt->bind_param("s", $_SESSION['admin_username']);
+            
+            if ($stmt->execute()) {
+                $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";
+                $maintenance_type = "success";
+            } else {
+                $maintenance_message = "Error: Could not turn off maintenance mode.";
+                $maintenance_type = "error";
+            }
+            $stmt->close();
+        } else {
+            // Turn on maintenance mode
+            $insert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
+                           VALUES ('maintenance_mode', '1', NOW(), ?) 
+                           ON DUPLICATE KEY UPDATE 
+                           setting_value = '1', updated_at = NOW(), updated_by = ?";
+            $stmt = $conn->prepare($insert_sql);
+            $stmt->bind_param("ss", $_SESSION['admin_username'], $_SESSION['admin_username']);
+            
+            if ($stmt->execute()) {
+                $maintenance_message = "Maintenance mode has been turned on. Applications are now closed to the public.";
+                $maintenance_type = "warning";
+            } else {
+                $maintenance_message = "Error: Could not turn on maintenance mode.";
+                $maintenance_type = "error";
+            }
+            $stmt->close();
+        }
     } else {
-        // Turn on maintenance mode
-        $insert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
-                       VALUES ('maintenance_mode', '1', NOW(), ?) 
-                       ON DUPLICATE KEY UPDATE 
-                       setting_value = '1', updated_at = NOW(), updated_by = ?";
-        $stmt = $conn->prepare($insert_sql);
-        $stmt->bind_param("ss", $_SESSION['admin_username'], $_SESSION['admin_username']);
-        
-        if ($stmt->execute()) {
-            $maintenance_message = "Maintenance mode has been turned on. Applications are now closed to the public.";
-            $maintenance_type = "warning";
-        } else {
-            $maintenance_message = "Error: Could not turn on maintenance mode.";
-            $maintenance_type = "error";
-        }
-        $stmt->close();
+        // Table doesn't exist, show setup message
+        $maintenance_message = "Database incorrectly setup.";
+        $maintenance_type = "error";
     }
     
     // Redirect to prevent form resubmission
@@ -551,31 +561,51 @@ $conn->close();
         <?php endif; ?>
 
         <?php 
-        // Check maintenance status from database
+        // Check maintenance status from database with fallback
         $maintenance_active = false;
-        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
-        $maintenance_result = $conn->query($maintenance_sql);
-        if ($maintenance_result && $maintenance_result->num_rows > 0) {
-            $maintenance_row = $maintenance_result->fetch_assoc();
-            $maintenance_active = ($maintenance_row['setting_value'] === '1');
+        $settings_table_exists = false;
+        
+        // Check if site_settings table exists
+        $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+        if ($table_check && $table_check->num_rows > 0) {
+            $settings_table_exists = true;
+            $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+            $maintenance_result = $conn->query($maintenance_sql);
+            if ($maintenance_result && $maintenance_result->num_rows > 0) {
+                $maintenance_row = $maintenance_result->fetch_assoc();
+                $maintenance_active = ($maintenance_row['setting_value'] === '1');
+            }
         }
         ?>
         <div class="maintenance-panel">
-            <div class="maintenance-status <?= $maintenance_active ? 'maintenance-active' : 'maintenance-inactive' ?>">
-                <div class="maintenance-info">
-                    <span class="maintenance-indicator"><?= $maintenance_active ? '🚧' : '✅' ?></span>
-                    <span class="maintenance-text">
-                        <strong>Maintenance Mode: <?= $maintenance_active ? 'ACTIVE' : 'INACTIVE' ?></strong><br>
-                        <small><?= $maintenance_active ? 'Site is under maintenance - applications and status checks are closed to the public' : 'Site is operational - applications are open and accepting submissions' ?></small>
-                    </span>
+            <?php if (!$settings_table_exists): ?>
+                <div class="maintenance-status" style="border-left-color: #ffa502; background-color: #fff3cd;">
+                    <div class="maintenance-info">
+                        <span class="maintenance-indicator">⚠️</span>
+                        <span class="maintenance-text">
+                            <strong>Database Setup Required</strong><br>
+                            <small>The settings table needs to be created for maintenance mode functionality</small>
+                        </span>
+                    </div>
+                    <a href="create-settings-table.php" class="btn btn-warning">🔧 Setup Database</a>
                 </div>
-                <form method="POST" style="display: inline;">
-                    <button type="submit" name="toggle_maintenance" class="btn <?= $maintenance_active ? 'btn-success' : 'btn-warning' ?>" 
-                            onclick="return confirm('Are you sure you want to <?= $maintenance_active ? 'turn off' : 'turn on' ?> maintenance mode?')">
-                        <?= $maintenance_active ? 'Turn off Maintenance' : 'Turn on Maintenance' ?>
-                    </button>
-                </form>
-            </div>
+            <?php else: ?>
+                <div class="maintenance-status <?= $maintenance_active ? 'maintenance-active' : 'maintenance-inactive' ?>">
+                    <div class="maintenance-info">
+                        <span class="maintenance-indicator"><?= $maintenance_active ? '🚧' : '✅' ?></span>
+                        <span class="maintenance-text">
+                            <strong>Maintenance Mode: <?= $maintenance_active ? 'ACTIVE' : 'INACTIVE' ?></strong><br>
+                            <small><?= $maintenance_active ? 'Site is under maintenance - applications and status checks are closed to the public' : 'Site is operational - applications are open and accepting submissions' ?></small>
+                        </span>
+                    </div>
+                    <form method="POST" style="display: inline;">
+                        <button type="submit" name="toggle_maintenance" class="btn <?= $maintenance_active ? 'btn-success' : 'btn-warning' ?>" 
+                                onclick="return confirm('Are you sure you want to <?= $maintenance_active ? 'turn off' : 'turn on' ?> maintenance mode?')">
+                            <?= $maintenance_active ? 'Turn off Maintenance' : 'Turn on Maintenance' ?>
+                        </button>
+                    </form>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Statistics -->
