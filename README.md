@@ -1,2 +1,2 @@
-# applicationsbackend
-so I don't have to keep updating the file on the VPS
+# applications
+backend and frontend for that [form thing](https://girlskissing.dev)
