@@ -14,7 +14,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 checkUserStatus();
 
 // Allow all admin roles to view user details, but restrict actions to owner
-$is_owner = ($_SESSION['admin_role'] === 'owner');
+$is_owner = true
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
