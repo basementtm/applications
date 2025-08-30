@@ -669,7 +669,8 @@ $users_result = $conn->query($users_sql);
                     <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
+                            class="btn <?= $form_maintenance_active ? 'btn-success' : '' ?>"
+                            style="<?= !$form_maintenance_active ? 'background-color: var(--success-color); color: white;' : '' ?>"
                             onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode?')">
                         <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
                     </button>
