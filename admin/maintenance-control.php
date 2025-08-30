@@ -267,12 +267,31 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 2px 5px var(--shadow-color);
-            border: 2px solid var(--success-color);
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card.maintenance-on {
+            border-color: var(--danger-color);
+            background-color: rgba(255, 71, 87, 0.1);
+        }
+
+        .stat-card.maintenance-off {
+            border-color: var(--success-color);
+            background-color: rgba(46, 213, 115, 0.1);
         }
 
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .stat-card.maintenance-on .stat-number {
+            color: var(--danger-color);
+        }
+
+        .stat-card.maintenance-off .stat-number {
             color: var(--success-color);
         }
 
@@ -340,11 +359,11 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
 
         <!-- Statistics -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card <?= $site_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
                 <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Site Maintenance</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
                 <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Form Maintenance</div>
             </div>
@@ -392,18 +411,6 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
                     </button>
                 </form>
             </div>
-        </div>
-
-        <!-- Information Section -->
-        <div class="section">
-            <h3>ℹ️ Maintenance Mode Information</h3>
-            <ul style="line-height: 2;">
-                <li><strong>Site Maintenance:</strong> Closes everything for public users - use for major updates or emergencies</li>
-                <li><strong>Form Maintenance:</strong> Closes only the application form - use for testing or form updates</li>
-                <li><strong>Admin Access:</strong> Admins can always access the admin panel and bypass form maintenance</li>
-                <li><strong>Independent Control:</strong> Each maintenance mode works independently and can be enabled separately</li>
-            </ul>
-        </div>
     </div>
 
     <script>
