@@ -17,38 +17,6 @@ if (!$conn->connect_error) {
     }
 }
 
-// Get banner settings
-$banner_settings = [
-    'text' => '',
-    'enabled' => false,
-    'type' => 'info'
-];
-
-if (!$conn->connect_error) {
-    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
-    if ($table_check && $table_check->num_rows > 0) {
-        $settings_sql = "SELECT setting_name, setting_value FROM site_settings 
-                         WHERE setting_name IN ('banner_text', 'banner_enabled', 'banner_type')";
-        $settings_result = $conn->query($settings_sql);
-        
-        if ($settings_result) {
-            while ($row = $settings_result->fetch_assoc()) {
-                switch ($row['setting_name']) {
-                    case 'banner_text':
-                        $banner_settings['text'] = $row['setting_value'];
-                        break;
-                    case 'banner_enabled':
-                        $banner_settings['enabled'] = ($row['setting_value'] === '1');
-                        break;
-                    case 'banner_type':
-                        $banner_settings['type'] = $row['setting_value'];
-                        break;
-                }
-            }
-        }
-    }
-}
-
 if ($maintenance_active) {
     http_response_code(503);
     header("Retry-After: 3600");
@@ -351,52 +319,6 @@ $status_display = [
         right: 15px;
       }
     }
-    
-    /* Banner styles */
-    #notice-banner {
-      padding: 15px 20px;
-      margin: 0;
-      font-weight: bold;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      word-wrap: break-word;
-      white-space: normal;
-      width: 100%;
-      box-sizing: border-box;
-      opacity: 0;
-      transform: translateY(-20px);
-      animation: fadeSlideDown 1.2s 0.3s forwards;
-      transition: transform 0.2s, box-shadow 0.2s;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
-    }
-
-    .banner-info { 
-      background-color: #d1ecf1 !important; 
-      color: #0c5460 !important; 
-      border-bottom: 2px solid #bee5eb !important; 
-    }
-    .banner-warning { 
-      background-color: #fff3cd !important; 
-      color: #856404 !important; 
-      border-bottom: 2px solid #ffeaa7 !important; 
-    }
-    .banner-error { 
-      background-color: #f8d7da !important; 
-      color: #721c24 !important; 
-      border-bottom: 2px solid #f5c6cb !important; 
-    }
-    .banner-success { 
-      background-color: #d4edda !important; 
-      color: #155724 !important; 
-      border-bottom: 2px solid #c3e6cb !important; 
-    }
-
-    @keyframes fadeSlideDown {
-      to { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 <body>
@@ -404,22 +326,6 @@ $status_display = [
     🌙
   </div>
   <div class="container">
-    <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
-      <?php
-      $emoji = '';
-      switch($banner_settings['type']) {
-          case 'info': $emoji = 'ℹ️'; break;
-          case 'warning': $emoji = '⚠️'; break;
-          case 'error': $emoji = '❌'; break;
-          case 'success': $emoji = '✅'; break;
-          default: $emoji = 'ℹ️'; break;
-      }
-      ?>
-      <div id="notice-banner" class="banner-<?= htmlspecialchars($banner_settings['type']) ?>">
-        <?= $emoji ?> <?= htmlspecialchars($banner_settings['text']) ?>
-      </div>
-    <?php endif; ?>
-    
     <?php if ($application_data): ?>
       <h1>📋 Application Status</h1>
       

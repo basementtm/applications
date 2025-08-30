@@ -41,10 +41,32 @@ if (!$conn->connect_error) {
   <meta charset="UTF-8">
   <title>Data Retention Policy - basement™</title>
   <style>
+    :root {
+      --bg-color: #ffc0cb;
+      --container-bg: #fff0f5;
+      --text-color: #333;
+      --primary-pink: #ff1493;
+      --secondary-pink: #ff69b4;
+      --shadow-color: rgba(0,0,0,0.1);
+      --highlight-bg: #ffe6f0;
+      --contact-bg: #f0f8ff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d1b2e;
+      --container-bg: #3d2b3e;
+      --text-color: #e0d0e0;
+      --primary-pink: #ff6bb3;
+      --secondary-pink: #d147a3;
+      --shadow-color: rgba(0,0,0,0.3);
+      --highlight-bg: #4a3a4a;
+      --contact-bg: #3a3a4a;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background-color: #ffc0cb;
-      color: #333;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -52,13 +74,14 @@ if (!$conn->connect_error) {
       margin: 0;
       padding: 20px;
       flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     #policy-container {
-      background-color: #fff0f5;
+      background-color: var(--container-bg);
       padding: 30px 40px;
       border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px var(--shadow-color);
       text-align: center;
       max-width: 600px;
       width: 90%;
@@ -66,24 +89,29 @@ if (!$conn->connect_error) {
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 1s forwards;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     h1 {
-      color: #ff1493;
+      color: var(--primary-pink);
       margin-bottom: 20px;
       font-size: 2em;
+      transition: color 0.3s ease;
     }
 
     h2 {
-      color: #ff69b4;
+      color: var(--secondary-pink);
       margin-top: 25px;
       margin-bottom: 15px;
       font-size: 1.3em;
+      transition: color 0.3s ease;
     }
 
     p, li {
       line-height: 1.6;
       margin-bottom: 10px;
+      color: var(--text-color);
+      transition: color 0.3s ease;
     }
 
     ul {
@@ -93,19 +121,21 @@ if (!$conn->connect_error) {
     }
 
     .highlight {
-      background-color: #ffe6f0;
+      background-color: var(--highlight-bg);
       padding: 15px;
       border-radius: 8px;
-      border-left: 4px solid #ff1493;
+      border-left: 4px solid var(--primary-pink);
       margin: 20px 0;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .contact-info {
-      background-color: #f0f8ff;
+      background-color: var(--contact-bg);
       padding: 15px;
       border-radius: 8px;
       margin-top: 20px;
-      border-left: 4px solid #ff69b4;
+      border-left: 4px solid var(--secondary-pink);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .back-link {
@@ -113,20 +143,49 @@ if (!$conn->connect_error) {
     }
 
     .back-link a {
-      color: #ff1493;
+      color: var(--primary-pink);
       text-decoration: none;
       font-weight: bold;
       padding: 10px 20px;
-      border: 2px solid #ff1493;
+      border: 2px solid var(--primary-pink);
       border-radius: 25px;
       transition: all 0.3s ease;
     }
 
     .back-link a:hover {
-      background-color: #ff1493;
+      background-color: var(--primary-pink);
       color: white;
       transform: translateY(-2px);
       box-shadow: 0 4px 10px rgba(255, 20, 147, 0.3);
+    }
+
+    .theme-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeScale 0.3s 0.2s forwards;
+    }
+
+    .theme-switcher:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px var(--shadow-color);
+      background-color: var(--secondary-pink);
+      color: white;
     }
 
     /* Banner styles */
@@ -171,8 +230,36 @@ if (!$conn->connect_error) {
       border-bottom: 2px solid #c3e6cb !important; 
     }
 
+    [data-theme="dark"] .banner-info { 
+      background-color: #0c5460 !important; 
+      color: #d1ecf1 !important; 
+      border-bottom: 2px solid #0c5460 !important; 
+    }
+    [data-theme="dark"] .banner-warning { 
+      background-color: #856404 !important; 
+      color: #fff3cd !important; 
+      border-bottom: 2px solid #856404 !important; 
+    }
+    [data-theme="dark"] .banner-error { 
+      background-color: #721c24 !important; 
+      color: #f8d7da !important; 
+      border-bottom: 2px solid #721c24 !important; 
+    }
+    [data-theme="dark"] .banner-success { 
+      background-color: #155724 !important; 
+      color: #d4edda !important; 
+      border-bottom: 2px solid #155724 !important; 
+    }
+
     @keyframes fadeSlideDown {
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeScale {
+      to { 
+        opacity: 1; 
+        transform: scale(1);
+      }
     }
 
     @keyframes fadeUp {
@@ -195,10 +282,22 @@ if (!$conn->connect_error) {
       h2 {
         font-size: 1.2em;
       }
+
+      .theme-switcher {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        bottom: 15px;
+        right: 15px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+    🌙
+  </div>
+
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
     <?php
     $emoji = '';
@@ -226,6 +325,34 @@ if (!$conn->connect_error) {
     </p>
     <a class="button" href="https://girlskissing.dev/">Back to Application Form</a>
   </div>
+  
+  <script>
+    // Theme switcher functionality
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    const body = document.body;
+
+    // Load saved theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      body.setAttribute('data-theme', 'dark');
+      themeSwitcher.textContent = '☀️';
+    }
+
+    // Theme toggle
+    themeSwitcher.addEventListener('click', () => {
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      
+      if (isDark) {
+        body.removeAttribute('data-theme');
+        themeSwitcher.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        themeSwitcher.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
   
   <?php
   // Close database connection at the end

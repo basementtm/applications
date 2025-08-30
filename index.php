@@ -874,7 +874,7 @@ if ($maintenance_active) {
         </a>
       </p>
       <p style="margin-top: 10px; font-size: 0.9rem;">
-        <a href="check-status.php" style="color:var(--primary-pink); text-decoration:underline;">
+        <a href="check-status.html" style="color:var(--primary-pink); text-decoration:underline;">
           Check Application Status
         </a>
       </p>
