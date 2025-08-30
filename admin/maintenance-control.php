@@ -233,6 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 logAction($action_type, $description, 'maintenance_system', null, $additional_data);
             }
+        }
     } catch (Exception $e) {
         $error = "Form processing error: " . $e->getMessage();
         $debug_errors[] = [
@@ -277,7 +278,7 @@ $current_scheduled_maintenance = null;
 $all_scheduled_maintenance = [];
 
 try {
-    $helper_path = '/var/www/html/includes/scheduled_maintenance_helper.php';
+    $helper_path = dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php';
     $debug_info[] = "Checking for helper file at: $helper_path";
     
     if (file_exists($helper_path)) {
