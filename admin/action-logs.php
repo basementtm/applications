@@ -122,45 +122,16 @@ while ($row = $usernames_result->fetch_assoc()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Action Logs - Admin Dashboard</title>
     <style>
-        :root {
-            --primary-pink: #ff69b4;
-            --bg-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --container-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #333;
-            --border-color: #ddd;
-            --hover-bg: #f5f5f5;
-            --shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --container-bg: rgba(30, 30, 30, 0.95);
-            --text-color: #f0f0f0;
-            --border-color: #444;
-            --hover-bg: #3a3a3a;
-            --shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background: var(--bg-color);
-            min-height: 100vh;
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            line-height: 1.6;
-        }
-
         <?= getNavbarCSS() ?>
 
+        /* Additional styles for action logs page */
         .container {
             margin: 20px auto;
             max-width: 1200px;
             padding: 20px;
             background: var(--container-bg);
             border-radius: 15px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 4px var(--shadow-color);
             backdrop-filter: blur(10px);
         }
 
@@ -263,7 +234,7 @@ while ($row = $usernames_result->fetch_assoc()) {
             background: var(--container-bg);
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         .logs-table th,
@@ -283,7 +254,7 @@ while ($row = $usernames_result->fetch_assoc()) {
         }
 
         .logs-table tr:hover {
-            background: var(--hover-bg);
+            background: rgba(255, 105, 180, 0.1);
         }
 
         .action-badge {
@@ -372,7 +343,7 @@ while ($row = $usernames_result->fetch_assoc()) {
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 4px var(--shadow-color);
             transition: all 0.3s ease;
         }
 
