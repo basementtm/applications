@@ -355,6 +355,7 @@ while ($row = $stats_result->fetch_assoc()) {
         .status-stage3 { background-color: var(--info-color); color: white; }
         .status-accepted { background-color: var(--success-color); color: white; }
         .status-denied { background-color: var(--danger-color); color: white; }
+        .status-invalid { background-color: #e67e22; color: white; }
 
         .pagination {
             display: flex;
@@ -636,6 +637,10 @@ while ($row = $stats_result->fetch_assoc()) {
                 <div class="stat-number"><?= $status_counts['denied'] ?? 0 ?></div>
                 <div>Denied</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $status_counts['invalid'] ?? 0 ?></div>
+                <div>Invalid</div>
+            </div>
         </div>
 
         <!-- Filters -->
@@ -649,6 +654,7 @@ while ($row = $stats_result->fetch_assoc()) {
                     <option value="stage3" <?= $status_filter === 'stage3' ? 'selected' : '' ?>>Stage 3</option>
                     <option value="accepted" <?= $status_filter === 'accepted' ? 'selected' : '' ?>>Accepted</option>
                     <option value="denied" <?= $status_filter === 'denied' ? 'selected' : '' ?>>Denied</option>
+                    <option value="invalid" <?= $status_filter === 'invalid' ? 'selected' : '' ?>>Invalid</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -699,6 +705,7 @@ while ($row = $stats_result->fetch_assoc()) {
                                             <option value="stage3" <?= $app['status'] === 'stage3' ? 'disabled' : '' ?>>Stage 3</option>
                                             <option value="accepted" <?= $app['status'] === 'accepted' ? 'disabled' : '' ?>>Accepted</option>
                                             <option value="denied" <?= $app['status'] === 'denied' ? 'disabled' : '' ?>>Denied</option>
+                                            <option value="invalid" <?= $app['status'] === 'invalid' ? 'disabled' : '' ?>>Invalid</option>
                                         </select>
                                         <input type="hidden" name="update_status" value="1">
                                     </form>

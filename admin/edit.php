@@ -349,6 +349,7 @@ $stmt->close();
                         <option value="stage3" <?= $application_data['status'] === 'stage3' ? 'selected' : '' ?>>Stage 3 - Final Review</option>
                         <option value="accepted" <?= $application_data['status'] === 'accepted' ? 'selected' : '' ?>>Accepted</option>
                         <option value="denied" <?= $application_data['status'] === 'denied' ? 'selected' : '' ?>>Denied</option>
+                        <option value="invalid" <?= $application_data['status'] === 'invalid' ? 'selected' : '' ?>>Invalid</option>
                     </select>
                 </div>
                 

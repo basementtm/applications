@@ -106,9 +106,10 @@ $conn->close();
 $status_display = [
     'unreviewed' => ['🕐', 'Under Review', 'Your application is being reviewed by our team.', '#ff69b4'],
     'denied' => ['❌', 'Application Denied', 'Unfortunately, your application was not successful at this time.', '#ff4757'],
-    'stage2' => ['📞', 'Interview Stage', 'Congratulations! You\'ve been selected for an interview. Please check your email for details.', '#ffa502'],
-    'stage3' => ['⭐', 'Final Review', 'Your application and interview is in the final review stage.', '#3742fa'],
-    'accepted' => ['✅', 'Accepted', 'Congratulations! Your application has been accepted!', '#2ed573']
+    'stage2' => ['📞', 'Stage 2 (Interview)', 'Congratulations! You\'ve been selected for an interview. Please check your email for details.', '#ffa502'],
+    'stage3' => ['⭐', 'Stage 3 (Final Review)', 'Your application and interview is in the final review stage.', '#3742fa'],
+    'accepted' => ['✅', 'Accepted', 'Congratulations! Your application has been accepted!', '#2ed573'],
+    'invalid' => ['⚠️', 'Invalid Application', 'This application contained invalid information (usually email) or the application has been flagged for review.', '#e67e22']
 ];
 ?>
 <!DOCTYPE html>
@@ -189,12 +190,14 @@ $status_display = [
     .status-stage2 { --status-color: #ffa726; }
     .status-stage3 { --status-color: #5c6bc0; }
     .status-accepted { --status-color: #66bb6a; }
+    .status-invalid { --status-color: #e67e22; }
 
     [data-theme="dark"] .status-unreviewed { --status-color: #ff8cc8; }
     [data-theme="dark"] .status-denied { --status-color: #ff7979; }
     [data-theme="dark"] .status-stage2 { --status-color: #fdcb6e; }
     [data-theme="dark"] .status-stage3 { --status-color: #a29bfe; }
     [data-theme="dark"] .status-accepted { --status-color: #6c5ce7; }
+    [data-theme="dark"] .status-invalid { --status-color: #f39c12; }
 
     .application-details {
       background-color: var(--input-bg);
