@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
 -- Create default super admin user
 -- Password is 'admin123' - CHANGE THIS IMMEDIATELY AFTER FIRST LOGIN!
 INSERT INTO `admin_users` (`username`, `password`, `role`, `active`) 
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 1)
-ON DUPLICATE KEY UPDATE `username` = `username`;
+VALUES ('admin', '$2y$10$YourNewHashHere', 'super_admin', 1)
+ON DUPLICATE KEY UPDATE `password` = '$2y$10$YourNewHashHere';
 
 -- Add created_at column to applicants table if it doesn't exist
 ALTER TABLE `applicants` 
