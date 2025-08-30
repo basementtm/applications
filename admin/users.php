@@ -13,7 +13,7 @@ if ($_SESSION['admin_role'] !== 'super_admin') {
     exit();
 }
 
-include('../config/db_config.php');
+include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);

@@ -10,7 +10,7 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include('../config/db_config.php');
+    include('/var/www/config/db_config.php');
     $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
     
     if ($conn->connect_error) {
