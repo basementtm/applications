@@ -72,7 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $setting_name = $maintenance_type;
         
         if ($stmt->execute()) {
-            $type_label = ($maintenance_type === 'admin_maintenance_mode') ? "Admin Panel" : "Site";
+            $type_labels = [
+                'admin_maintenance_mode' => 'Admin Panel',
+                'maintenance_mode' => 'Site',
+                'form_maintenance_mode' => 'Form'
+            ];
+            $type_label = $type_labels[$maintenance_type] ?? ucfirst(str_replace('_', ' ', $maintenance_type));
             $message = "$type_label maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
         } else {
             $error = "Error updating maintenance mode: " . $conn->error;
@@ -509,16 +514,27 @@ $users_result = $conn->query($users_sql);
                 <div class="stat-number"><?= $admin_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Admin Panel Maintenance</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
-                <div class="stat-label">Form Maintenance</div>
-            </div>
         </div>
 
         <!-- Maintenance Mode Control -->
         <div class="section">
             <h3>🚧 Maintenance Mode Control</h3>
             <p>Control maintenance modes separately for the site and admin panel.</p>
+            
+            <!-- Form Maintenance -->
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(46, 213, 115, 0.1); border-radius: 8px; border: 1px solid var(--success-color);">
+                <h4 style="color: var(--success-color); margin-bottom: 10px;">📝 Form Maintenance Mode</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;">Blocks public access to the application form only, but allows logged-in admins to access it</p>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="new_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
+                    <input type="hidden" name="maintenance_type" value="form_maintenance_mode">
+                    <button type="submit" name="toggle_maintenance" 
+                            class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-success' ?>"
+                            onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode?')">
+                        <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
+                    </button>
+                </form>
+            </div>
             
             <!-- Site Maintenance -->
             <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 165, 2, 0.1); border-radius: 8px; border: 1px solid var(--warning-color);">
