@@ -14,7 +14,7 @@
 
   <!-- FORM (hidden during maintenance) -->
   <div id="form-container">
-    <form action="https://submit.emmameowss.gay/submit.php" method="POST">
+    <form action="submit.php" method="POST">
       <!-- Name -->
       <label for="name">name</label><br>
       <input type="text" id="name" name="name" required><br><br>
@@ -55,7 +55,7 @@
 
   <!-- Script to check backend maintenance status -->
   <script>
-    fetch("https://submit.emmameowss.gay/status.php")
+    fetch("status.php")
       .then(res => res.json())
       .then(data => {
         if (data.maintenance) {
