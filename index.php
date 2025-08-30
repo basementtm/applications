@@ -719,9 +719,8 @@ if ($maintenance_active) {
 
   <div class="main-container">
     <div id="form-container">
-    <div class="container">
-    <h1>basement application form</h1>
-    <form action="submit.php" method="POST" id="applicationForm">
+      <h1>basement application form</h1>
+      <form action="submit.php" method="POST" id="applicationForm">
       <input type="text" name="name" placeholder="name" required>
       <input type="email" name="email" placeholder="email" required>
       <input type="tel" name="gfphone" placeholder="girlfriend's phone number (optional)">
@@ -761,16 +760,20 @@ if ($maintenance_active) {
       <!-- Optional owner field -->
       <input type="text" name="owner" id="ownerField" placeholder="Owner's name and/or email address (for cats only)" style="display:none;">
 
-        <button type="submit" class="submit-btn">
-          🚀 Submit Application
-        </button>
-      </form>
-
-      <div class="status-link">
-        <a href="check-status.php">📋 Check Application Status</a>
-      </div>
+      <button type="submit">Submit</button>
+      
+      <p style="margin-top: 15px; font-size: 0.9rem;">
+        <a href="retention.php" style="color:var(--primary-pink); text-decoration:underline;">
+          View our Data Retention Policy
+        </a>
+      </p>
+      <p style="margin-top: 10px; font-size: 0.9rem;">
+        <a href="check-status.php" style="color:var(--primary-pink); text-decoration:underline;">
+          Check Application Status
+        </a>
+      </p>
+    </form>
     </div>
-  </div>
 
   <script>
     // Theme switcher functionality
@@ -819,6 +822,18 @@ if ($maintenance_active) {
         return;
       }
     });
+
+    const catYes = document.getElementById("catYes");
+    const catNo = document.getElementById("catNo");
+    const ownerField = document.getElementById("ownerField");
+
+    catYes.addEventListener("change", () => { ownerField.style.display = "block"; });
+    catNo.addEventListener("change", () => { ownerField.style.display = "none"; });
+
+    const dropdown = document.getElementById("locationDropdown");
+const selected = dropdown.querySelector(".selected");
+const optionsContainer = dropdown.querySelector(".options");
+const hiddenInput = dropdown.querySelector("input[type='hidden']");
   </script>
   
   <?php
