@@ -104,12 +104,14 @@ function updateMaintenanceBanner($conn, $type, $maintenance) {
         if (!empty($maintenance['reason'])) {
             $text .= ". Reason: " . $maintenance['reason'];
         }
+        $text .= ". For more information please visit status.girlskissing.dev";
         $banner_type = 'error'; // Red banner
     } else {
         $text = "Notice: Maintenance is scheduled for {$start_time_formatted} to {$end_time_formatted}";
         if (!empty($maintenance['reason'])) {
             $text .= ". Reason: " . $maintenance['reason'];
         }
+        $text .= ". For more information please visit status.girlskissing.dev";
         $banner_type = 'warning'; // Yellow banner
     }
     
