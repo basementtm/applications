@@ -1,6 +1,6 @@
 <?php
 // Action logging functions
-require_once '../config.php';
+// Note: This file requires database connection to be established before use
 
 function logAction($action_type, $action_description, $target_type = null, $target_id = null, $additional_data = null) {
     global $conn;
