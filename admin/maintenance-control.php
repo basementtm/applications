@@ -561,7 +561,7 @@ try {
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px var(--shadow-color);
         }
-
+        
         .theme-switcher:hover {
             transform: scale(1.1);
             background-color: var(--secondary-pink);
@@ -578,55 +578,6 @@ try {
                 padding: 15px;
             }
         }
-
-        /* Error Display Styles */
-        .debug-panel {
-            background-color: #f8f9fa;
-            border: 2px solid #dc3545;
-            border-radius: 8px;
-            margin: 20px 0;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-        }
-
-        .debug-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-        }
-
-        .debug-info {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 8px;
-            margin: 3px 0;
-            border-radius: 4px;
-        }
-
-        .error-details {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .toggle-debug {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -634,65 +585,16 @@ try {
     
     <?php renderAdminNavbar('maintenance-control.php'); ?>
 
-    <!-- Debug Information Panel -->
-    <?php if (!empty($debug_errors) || !empty($debug_info)): ?>
-    <div class="container">
-        <div class="debug-panel">
-            <button class="toggle-debug" onclick="toggleDebugInfo()">🐛 Toggle Debug Information</button>
-            <div id="debug-content" style="display: none;">
-                
-                <?php if (!empty($debug_errors)): ?>
-                <h4 style="color: #dc3545; margin-bottom: 10px;">🚨 Errors Detected:</h4>
-                <?php foreach ($debug_errors as $error): ?>
-                <div class="debug-error">
-                    <strong><?= htmlspecialchars($error['type'] ?? 'Error') ?>:</strong> 
-                    <?= htmlspecialchars($error['message']) ?>
-                    <?php if (isset($error['file']) && isset($error['line'])): ?>
-                    <div class="error-details">
-                        File: <?= htmlspecialchars($error['file']) ?> (Line <?= $error['line'] ?>)
-                        <?php if (isset($error['timestamp'])): ?>
-                        <br>Time: <?= htmlspecialchars($error['timestamp']) ?>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <?php endforeach; ?>
-                <?php endif; ?>
-
-                <?php if (!empty($debug_info)): ?>
-                <h4 style="color: #28a745; margin: 15px 0 10px 0;">ℹ️ Debug Information:</h4>
-                <?php foreach ($debug_info as $info): ?>
-                <div class="debug-info"><?= htmlspecialchars($info) ?></div>
-                <?php endforeach; ?>
-                <?php endif; ?>
-
-                <div class="error-details" style="margin-top: 15px;">
-                    <strong>PHP Version:</strong> <?= PHP_VERSION ?><br>
-                    <strong>Memory Usage:</strong> <?= memory_get_usage(true) / 1024 / 1024 ?> MB<br>
-                    <strong>Current Time:</strong> <?= date('Y-m-d H:i:s') ?><br>
-                    <strong>Server:</strong> <?= $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown' ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- JavaScript for Theme Switcher -->
     <script>
-        // Log errors to console
-        console.group('🐛 Debug Information');
+        // Log any errors to console silently to help with debugging
         <?php if (!empty($debug_errors)): ?>
         console.error('Errors detected:', <?= json_encode($debug_errors) ?>);
         <?php endif; ?>
         <?php if (!empty($debug_info)): ?>
         console.info('Debug info:', <?= json_encode($debug_info) ?>);
         <?php endif; ?>
-        console.groupEnd();
-
-        function toggleDebugInfo() {
-            const content = document.getElementById('debug-content');
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
-        }
     </script>
-    <?php endif; ?>
 
     <div class="container">
         <div class="section">
@@ -836,7 +738,7 @@ try {
                                 <?= date('M j, Y g:i A', strtotime($maintenance['end_time'])) ?>
                             </td>
                             <td style="padding: 8px; border: 1px solid var(--border-color);">
-                                <?= htmlspecialchars($maintenance['reason'] ?: 'No reason provided') ?>
+                                <?= htmlspecialchars(is_array($maintenance['reason']) ? json_encode($maintenance['reason']) : ($maintenance['reason'] ?: 'No reason provided')) ?>
                             </td>
                             <td style="padding: 8px; border: 1px solid var(--border-color);">
                                 <?php 
