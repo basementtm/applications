@@ -350,12 +350,40 @@ $users_result = $conn->query($users_sql);
             text-align: center;
             box-shadow: 0 2px 5px var(--shadow-color);
             border: 2px solid var(--primary-pink);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card.green-card {
+            border: 2px solid var(--success-color);
+        }
+
+        .stat-card.green-card .stat-number {
+            color: var(--success-color);
+        }
+
+        .stat-card.maintenance-on {
+            border-color: var(--danger-color);
+            background-color: rgba(255, 71, 87, 0.1);
+        }
+
+        .stat-card.maintenance-off {
+            border-color: var(--success-color);
+            background-color: rgba(46, 213, 115, 0.1);
         }
 
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
             color: var(--primary-pink);
+            transition: color 0.3s ease;
+        }
+
+        .stat-card.maintenance-on .stat-number {
+            color: var(--danger-color);
+        }
+
+        .stat-card.maintenance-off .stat-number {
+            color: var(--success-color);
         }
 
         .stat-label {
@@ -506,15 +534,15 @@ $users_result = $conn->query($users_sql);
                 <div class="stat-number"><?= number_format($app_count) ?></div>
                 <div class="stat-label">Total Applications</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card <?= $site_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
                 <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Site Maintenance</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card <?= $admin_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
                 <div class="stat-number"><?= $admin_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Admin Panel Maintenance</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
                 <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Form Maintenance</div>
             </div>
