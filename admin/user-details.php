@@ -13,8 +13,8 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 // Check if user is still active (not disabled)
 checkUserStatus();
 
-// Allow all admin roles to view user details, but restrict actions to owner
-$is_owner = ($_SESSION['admin_role'] === 'owner');
+// Allow all admin roles to view user details, but restrict actions to emma
+$is_owner = ($_SESSION['admin_username'] === 'emma');
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -66,7 +66,12 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    header("Location: owner.php");
+    // User not found, redirect back
+    if ($is_owner) {
+        header("Location: owner.php?error=user_not_found");
+    } else {
+        header("Location: dashboard.php?error=user_not_found");
+    }
     exit();
 }
 
