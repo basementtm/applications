@@ -5,11 +5,17 @@ ini_set('display_errors', 1);
 
 session_start();
 
+// Include auth functions for user status checking
+require_once 'auth_functions.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
     exit();
 }
+
+// Check if user is still active (not disabled)
+checkUserStatus();
 
 // Check if user has permission to access maintenance controls
 if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin') {

@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $password = $_POST['password'] ?? '';
                 
                 if (!empty($username) && !empty($password)) {
-                    $sql = "SELECT id, username, password, role, two_factor_enabled, two_factor_secret FROM admin_users WHERE username = ? AND active = 1";
+                    // First check if user exists (regardless of active status)
+                    $sql = "SELECT id, username, password, role, two_factor_enabled, two_factor_secret, active FROM admin_users WHERE username = ?";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param("s", $username);
                     $stmt->execute();
@@ -44,19 +45,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($result->num_rows === 1) {
                         $admin = $result->fetch_assoc();
                         if (password_verify($password, $admin['password'])) {
-                            // Check if 2FA is enabled
-                            if ($admin['two_factor_enabled']) {
-                                $_SESSION['temp_user_data'] = $admin;
-                                $require_2fa = true;
+                            // Check if account is disabled
+                            if ($admin['active'] != 1) {
+                                $error = "Your account has been disabled.";
+                                // Log failed attempt - account disabled
+                                logLoginAttempt($conn, $username, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', false, 'password', 'Account disabled');
                             } else {
-                                // Complete login
-                                completeLogin($conn, $admin);
+                                // Check if 2FA is enabled
+                                if ($admin['two_factor_enabled']) {
+                                    $_SESSION['temp_user_data'] = $admin;
+                                    $require_2fa = true;
+                                } else {
+                                    // Complete login
+                                    completeLogin($conn, $admin);
+                                }
                             }
                         } else {
                             $error = "Invalid username or password.";
+                            // Log failed attempt - wrong password
+                            logLoginAttempt($conn, $username, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', false, 'password', 'Invalid password');
                         }
                     } else {
                         $error = "Invalid username or password.";
+                        // Log failed attempt - username not found
+                        logLoginAttempt($conn, $username, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', false, 'password', 'Username not found');
                     }
                     $stmt->close();
                 } else {
@@ -80,9 +92,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($verified) {
                         unset($_SESSION['temp_user_data']);
-                        completeLogin($conn, $admin);
+                        $method = !empty($verification_code) ? '2fa_totp' : '2fa_backup';
+                        completeLogin($conn, $admin, $method);
                     } else {
                         $error = "Invalid verification code or backup code.";
+                        // Log failed 2FA attempt
+                        $method = !empty($verification_code) ? '2fa_totp' : '2fa_backup';
+                        logLoginAttempt($conn, $admin['username'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', false, $method, 'Invalid 2FA code');
                         $require_2fa = true;
                         $temp_user_data = $admin;
                     }
@@ -102,7 +118,7 @@ if (isset($_SESSION['temp_user_data'])) {
     $temp_user_data = $_SESSION['temp_user_data'];
 }
 
-function completeLogin($conn, $admin) {
+function completeLogin($conn, $admin, $method = 'password') {
     $_SESSION['admin_logged_in'] = true;
     $_SESSION['admin_id'] = $admin['id'];
     $_SESSION['admin_username'] = $admin['username'];
@@ -116,7 +132,7 @@ function completeLogin($conn, $admin) {
     $update_stmt->close();
     
     // Log successful login
-    logLoginAttempt($conn, $admin['username'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', true, 'password');
+    logLoginAttempt($conn, $admin['username'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', true, $method);
     
     header("Location: dashboard.php");
     exit();
@@ -189,10 +205,16 @@ function base32_decode($data) {
     return $output;
 }
 
-function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method) {
-    $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssis", $username, $ip, $userAgent, $success, $method);
+function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $failureReason = null) {
+    if ($success) {
+        $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, session_id) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, session_id());
+    } else {
+        $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, failure_reason) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, $failureReason);
+    }
     $stmt->execute();
     $stmt->close();
 }

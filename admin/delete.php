@@ -1,11 +1,17 @@
 <?php
 session_start();
 
+// Include auth functions for user status checking
+require_once 'auth_functions.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
     exit();
 }
+
+// Check if user is still active (not disabled)
+checkUserStatus();
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);

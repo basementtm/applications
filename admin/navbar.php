@@ -44,12 +44,6 @@ function renderAdminNavbar($currentPage = '') {
         $navItems['owner.php'] = ['👧', 'Owner Panel'];
     }
     
-    // Add user management for super admins (but not on owner page to avoid duplication)
-    if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'super_admin' && 
-        (!isset($_SESSION['admin_username']) || $_SESSION['admin_username'] !== 'emma')) {
-        $navItems['users.php'] = ['👥', 'Manage Users'];
-    }
-    
     echo '<div class="header">';
     echo '<h1>🏠 Admin Dashboard</h1>';
     echo '<div class="header-actions">';

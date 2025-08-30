@@ -5,11 +5,17 @@ ini_set('display_errors', 1);
 
 session_start();
 
+// Include auth functions for user status checking
+require_once 'auth_functions.php';
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
     exit();
 }
+
+// Check if user is still active (not disabled)
+checkUserStatus();
 
 // Only allow Emma access to this page
 if ($_SESSION['admin_username'] !== 'emma') {
@@ -117,27 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $check_stmt->close();
         } else {
             $error = "Username and password are required!";
-        }
-    }
-    
-    if (isset($_POST['toggle_status'])) {
-        $user_id = $_POST['user_id'];
-        $new_status = $_POST['new_status'];
-        
-        // Don't allow disabling self
-        if ($user_id != $_SESSION['admin_id']) {
-            $update_sql = "UPDATE admin_users SET active = ? WHERE id = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("ii", $new_status, $user_id);
-            
-            if ($update_stmt->execute()) {
-                $message = "User status updated successfully!";
-            } else {
-                $error = "Error updating user status: " . $conn->error;
-            }
-            $update_stmt->close();
-        } else {
-            $error = "You cannot disable your own account!";
         }
     }
 }
@@ -692,19 +677,9 @@ $users_result = $conn->query($users_sql);
                                 </td>
                                 <td><?= htmlspecialchars($user['created_by_name'] ?: 'System') ?></td>
                                 <td>
-                                    <?php if ($user['username'] !== 'emma'): ?>
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-                                            <input type="hidden" name="new_status" value="<?= $user['active'] ? 0 : 1 ?>">
-                                            <button type="submit" name="toggle_status" 
-                                                    class="btn btn-sm <?= $user['active'] ? 'btn-danger' : 'btn-success' ?>"
-                                                    onclick="return confirm('Are you sure you want to <?= $user['active'] ? 'disable' : 'enable' ?> this user?')">
-                                                <?= $user['active'] ? '🚫 Disable' : '✅ Enable' ?>
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span style="color: var(--border-color); font-style: italic;">Owner Account</span>
-                                    <?php endif; ?>
+                                    <a href="user-details.php?id=<?= $user['id'] ?>" class="btn btn-sm btn-primary">
+                                        👤 View Details
+                                    </a>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
