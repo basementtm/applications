@@ -37,25 +37,39 @@ function checkPrivacyNotifications() {
 }
 
 /**
- * Shows a privacy notification popup to the user
+ * Shows a privacy notification popup to the user and hides the form
  * @param {Object} notification - The notification object containing id, title, and message
  */
 function showPrivacyNotification(notification) {
+    // Hide the application form if it exists
+    const applicationForm = document.getElementById('applicationForm');
+    const statusContainer = document.getElementById('status-container');
+    
+    if (applicationForm) {
+        applicationForm.style.display = 'none';
+    }
+    
+    if (statusContainer) {
+        statusContainer.style.display = 'none';
+    }
+    
     // Create notification container
     const notificationContainer = document.createElement('div');
     notificationContainer.className = 'privacy-notification';
     notificationContainer.innerHTML = `
         <div class="privacy-notification-content">
-            <h3>${notification.title}</h3>
+            <h3>🔔 ${notification.title}</h3>
             <div class="privacy-notification-message">${notification.message}</div>
             <div class="privacy-notification-actions">
                 <a href="privacy-policy.html" target="_blank" class="privacy-notification-button view-policy">View Privacy Policy</a>
-                <button type="button" class="privacy-notification-button dismiss">Dismiss</button>
+                <button type="button" class="privacy-notification-button dismiss">Dismiss & Continue</button>
             </div>
         </div>
     `;
     
-    document.body.appendChild(notificationContainer);
+    // Find the right container to append to
+    const mainContainer = document.querySelector('.main-container') || document.body;
+    mainContainer.prepend(notificationContainer);
     
     // Add CSS styles
     addPrivacyNotificationStyles();
@@ -89,6 +103,18 @@ function showPrivacyNotification(notification) {
         notificationContainer.classList.add('closing');
         setTimeout(() => {
             notificationContainer.remove();
+            
+            // Show the application form if it exists
+            const applicationForm = document.getElementById('applicationForm');
+            if (applicationForm) {
+                applicationForm.style.display = 'block';
+            }
+            
+            // Show the status container if it exists
+            const statusContainer = document.getElementById('status-container');
+            if (statusContainer) {
+                statusContainer.style.display = 'block';
+            }
         }, 300);
     });
 }
@@ -106,110 +132,138 @@ function addPrivacyNotificationStyles() {
     styleEl.id = 'privacy-notification-styles';
     styleEl.textContent = `
         .privacy-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            max-width: 400px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: var(--container-bg, #fff0f5);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px var(--shadow-color, rgba(0, 0, 0, 0.1));
+            border: 3px solid var(--border-color, #ccc);
             z-index: 9999;
-            animation: slideIn 0.3s ease-out forwards;
+            animation: fadeIn 0.5s ease-out forwards;
         }
         
         .privacy-notification.closing {
-            animation: slideOut 0.3s ease-in forwards;
+            animation: fadeOut 0.3s ease-in forwards;
         }
         
         .privacy-notification-content {
-            padding: 20px;
+            padding: 25px;
         }
         
         .privacy-notification h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 18px;
+            margin: 0 0 15px 0;
+            color: var(--primary-pink, #ff1493);
+            font-size: 1.5rem;
+            text-align: center;
         }
         
         .privacy-notification-message {
-            margin-bottom: 15px;
-            color: #555;
-            font-size: 14px;
-            line-height: 1.5;
+            margin-bottom: 20px;
+            color: var(--text-color, #333);
+            font-size: 1rem;
+            line-height: 1.6;
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            border-radius: 10px;
         }
         
         .privacy-notification-actions {
             display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
         
         .privacy-notification-button {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 1rem;
+            font-weight: bold;
             text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
         .privacy-notification-button.dismiss {
-            background-color: #f1f1f1;
-            color: #333;
+            background-color: var(--primary-pink, #ff1493);
+            color: white;
         }
         
         .privacy-notification-button.view-policy {
-            background-color: #ff14a3;
-            color: white;
-            display: inline-block;
+            background-color: transparent;
+            color: var(--primary-pink, #ff1493);
+            border: 2px solid var(--primary-pink, #ff1493);
         }
         
         .privacy-notification-button:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
-        @keyframes slideIn {
+        @keyframes fadeIn {
             from {
-                transform: translateY(100px);
                 opacity: 0;
+                transform: translateY(-20px);
             }
             to {
-                transform: translateY(0);
                 opacity: 1;
+                transform: translateY(0);
             }
         }
         
-        @keyframes slideOut {
+        @keyframes fadeOut {
             from {
-                transform: translateY(0);
                 opacity: 1;
+                transform: translateY(0);
             }
             to {
-                transform: translateY(100px);
                 opacity: 0;
+                transform: translateY(-20px);
             }
         }
         
         /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
+        [data-theme="dark"] .privacy-notification {
+            background-color: var(--container-bg, #3d2b3e);
+            border-color: var(--border-color, #666);
+        }
+        
+        [data-theme="dark"] .privacy-notification h3 {
+            color: var(--primary-pink, #ff6bb3);
+        }
+        
+        [data-theme="dark"] .privacy-notification-message {
+            color: var(--text-color, #e0d0e0);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .privacy-notification-button.view-policy {
+            color: var(--primary-pink, #ff6bb3);
+            border-color: var(--primary-pink, #ff6bb3);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
             .privacy-notification {
-                background-color: #333;
-                border: 1px solid #444;
+                margin: 15px;
+                width: auto;
+            }
+            
+            .privacy-notification-content {
+                padding: 20px;
             }
             
             .privacy-notification h3 {
-                color: #fff;
+                font-size: 1.3rem;
             }
             
-            .privacy-notification-message {
-                color: #ddd;
-            }
-            
-            .privacy-notification-button.dismiss {
-                background-color: #555;
-                color: #eee;
+            .privacy-notification-button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
             }
         }
+    
     `;
     
     document.head.appendChild(styleEl);
