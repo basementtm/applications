@@ -35,7 +35,7 @@ $isCat             = $_POST['isCat'] ?? '';
 $owner             = $_POST['owner'] ?? ''; // optional owner field
 $preferredLocation = $_POST['preferredLocation'] ?? ''; // new field
 $agreeTerms = isset($_POST['agreeTerms']) ? 1 : 0; // 1 if checked, 0 if not
-$status = $_POST['status'] ?? '';
+$status = 'unreviewed'; // Default status for new applications
 
 // Generate application ID first
 $timestamp = date('Ymd');
