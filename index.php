@@ -867,14 +867,9 @@ if ($maintenance_active) {
       <input type="text" name="owner" id="ownerField" placeholder="Owner's name and/or email address (for cats only)" style="display:none;">
 
       <button type="submit">Submit</button>
-      
-      <p style="margin-top: 15px; font-size: 0.9rem;">
-        <a href="retention.php" style="color:var(--primary-pink); text-decoration:underline;">
-          View our Data Retention Policy
-        </a>
-      </p>
+
       <p style="margin-top: 10px; font-size: 0.9rem;">
-        <a href="check-status.html" style="color:var(--primary-pink); text-decoration:underline;">
+        <a href="status-check.html" style="color:var(--primary-pink); text-decoration:underline;">
           Check Application Status
         </a>
       </p>
