@@ -527,7 +527,7 @@ $status_display = [
     <?php endif; ?>
 
     <a class="button" href="status-check.html">← Check Another Application</a>
-    <a class="button" href="index.html">New Application</a>
+    <a class="button" href="index.php">New Application</a>
   </div>
 
   <script>
