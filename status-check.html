@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Application Status - basement application form</title>
+  <style>
+    :root {
+      --bg-color: #ffc0cb;
+      --container-bg: #fff0f5;
+      --text-color: #333;
+      --primary-pink: #ff1493;
+      --secondary-pink: #ff69b4;
+      --border-color: #ccc;
+      --shadow-color: rgba(0,0,0,0.1);
+      --input-bg: #fff0f5;
+      --banner-bg: #fff0f5;
+      --banner-text: #ff1493;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d1b2e;
+      --container-bg: #3d2b3e;
+      --text-color: #e0d0e0;
+      --primary-pink: #ff6bb3;
+      --secondary-pink: #d147a3;
+      --border-color: #666;
+      --shadow-color: rgba(0,0,0,0.3);
+      --input-bg: #4a3a4a;
+      --banner-bg: #4a3a4a;
+      --banner-text: #ff6bb3;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .main-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    #status-container {
+      background-color: var(--container-bg);
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      box-sizing: border-box;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s forwards;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      color: var(--primary-pink);
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: fadeSlideDown 0.8s forwards;
+      transition: color 0.3s ease;
+    }
+
+    @keyframes fadeSlideDown {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input[type="text"]:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 5px rgba(255,20,147,0.5);
+      outline: none;
+    }
+
+    input[type="text"]::placeholder {
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    button {
+      padding: 12px 25px;
+      background-color: var(--secondary-pink);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    button:hover {
+      background-color: var(--primary-pink);
+      animation: pulse 0.6s ease-in-out;
+    }
+
+    button:active { transform: scale(0.95); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--primary-pink);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .info-text {
+      font-size: 0.9rem;
+      margin: 15px 0;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+
+    /* Theme Switcher */
+    .theme-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeScale 0.3s 0.2s forwards;
+    }
+
+    .theme-switcher:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px var(--shadow-color);
+      background-color: var(--secondary-pink);
+      color: white;
+    }
+
+    @keyframes fadeScale {
+      to { 
+        opacity: 1; 
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 500px) {
+      #status-container { 
+        padding: 20px; 
+        width: 95%;
+        max-width: none;
+      }
+      input[type="text"] { 
+        font-size: 0.9rem; 
+        padding: 12px;
+      }
+      button { 
+        font-size: 0.95rem; 
+        max-width: 100%; 
+        padding: 14px 25px;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+      }
+      .theme-switcher {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        bottom: 15px;
+        right: 15px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .main-container {
+        padding: 10px;
+      }
+      #status-container {
+        padding: 15px;
+      }
+      h1 {
+        font-size: 1.6rem;
+      }
+      input[type="text"] {
+        font-size: 0.85rem;
+        padding: 10px;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 12px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+    🌙
+  </div>
+  <div class="main-container">
+    <div id="status-container">
+      <h1>Check Application Status</h1>
+      <p class="info-text">Enter your application ID to check the status of your basement application.</p>
+      
+      <form action="check-status.php" method="POST">
+        <input type="text" name="application_id" placeholder="e.g., APP-20250830-000042" required maxlength="20" pattern="APP-[0-9]{8}-[0-9]{6}">
+        <button type="submit">Check Status</button>
+      </form>
+      
+      <a href="index.html" class="back-link">← Back to Application Form</a>
+    </div>
+  </div>
+
+  <script>
+    // Theme Switcher
+    const themeSwitcher = document.getElementById("themeSwitcher");
+    const body = document.body;
+
+    // Check for saved theme preference or default to light mode
+    const currentTheme = localStorage.getItem("theme") || "light";
+    if (currentTheme === "dark") {
+      body.setAttribute("data-theme", "dark");
+      themeSwitcher.textContent = "☀️";
+    }
+
+    themeSwitcher.addEventListener("click", () => {
+      const isDark = body.getAttribute("data-theme") === "dark";
+      
+      if (isDark) {
+        body.removeAttribute("data-theme");
+        themeSwitcher.textContent = "🌙";
+        localStorage.setItem("theme", "light");
+      } else {
+        body.setAttribute("data-theme", "dark");
+        themeSwitcher.textContent = "☀️";
+        localStorage.setItem("theme", "dark");
+      }
+    });
+
+    // Auto-format application ID input
+    const appIdInput = document.querySelector('input[name="application_id"]');
+    appIdInput.addEventListener('input', function(e) {
+      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      if (value.length > 3 && !value.startsWith('APP')) {
+        value = 'APP' + value;
+      }
+      
+      if (value.length > 11) {
+        value = value.slice(0, 11) + '-' + value.slice(11);
+      }
+      
+      if (value.length > 19) {
+        value = value.slice(0, 19) + '-' + value.slice(19);
+      }
+      
+      e.target.value = value;
+    });
+  </script>
+</body>
+</html>
