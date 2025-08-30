@@ -514,6 +514,10 @@ $users_result = $conn->query($users_sql);
                 <div class="stat-number"><?= $admin_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Admin Panel Maintenance</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
+                <div class="stat-label">Form Maintenance</div>
+            </div>
         </div>
 
         <!-- Maintenance Mode Control -->
