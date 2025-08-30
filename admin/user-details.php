@@ -23,6 +23,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Include navbar component
+include('navbar.php');
+
 $user_id = $_GET['id'] ?? 0;
 $message = '';
 $error = '';
@@ -119,16 +122,349 @@ $conn->close();
             --warning-color: #ffc107;
             --danger-color: #dc3545;
             --border-color: #ddd;
+            --shadow-color: rgba(0,0,0,0.1);
+            --input-bg: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg-color) 0%, var(--light-pink) 100%);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             min-height: 100vh;
             color: var(--text-color);
+            transition: all 0.3s ease;
         }
+
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+            background: var(--secondary-pink);
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .info-card {
+            background: var(--input-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            border-left: 4px solid var(--primary-pink);
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+            color: var(--primary-pink);
+            font-size: 1.4em;
+            border-bottom: 2px solid var(--light-pink);
+            padding-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 10px;
+            background: var(--container-bg);
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .info-value {
+            color: var(--text-color);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .status-disabled {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .status-enabled {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .status-disabled-2fa {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .role-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .role-owner { 
+            background: linear-gradient(135deg, #8B008B, #FF1493) !important; 
+            color: white !important; 
+            border: 2px solid #FFD700;
+            box-shadow: 0 2px 8px rgba(139, 0, 139, 0.3);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .role-admin { background: var(--secondary-pink) !important; color: white !important; }
+        .role-readonly_admin { background: var(--warning-color) !important; color: white !important; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: var(--input-bg);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-pink);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: var(--text-color);
+            margin-top: 10px;
+        }
+
+        .login-attempts {
+            background: var(--input-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px var(--shadow-color);
+            margin-top: 30px;
+        }
+
+        .attempts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .attempts-table th {
+            background: var(--light-pink);
+            color: var(--text-color);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-pink);
+        }
+
+        .attempts-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .attempts-table tr:hover {
+            background: var(--container-bg);
+        }
+
+        .success-attempt {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .failed-attempt {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-pink);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .actions {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .message.error {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .user-agent {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary-pink);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        [data-theme="dark"] .attempts-table th {
+            background: var(--container-bg);
+        }
+
+        [data-theme="dark"] .info-card h3 {
+            border-bottom-color: var(--primary-pink);
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+    
+    <?php renderAdminNavbar('user-details.php'); ?>
+
+    <div class="main-content">
 
         .container {
             max-width: 1200px;
@@ -559,5 +895,32 @@ $conn->close();
             </div>
         </div>
     </div>
+    </div>
+
+    <script>
+        // Theme Switcher
+        const themeSwitcher = document.getElementById("themeSwitcher");
+        const body = document.body;
+
+        const currentTheme = localStorage.getItem("theme") || "light";
+        if (currentTheme === "dark") {
+            body.setAttribute("data-theme", "dark");
+            themeSwitcher.textContent = "☀️";
+        }
+
+        themeSwitcher.addEventListener("click", () => {
+            const isDark = body.getAttribute("data-theme") === "dark";
+            
+            if (isDark) {
+                body.removeAttribute("data-theme");
+                themeSwitcher.textContent = "🌙";
+                localStorage.setItem("theme", "light");
+            } else {
+                body.setAttribute("data-theme", "dark");
+                themeSwitcher.textContent = "☀️";
+                localStorage.setItem("theme", "dark");
+            }
+        });
+    </script>
 </body>
 </html>
