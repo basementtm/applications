@@ -1,6 +1,7 @@
 <?php
 // Database maintenance mode check with fallback
 include('/var/www/config/db_config.php');
+include('includes/banner_helper.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
 $maintenance_active = false;
@@ -318,6 +319,8 @@ $status_display = [
         right: 15px;
       }
     }
+    
+    <?= getBannerCSS() ?>
   </style>
 </head>
 <body>
@@ -325,6 +328,8 @@ $status_display = [
     🌙
   </div>
   <div class="container">
+    <?php renderBanner($conn); ?>
+    
     <?php if ($application_data): ?>
       <h1>📋 Application Status</h1>
       

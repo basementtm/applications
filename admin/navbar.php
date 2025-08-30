@@ -28,6 +28,7 @@ function renderAdminNavbar($currentPage = '') {
     $navItems = [
         'dashboard.php' => ['🏠', 'Dashboard'],
         'users.php' => ['👥', 'Manage Users'],
+        'banner.php' => ['📢', 'Banner Management'],
         'settings.php' => ['⚙️', 'Settings']
     ];
     

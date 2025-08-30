@@ -1,0 +1,469 @@
+<?php
+// Database maintenance mode check with fallback
+include('/var/www/config/db_config.php');
+include('includes/banner_helper.php');
+$conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
+
+$maintenance_active = false;
+if (!$conn->connect_error) {
+    // Check if site_settings table exists
+    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+    if ($table_check && $table_check->num_rows > 0) {
+        $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+        $result = $conn->query($maintenance_sql);
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $maintenance_active = ($row['setting_value'] === '1');
+        }
+    }
+}
+
+if ($maintenance_active) {
+    http_response_code(503);
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Maintenance Mode - basement application form</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #ffc0cb;
+                color: #333;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .maintenance-notice {
+                background: #fff0f5;
+                padding: 40px;
+                border-radius: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                max-width: 500px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="maintenance-notice">
+            <h1>🚧 Site Under Maintenance</h1>
+            <p>We're currently performing maintenance. Please check back later.</p>
+            <p><a href="check-status.php">Check Application Status</a></p>
+        </div>
+    </body>
+    </html>
+    <?php
+    if (isset($conn)) {
+        $conn->close();
+    }
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>basement application form</title>
+  <style>
+    :root {
+      --bg-color: #ffc0cb;
+      --container-bg: #fff0f5;
+      --text-color: #333;
+      --primary-pink: #ff1493;
+      --secondary-pink: #ff69b4;
+      --border-color: #ccc;
+      --shadow-color: rgba(0,0,0,0.1);
+      --input-bg: #fff0f5;
+      --banner-bg: #fff0f5;
+      --banner-text: #ff1493;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d1b2e;
+      --container-bg: #3d2b3e;
+      --text-color: #e0d0e0;
+      --primary-pink: #ff6bb3;
+      --secondary-pink: #d147a3;
+      --border-color: #666;
+      --shadow-color: rgba(0,0,0,0.3);
+      --input-bg: #4a3a4a;
+      --banner-bg: #4a3a4a;
+      --banner-text: #ff6bb3;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .main-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      flex-direction: column;
+    }
+
+    .container {
+      background-color: var(--container-bg);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      max-width: 600px;
+      width: 100%;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-pink);
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: var(--text-color);
+    }
+
+    input[type="text"], 
+    input[type="email"], 
+    input[type="tel"], 
+    select, 
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus, 
+    select:focus, 
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-pink);
+      box-shadow: 0 0 8px rgba(255, 20, 147, 0.3);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      transform: scale(1.2);
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .cage-nights {
+      background-color: var(--banner-bg);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .cage-nights h3 {
+      margin: 0 0 15px 0;
+      color: var(--primary-pink);
+      font-size: 1.1em;
+    }
+
+    .nights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .night-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background-color: var(--input-bg);
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      transition: background-color 0.3s ease;
+    }
+
+    .night-checkbox:hover {
+      background-color: var(--primary-pink);
+      color: white;
+    }
+
+    .night-checkbox input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .night-checkbox label {
+      margin: 0;
+      font-weight: normal;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: var(--primary-pink);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--secondary-pink);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .theme-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+
+    .theme-switcher:hover {
+      transform: scale(1.1);
+      background-color: var(--secondary-pink);
+      color: white;
+    }
+
+    .status-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .status-link a {
+      color: var(--primary-pink);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    .status-link a:hover {
+      color: var(--secondary-pink);
+      text-decoration: underline;
+    }
+
+    <?= getBannerCSS() ?>
+
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .nights-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+
+      .theme-switcher {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nights-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+    🌙
+  </div>
+
+  <div class="main-container">
+    <div id="form-container">
+    <div class="container">
+    <h1>basement application form</h1>
+    <form action="submit.php" method="POST" id="applicationForm">
+      <input type="text" name="name" placeholder="name" required>
+      <input type="email" name="email" placeholder="email" required>
+      <input type="tel" name="gfphone" placeholder="girlfriend's phone number (optional)">
+      <textarea name="reason" rows="4" placeholder="why did you apply" required></textarea>
+      <input type="number" name="cage" placeholder="how many times have you slept in a cage this week" min="0" max="7" required>
+      <div class="form-group">
+  <label class="animated-label">preferred location to work at (optional)</label>
+  <div class="custom-dropdown" id="locationDropdown">
+    <div class="selected">Select a location</div>
+    <div class="options">
+      <div data-value="Trg Sv. Martina 8, 40313, Sveti Martin na Muri, Croatia">Trg Sv. Martina 8, 40313, Sveti Martin na Muri, Croatia</div>
+      <div data-value="Vršanska ul. 18 A, 51500, Krk, Croatia">Vršanska ul. 18 A, 51500, Krk, Croatia</div>
+      <div data-value="Gundulićeva poljana 4, 20230, Ston, Croatia">Gundulićeva poljana 4, 20230, Ston, Croatia</div>
+      <div data-value="Station Rd, Epsom, Esher KT19 8EW, United Kingdom">Station Rd, Epsom, Esher KT19 8EW, United Kingdom (Shipment via post in a cage needed)</div>
+      <div data-value="Other">Other (Please note which via email)</div>
+    </div>
+    <input type="hidden" name="preferredLocation" required>
+  </div>
+</div>
+<div class="form-group">
+  <label class="checkbox-container">
+    I agree to the terms of the Data Retention Policy
+    <input type="checkbox" name="agreeTerms" id="agreeTerms" required>
+    <span class="checkmark"></span>
+  </label>
+</div>
+
+    <label style="font-weight:bold; display:block; margin-top:10px;">Are you a cat?</label>
+
+<div class="radio-group">
+  <input type="radio" id="catYes" name="isCat" value="Yes" required>
+  <label for="catYes">Yes</label>
+
+  <input type="radio" id="catNo" name="isCat" value="No" required>
+  <label for="catNo">No</label>
+</div>
+      <!-- Optional owner field -->
+      <input type="text" name="owner" id="ownerField" placeholder="Owner's name and/or email address (for cats only)" style="display:none;">
+
+      <button type="submit">Submit</button>
+
+        <button type="submit" class="submit-btn">
+          🚀 Submit Application
+        </button>
+      </form>
+
+      <div class="status-link">
+        <a href="check-status.php">📋 Check Application Status</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme switcher functionality
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    const body = document.body;
+
+    // Load saved theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      body.setAttribute('data-theme', 'dark');
+      themeSwitcher.textContent = '☀️';
+    }
+
+    // Theme toggle
+    themeSwitcher.addEventListener('click', () => {
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      
+      if (isDark) {
+        body.removeAttribute('data-theme');
+        themeSwitcher.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        themeSwitcher.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    // Form validation
+    document.getElementById('applicationForm').addEventListener('submit', function(e) {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const address = document.getElementById('address').value.trim();
+
+      if (!name || !email || !address) {
+        e.preventDefault();
+        alert('Please fill in all required fields (Name, Email, and Address).');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address.');
+        return;
+      }
+    });
+  </script>
+  
+  <?php
+  // Close database connection at the end
+  if (isset($conn)) {
+      $conn->close();
+  }
+  ?>
+</body>
+</html>
