@@ -1,6 +1,16 @@
 <?php
 session_start();
 
+// Add error reporting
+erro            $insert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
+                           VALUES ('maintenance_mode', '1', NOW(), ?) 
+                           ON DUPLICATE KEY UPDATE 
+                           setting_value = '1', updated_at = NOW(), updated_by = ?";
+            $stmt = $conn->prepare($insert_sql);
+            $admin_username = $_SESSION['admin_username'] ?? 'system';
+            $stmt->bind_param("ss", $admin_username, $admin_username);rting(E_ALL);
+ini_set('display_errors', 1);
+
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
@@ -37,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])
             // Turn off maintenance mode
             $update_sql = "UPDATE site_settings SET setting_value = '0', updated_at = NOW(), updated_by = ? WHERE setting_name = 'maintenance_mode'";
             $stmt = $conn->prepare($update_sql);
-            $stmt->bind_param("s", $_SESSION['admin_username']);
+            $admin_username = $_SESSION['admin_username'] ?? 'system';
+            $stmt->bind_param("s", $admin_username);
             
             if ($stmt->execute()) {
                 $maintenance_message = "Maintenance mode has been turned off. Applications are now accepting submissions.";

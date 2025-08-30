@@ -6,16 +6,21 @@ function renderAdminNavbar($currentPage = '') {
     
     // Check maintenance status from database with fallback
     $maintenance_active = false;
-    if (isset($conn) && !$conn->connect_error) {
-        // Check if site_settings table exists
-        $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
-        if ($table_check && $table_check->num_rows > 0) {
-            $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
-            $maintenance_result = $conn->query($maintenance_sql);
-            if ($maintenance_result && $maintenance_result->num_rows > 0) {
-                $maintenance_row = $maintenance_result->fetch_assoc();
-                $maintenance_active = ($maintenance_row['setting_value'] === '1');
+    if (isset($conn) && $conn && !$conn->connect_error) {
+        try {
+            // Check if site_settings table exists
+            $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+            if ($table_check && $table_check->num_rows > 0) {
+                $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+                $maintenance_result = $conn->query($maintenance_sql);
+                if ($maintenance_result && $maintenance_result->num_rows > 0) {
+                    $maintenance_row = $maintenance_result->fetch_assoc();
+                    $maintenance_active = ($maintenance_row['setting_value'] === '1');
+                }
             }
+        } catch (Exception $e) {
+            // Silently fail if there's a database error
+            $maintenance_active = false;
         }
     }
     
