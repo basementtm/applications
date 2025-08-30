@@ -2,13 +2,7 @@
 session_start();
 
 // Add error reporting
-erro            $insert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
-                           VALUES ('maintenance_mode', '1', NOW(), ?) 
-                           ON DUPLICATE KEY UPDATE 
-                           setting_value = '1', updated_at = NOW(), updated_by = ?";
-            $stmt = $conn->prepare($insert_sql);
-            $admin_username = $_SESSION['admin_username'] ?? 'system';
-            $stmt->bind_param("ss", $admin_username, $admin_username);rting(E_ALL);
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Check if user is logged in
