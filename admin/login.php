@@ -10,8 +10,17 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include('/var/www/config/db_config.php');
-    $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
+    $config_path ='/var/www/config/db_config.php';
+    
+    if (!file_exists($config_path)) {
+        $error = "Database configuration file not found. Please check server setup.";
+    } else {
+        include($config_path);
+        
+        if (!isset($DB_SERVER) || !isset($DB_USER) || !isset($DB_PASSWORD) || !isset($DB_NAME)) {
+            $error = "Database configuration incomplete.";
+        } else {
+            $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
     
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
@@ -54,7 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error = "Please enter both username and password.";
     }
-    $conn->close();
+    if (isset($conn)) {
+        $conn->close();
+    }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
