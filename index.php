@@ -4,6 +4,7 @@ include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
 $maintenance_active = false;
+$form_maintenance_active = false;
 if (!$conn->connect_error) {
     // Check if site_settings table exists
     $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
@@ -13,6 +14,13 @@ if (!$conn->connect_error) {
         if ($result && $result->num_rows > 0) {
             $row = $result->fetch_assoc();
             $maintenance_active = ($row['setting_value'] === '1');
+        }
+        
+        $form_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'form_maintenance_mode' LIMIT 1";
+        $form_result = $conn->query($form_maintenance_sql);
+        if ($form_result && $form_result->num_rows > 0) {
+            $form_row = $form_result->fetch_assoc();
+            $form_maintenance_active = ($form_row['setting_value'] === '1');
         }
     }
 }
@@ -48,6 +56,10 @@ if (!$conn->connect_error) {
         }
     }
 }
+
+// Check if user is an admin (for form maintenance bypass)
+session_start();
+$is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
 if ($maintenance_active) {
     http_response_code(503);
@@ -91,6 +103,67 @@ if ($maintenance_active) {
     if (isset($conn)) {
         $conn->close();
     }
+    exit();
+}
+
+// Check form maintenance mode - block public users but allow admins
+if ($form_maintenance_active && !$is_admin) {
+    http_response_code(503);
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Form Maintenance - basement application form</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #ffc0cb;
+                color: #333;
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .maintenance-container {
+                text-align: center;
+                background-color: #fff0f5;
+                padding: 40px;
+                border-radius: 15px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                max-width: 500px;
+                border: 3px solid #ff69b4;
+            }
+            h1 { color: #ff1493; margin-bottom: 20px; }
+            p { margin-bottom: 15px; line-height: 1.6; }
+            .maintenance-icon { font-size: 3rem; margin-bottom: 20px; }
+            .admin-note {
+                background-color: rgba(255, 20, 147, 0.1);
+                padding: 15px;
+                border-radius: 8px;
+                margin-top: 20px;
+                border: 1px solid #ff1493;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="maintenance-container">
+            <div class="maintenance-icon">📝</div>
+            <h1>Application Form Temporarily Closed</h1>
+            <p>The application form is currently in maintenance mode for administrative testing and updates.</p>
+            <p>We appreciate your patience while we improve the application process.</p>
+            <p>Please check back later or contact us if you have any questions.</p>
+            
+            <div class="admin-note">
+                <strong>Note for Admins:</strong> Log in to the admin panel to access the form during maintenance.
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
     exit();
 }
 ?>

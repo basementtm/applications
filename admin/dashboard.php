@@ -143,6 +143,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
     }
 }
 
+// Handle form maintenance toggle (available to all admins)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_form_maintenance'])) {
+    $new_status = $_POST['new_form_maintenance_status'];
+    
+    // Check if site_settings table exists, create if not
+    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+    if ($table_check->num_rows === 0) {
+        $create_table_sql = "CREATE TABLE site_settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            setting_name VARCHAR(255) UNIQUE NOT NULL,
+            setting_value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_by VARCHAR(100)
+        )";
+        $conn->query($create_table_sql);
+    }
+    
+    // Update or insert form maintenance setting
+    $admin_username = $_SESSION['admin_username'] ?? 'system';
+    $stmt = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) VALUES (?, ?, ?) 
+                           ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?");
+    $stmt->bind_param("sssss", $setting_name, $new_status, $admin_username, $new_status, $admin_username);
+    $setting_name = 'form_maintenance_mode';
+    
+    if ($stmt->execute()) {
+        $message = "Form maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
+        // Redirect to show message
+        header("Location: dashboard.php?form_maintenance_updated=1&status=" . $new_status);
+        exit();
+    }
+    $stmt->close();
+}
+
+// Get current form maintenance status
+$form_maintenance_active = false;
+$form_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'form_maintenance_mode' LIMIT 1";
+$form_maintenance_result = $conn->query($form_maintenance_sql);
+if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
+    $form_maintenance_row = $form_maintenance_result->fetch_assoc();
+    $form_maintenance_active = ($form_maintenance_row['setting_value'] === '1');
+}
+
 // Pagination
 $page = $_GET['page'] ?? 1;
 $per_page = 20;
@@ -610,6 +652,29 @@ while ($row = $stats_result->fetch_assoc()) {
                 🗑️ Application <?= htmlspecialchars($_GET['deleted']) ?> has been permanently deleted.
             </div>
         <?php endif; ?>
+
+        <?php if (isset($_GET['form_maintenance_updated'])): ?>
+            <div class="update-success">
+                📝 Form maintenance mode <?= $_GET['status'] === '1' ? 'enabled' : 'disabled' ?> successfully!
+            </div>
+        <?php endif; ?>
+
+        <!-- Form Maintenance Control -->
+        <div class="applications-overview" style="margin-bottom: 20px; padding: 15px; background-color: rgba(46, 213, 115, 0.1); border-radius: 8px; border: 1px solid var(--success-color);">
+            <h3 style="color: var(--success-color); margin-bottom: 10px;">📝 Form Maintenance Control</h3>
+            <p style="margin-bottom: 15px; font-size: 0.9rem;">
+                Form Maintenance Mode: <strong><?= $form_maintenance_active ? 'ENABLED' : 'DISABLED' ?></strong><br>
+                <small><?= $form_maintenance_active ? 'Only logged-in admins can access the application form' : 'Application form is open to the public' ?></small>
+            </p>
+            <form method="POST" style="display: inline;">
+                <input type="hidden" name="new_form_maintenance_status" value="<?= $form_maintenance_active ? '0' : '1' ?>">
+                <button type="submit" name="toggle_form_maintenance" 
+                        class="btn <?= $form_maintenance_active ? 'btn-success' : 'btn-secondary' ?>"
+                        onclick="return confirm('Are you sure you want to <?= $form_maintenance_active ? 'disable' : 'enable' ?> form maintenance mode?')">
+                    <?= $form_maintenance_active ? '✅ Disable Form Maintenance' : '📝 Enable Form Maintenance' ?>
+                </button>
+            </form>
+        </div>
 
         <?php if (isset($_GET['maintenance_updated'])): ?>
             <div class="update-success <?= $_GET['type'] === 'warning' ? 'maintenance-warning' : '' ?>">
