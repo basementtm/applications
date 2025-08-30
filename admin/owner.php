@@ -125,6 +125,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Username and password are required!";
         }
     }
+    
+    // Handle user disable/enable functionality
+    if (isset($_POST['toggle_status'])) {
+        $user_id = $_POST['user_id'];
+        $new_status = $_POST['new_status'];
+        
+        // Don't allow disabling self
+        if ($user_id != $_SESSION['admin_id']) {
+            $update_sql = "UPDATE admin_users SET active = ? WHERE id = ?";
+            $update_stmt = $conn->prepare($update_sql);
+            $update_stmt->bind_param("ii", $new_status, $user_id);
+            
+            if ($update_stmt->execute()) {
+                $message = "User status updated successfully!";
+            } else {
+                $error = "Error updating user status: " . $conn->error;
+            }
+            $update_stmt->close();
+        } else {
+            $error = "You cannot disable your own account!";
+        }
+    }
 }
 
 // Get current maintenance status for both site and admin panel
