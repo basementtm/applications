@@ -57,9 +57,16 @@ try {
     require_once 'action_logger.php';
     $debug_info[] = "Action logger loaded successfully";
     
-    // Temporarily disable to debug 500 error
-    // require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
-    $debug_info[] = "Scheduled maintenance helper temporarily disabled for debugging";
+    // Include scheduled maintenance helper - try both paths to ensure it loads
+    if (file_exists('/var/www/html/includes/scheduled_maintenance_helper.php')) {
+        require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+        $debug_info[] = "Scheduled maintenance helper loaded from server path";
+    } elseif (file_exists(dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php')) {
+        require_once dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php';
+        $debug_info[] = "Scheduled maintenance helper loaded from relative path";
+    } else {
+        $debug_errors[] = "Scheduled maintenance helper file not found";
+    }
 } catch (Exception $e) {
     $debug_errors[] = "Failed to load required files: " . $e->getMessage();
 }
@@ -278,42 +285,51 @@ $current_scheduled_maintenance = null;
 $all_scheduled_maintenance = [];
 
 try {
-    $helper_path = dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php';
-    $debug_info[] = "Checking for helper file at: $helper_path";
-    
-    if (file_exists($helper_path)) {
-        $debug_info[] = "Helper file exists, attempting to include";
-        require_once $helper_path;
-        $debug_info[] = "Scheduled maintenance helper loaded successfully";
-        
-        if (function_exists('processScheduledMaintenance')) {
-            processScheduledMaintenance($conn);
-            $debug_info[] = "Scheduled maintenance processed successfully";
-        } else {
-            $debug_errors[] = [
-                'type' => 'Function Error',
-                'message' => 'processScheduledMaintenance function not found after include',
-                'timestamp' => date('Y-m-d H:i:s')
-            ];
+    // Check if helper functions are loaded
+    if (!function_exists('processScheduledMaintenance')) {
+        // Try to load the helper file again if functions don't exist
+        if (file_exists('/var/www/html/includes/scheduled_maintenance_helper.php')) {
+            require_once '/var/www/html/includes/scheduled_maintenance_helper.php';
+            $debug_info[] = "Scheduled maintenance helper reloaded from server path";
+        } elseif (file_exists(dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php')) {
+            require_once dirname(dirname(__FILE__)) . '/includes/scheduled_maintenance_helper.php';
+            $debug_info[] = "Scheduled maintenance helper reloaded from relative path";
         }
+    }
+    
+    if (function_exists('processScheduledMaintenance')) {
+        processScheduledMaintenance($conn);
+        $debug_info[] = "Scheduled maintenance processed successfully";
+    } else {
+        $debug_errors[] = [
+            'type' => 'Function Error',
+            'message' => 'processScheduledMaintenance function not found',
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+    }
         
         // Get scheduled maintenance data
         if (function_exists('getScheduledMaintenance')) {
             $current_scheduled_maintenance = getScheduledMaintenance($conn);
             $debug_info[] = "Current scheduled maintenance retrieved";
+        } else {
+            $debug_errors[] = [
+                'type' => 'Function Error',
+                'message' => 'getScheduledMaintenance function not found',
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
         }
         
         if (function_exists('getAllScheduledMaintenance')) {
             $all_scheduled_maintenance = getAllScheduledMaintenance($conn, 5);
             $debug_info[] = "All scheduled maintenance retrieved";
+        } else {
+            $debug_errors[] = [
+                'type' => 'Function Error',
+                'message' => 'getAllScheduledMaintenance function not found',
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
         }
-    } else {
-        $debug_errors[] = [
-            'type' => 'File Error',
-            'message' => "Scheduled maintenance helper file not found at: $helper_path",
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
-    }
 } catch (ParseError $e) {
     $debug_errors[] = [
         'type' => 'Parse Error',
