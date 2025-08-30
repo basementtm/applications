@@ -114,36 +114,113 @@ if ($ip_banned) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Access Restricted - basement application form</title>
         <style>
+            :root {
+                --bg-color: #ffc0cb;
+                --container-bg: #fff0f5;
+                --text-color: #333;
+                --primary-pink: #ff1493;
+                --border-color: #ff1493;
+                --shadow-color: rgba(0,0,0,0.1);
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #2d1b2e;
+                --container-bg: #3d2b3e;
+                --text-color: #e0d0e0;
+                --primary-pink: #ff6bb3;
+                --border-color: #ff6bb3;
+                --shadow-color: rgba(0,0,0,0.3);
+            }
+
             body {
                 font-family: Arial, sans-serif;
-                background-color: #ffc0cb;
-                color: #333;
+                background-color: var(--bg-color);
+                color: var(--text-color);
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 min-height: 100vh;
                 margin: 0;
                 text-align: center;
+                transition: background-color 0.3s ease, color 0.3s ease;
             }
             .restricted-notice {
-                background: #fff0f5;
+                background: var(--container-bg);
                 padding: 40px;
                 border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 15px var(--shadow-color);
                 max-width: 500px;
-                border: 3px solid #ff1493;
+                border: 3px solid var(--border-color);
+                transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             }
-            .restricted-notice h1 { color: #ff1493; }
+            .restricted-notice h1 { 
+                color: var(--primary-pink); 
+                transition: color 0.3s ease;
+            }
             .icon { font-size: 3rem; margin-bottom: 20px; }
+            .theme-switcher {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+                background-color: var(--container-bg);
+                border: 2px solid var(--primary-pink);
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 10px var(--shadow-color);
+            }
+            .theme-switcher:hover {
+                transform: scale(1.1);
+                background-color: var(--primary-pink);
+                color: white;
+            }
         </style>
     </head>
     <body>
+        <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+            🌙
+        </div>
         <div class="restricted-notice">
             <div class="icon">🚫</div>
             <h1>Access Restricted</h1>
             <p>Your IP address has been restricted from submitting applications and/or checking application status.</p>
             <p>If you believe this is an error, please contact support.</p>
         </div>
+
+        <script>
+            // Theme switcher functionality
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            const body = document.body;
+
+            // Load saved theme
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+            }
+
+            // Theme toggle
+            themeSwitcher.addEventListener('click', () => {
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                
+                if (isDark) {
+                    body.removeAttribute('data-theme');
+                    themeSwitcher.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.setAttribute('data-theme', 'dark');
+                    themeSwitcher.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        </script>
     </body>
     </html>
     <?php
@@ -163,32 +240,108 @@ if ($maintenance_active) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Maintenance Mode - basement application form</title>
         <style>
+            :root {
+                --bg-color: #ffc0cb;
+                --container-bg: #fff0f5;
+                --text-color: #333;
+                --primary-pink: #ff1493;
+                --shadow-color: rgba(0,0,0,0.1);
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #2d1b2e;
+                --container-bg: #3d2b3e;
+                --text-color: #e0d0e0;
+                --primary-pink: #ff6bb3;
+                --shadow-color: rgba(0,0,0,0.3);
+            }
+
             body {
                 font-family: Arial, sans-serif;
-                background-color: #ffc0cb;
-                color: #333;
+                background-color: var(--bg-color);
+                color: var(--text-color);
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 min-height: 100vh;
                 margin: 0;
                 text-align: center;
+                transition: background-color 0.3s ease, color 0.3s ease;
             }
             .maintenance-notice {
-                background: #fff0f5;
+                background: var(--container-bg);
                 padding: 40px;
                 border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 15px var(--shadow-color);
                 max-width: 500px;
+                transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            }
+            h1 {
+                color: var(--primary-pink);
+                transition: color 0.3s ease;
+            }
+            .theme-switcher {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+                background-color: var(--container-bg);
+                border: 2px solid var(--primary-pink);
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 10px var(--shadow-color);
+            }
+            .theme-switcher:hover {
+                transform: scale(1.1);
+                background-color: var(--primary-pink);
+                color: white;
             }
         </style>
     </head>
     <body>
+        <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+            🌙
+        </div>
         <div class="maintenance-notice">
             <h1>🚧 Site Under Maintenance</h1>
-            <p>We're currently performing maintenance. Please check back later.</p>
-            <p><a href="check-status.php">Check Application Status</a></p>
+            <p>We're performing scheduled maintenance to improve our services.</p>
+            <p>Please try again later. Thank you for your patience!</p>
         </div>
+
+        <script>
+            // Theme switcher functionality
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            const body = document.body;
+
+            // Load saved theme
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+            }
+
+            // Theme toggle
+            themeSwitcher.addEventListener('click', () => {
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                
+                if (isDark) {
+                    body.removeAttribute('data-theme');
+                    themeSwitcher.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.setAttribute('data-theme', 'dark');
+                    themeSwitcher.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        </script>
     </body>
     </html>
     <?php
@@ -209,39 +362,98 @@ if ($form_maintenance_active && !$is_admin) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Form Maintenance - basement application form</title>
         <style>
+            :root {
+                --bg-color: #ffc0cb;
+                --container-bg: #fff0f5;
+                --text-color: #333;
+                --primary-pink: #ff1493;
+                --secondary-pink: #ff69b4;
+                --border-color: #ff69b4;
+                --shadow-color: rgba(0,0,0,0.1);
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #2d1b2e;
+                --container-bg: #3d2b3e;
+                --text-color: #e0d0e0;
+                --primary-pink: #ff6bb3;
+                --secondary-pink: #d147a3;
+                --border-color: #d147a3;
+                --shadow-color: rgba(0,0,0,0.3);
+            }
+
             body {
                 font-family: Arial, sans-serif;
-                background-color: #ffc0cb;
-                color: #333;
+                background-color: var(--bg-color);
+                color: var(--text-color);
                 margin: 0;
                 padding: 20px;
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: background-color 0.3s ease, color 0.3s ease;
             }
             .maintenance-container {
                 text-align: center;
-                background-color: #fff0f5;
+                background-color: var(--container-bg);
                 padding: 40px;
                 border-radius: 15px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 20px var(--shadow-color);
                 max-width: 500px;
-                border: 3px solid #ff69b4;
+                border: 3px solid var(--secondary-pink);
+                transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             }
-            h1 { color: #ff1493; margin-bottom: 20px; }
-            p { margin-bottom: 15px; line-height: 1.6; }
-            .maintenance-icon { font-size: 3rem; margin-bottom: 20px; }
+            h1 { 
+                color: var(--primary-pink); 
+                margin-bottom: 20px; 
+                transition: color 0.3s ease;
+            }
+            p { 
+                margin-bottom: 15px; 
+                line-height: 1.6; 
+            }
+            .maintenance-icon { 
+                font-size: 3rem; 
+                margin-bottom: 20px; 
+            }
             .admin-note {
                 background-color: rgba(255, 20, 147, 0.1);
                 padding: 15px;
                 border-radius: 8px;
                 margin-top: 20px;
-                border: 1px solid #ff1493;
+                border: 1px solid var(--primary-pink);
+                transition: border-color 0.3s ease;
+            }
+            .theme-switcher {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+                background-color: var(--container-bg);
+                border: 2px solid var(--secondary-pink);
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 10px var(--shadow-color);
+            }
+            .theme-switcher:hover {
+                transform: scale(1.1);
+                background-color: var(--secondary-pink);
+                color: white;
             }
         </style>
     </head>
     <body>
+        <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+            🌙
+        </div>
         <div class="maintenance-container">
             <div class="maintenance-icon">📝</div>
             <h1>Application Form Temporarily Closed</h1>
@@ -249,6 +461,34 @@ if ($form_maintenance_active && !$is_admin) {
             <p>We appreciate your patience while we improve the application process.</p>
             <p>Please check back later or contact us if you have any questions.</p>
         </div>
+
+        <script>
+            // Theme switcher functionality
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            const body = document.body;
+
+            // Load saved theme
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+            }
+
+            // Theme toggle
+            themeSwitcher.addEventListener('click', () => {
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                
+                if (isDark) {
+                    body.removeAttribute('data-theme');
+                    themeSwitcher.textContent = '🌙';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.setAttribute('data-theme', 'dark');
+                    themeSwitcher.textContent = '☀️';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        </script>
     </body>
     </html>
     <?php

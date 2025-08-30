@@ -56,20 +56,124 @@ if ($ip_banned) {
       <meta name='viewport' content='width=device-width, initial-scale=1.0'>
       <title>Access Denied</title>
       <style>
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); margin: 0; padding: 0; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 500px; }
-        h1 { color: #ff1744; font-size: 2.5em; margin-bottom: 20px; }
-        p { color: #666; font-size: 1.1em; line-height: 1.6; margin-bottom: 30px; }
-        .error-code { font-size: 1.5em; color: #ff1744; font-weight: bold; }
+        :root {
+          --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+          --container-bg: white;
+          --text-color: #666;
+          --heading-color: #ff1744;
+          --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme='dark'] {
+          --bg-gradient: linear-gradient(135deg, #4a1d2f 0%, #432741 50%, #3d2b3e 100%);
+          --container-bg: #3d2b3e;
+          --text-color: #e0d0e0;
+          --heading-color: #ff6bb3;
+          --shadow-color: rgba(0,0,0,0.3);
+        }
+
+        body { 
+          font-family: Arial, sans-serif; 
+          background: var(--bg-gradient); 
+          margin: 0; 
+          padding: 0; 
+          height: 100vh; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center;
+          transition: background 0.3s ease;
+        }
+        .container { 
+          background: var(--container-bg); 
+          padding: 40px; 
+          border-radius: 20px; 
+          box-shadow: 0 10px 30px var(--shadow-color); 
+          text-align: center; 
+          max-width: 500px;
+          transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        h1 { 
+          color: var(--heading-color); 
+          font-size: 2.5em; 
+          margin-bottom: 20px;
+          transition: color 0.3s ease;
+        }
+        p { 
+          color: var(--text-color); 
+          font-size: 1.1em; 
+          line-height: 1.6; 
+          margin-bottom: 30px;
+          transition: color 0.3s ease;
+        }
+        .error-code { 
+          font-size: 1.5em; 
+          color: var(--heading-color); 
+          font-weight: bold;
+          transition: color 0.3s ease;
+        }
+        .theme-switcher {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+          background-color: var(--container-bg);
+          border: 2px solid var(--heading-color);
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 10px var(--shadow-color);
+        }
+        .theme-switcher:hover {
+          transform: scale(1.1);
+          background-color: var(--heading-color);
+          color: white;
+        }
       </style>
     </head>
     <body>
+      <div class='theme-switcher' id='themeSwitcher' title='Toggle Dark Mode'>
+        🌙
+      </div>
       <div class='container'>
         <h1>🚫 Access Denied</h1>
         <div class='error-code'>Error 403 - Forbidden</div>
         <p>Your IP address has been banned from accessing this service.</p>
         <p>If you believe this is an error, please contact the website administrator.</p>
       </div>
+
+      <script>
+        // Theme switcher functionality
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        const body = document.body;
+
+        // Load saved theme
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+          body.setAttribute('data-theme', 'dark');
+          themeSwitcher.textContent = '☀️';
+        }
+
+        // Theme toggle
+        themeSwitcher.addEventListener('click', () => {
+          const isDark = body.getAttribute('data-theme') === 'dark';
+          
+          if (isDark) {
+            body.removeAttribute('data-theme');
+            themeSwitcher.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+          } else {
+            body.setAttribute('data-theme', 'dark');
+            themeSwitcher.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+          }
+        });
+      </script>
     </body>
     </html>";
     exit;
@@ -103,11 +207,27 @@ if ($maintenance_active) {
       <meta name='viewport' content='width=device-width, initial-scale=1.0'>
       <title>Maintenance - Status Check Temporarily Unavailable</title>
       <style>
+        :root {
+          --bg-color: #ffc0cb;
+          --container-bg: #fff0f5;
+          --text-color: #333;
+          --primary-pink: #ff1493;
+          --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme='dark'] {
+          --bg-color: #2d1b2e;
+          --container-bg: #3d2b3e;
+          --text-color: #e0d0e0;
+          --primary-pink: #ff6bb3;
+          --shadow-color: rgba(0,0,0,0.3);
+        }
+
         body { 
           font-family: Arial, sans-serif; 
           text-align: center; 
-          background-color: #ffc0cb; 
-          color: #333; 
+          background-color: var(--bg-color); 
+          color: var(--text-color); 
           padding: 50px; 
           margin: 0; 
           min-height: 100vh; 
@@ -115,20 +235,52 @@ if ($maintenance_active) {
           flex-direction: column; 
           justify-content: center; 
           align-items: center; 
+          transition: background-color 0.3s ease, color 0.3s ease;
         }
         .container { 
-          background-color: #fff0f5; 
+          background-color: var(--container-bg); 
           padding: 40px; 
           border-radius: 15px; 
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+          box-shadow: 0 4px 10px var(--shadow-color); 
           max-width: 600px; 
+          transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-        h1 { color: #ff1493; margin-bottom: 20px; }
+        h1 { 
+          color: var(--primary-pink); 
+          margin-bottom: 20px; 
+          transition: color 0.3s ease;
+        }
         p { margin: 15px 0; line-height: 1.6; }
         .maintenance-icon { font-size: 4rem; margin-bottom: 20px; }
+        .theme-switcher {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+          background-color: var(--container-bg);
+          border: 2px solid var(--primary-pink);
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 10px var(--shadow-color);
+        }
+        .theme-switcher:hover {
+          transform: scale(1.1);
+          background-color: var(--primary-pink);
+          color: white;
+        }
       </style>
     </head>
     <body>
+      <div class='theme-switcher' id='themeSwitcher' title='Toggle Dark Mode'>
+        🌙
+      </div>
       <div class='container'>
         <div class='maintenance-icon'>🚧</div>
         <h1>Maintenance</h1>
@@ -136,6 +288,34 @@ if ($maintenance_active) {
         <p>We're performing scheduled maintenance to improve our services.</p>
         <p>Please try again later. Thank you for your patience!</p>
       </div>
+
+      <script>
+        // Theme switcher functionality
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        const body = document.body;
+
+        // Load saved theme
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+          body.setAttribute('data-theme', 'dark');
+          themeSwitcher.textContent = '☀️';
+        }
+
+        // Theme toggle
+        themeSwitcher.addEventListener('click', () => {
+          const isDark = body.getAttribute('data-theme') === 'dark';
+          
+          if (isDark) {
+            body.removeAttribute('data-theme');
+            themeSwitcher.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+          } else {
+            body.setAttribute('data-theme', 'dark');
+            themeSwitcher.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+          }
+        });
+      </script>
     </body>
     </html>";
     exit();
