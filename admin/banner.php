@@ -36,6 +36,9 @@ if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma'
 // Include navbar component
 include('navbar.php');
 
+// Include action logger
+require_once 'action_logger.php';
+
 $message = '';
 $error = '';
 
@@ -51,6 +54,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_banner'])) {
     if ($table_check && $table_check->num_rows > 0) {
         $admin_username = $_SESSION['admin_username'] ?? 'system';
         
+        // Get current banner settings for logging comparison
+        $current_settings = [];
+        $current_settings_sql = "SELECT setting_name, setting_value FROM site_settings 
+                                WHERE setting_name IN ('banner_text', 'banner_enabled', 'banner_type')";
+        $current_result = $conn->query($current_settings_sql);
+        if ($current_result) {
+            while ($row = $current_result->fetch_assoc()) {
+                $current_settings[$row['setting_name']] = $row['setting_value'];
+            }
+        }
+        
         // Update or insert banner settings
         $settings = [
             'banner_text' => $banner_text,
@@ -59,6 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_banner'])) {
         ];
         
         foreach ($settings as $setting_name => $setting_value) {
+            $old_value = $current_settings[$setting_name] ?? 'Not set';
+            
             $upsert_sql = "INSERT INTO site_settings (setting_name, setting_value, updated_at, updated_by) 
                            VALUES (?, ?, NOW(), ?) 
                            ON DUPLICATE KEY UPDATE 
@@ -67,7 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_banner'])) {
             $stmt->bind_param("sss", $setting_name, $setting_value, $admin_username);
             $stmt->execute();
             $stmt->close();
+            
+            // Log the settings change
+            logSettingsChange($setting_name, $old_value, $setting_value);
         }
+        
+        // Log the specific banner action
+        logBannerUpdated($banner_enabled, $banner_type, $banner_text);
         
         $message = "Banner settings updated successfully!";
     } else {

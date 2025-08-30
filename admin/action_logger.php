@@ -255,4 +255,32 @@ function logBannedIPAccess($page_accessed, $ban_reason = null) {
         error_log("Banned IP access logging error: " . $e->getMessage());
     }
 }
+
+// Specific logging functions for banner management
+function logBannerAction($action, $banner_enabled, $banner_type, $banner_text) {
+    $action_type = 'ADMIN_BANNER_' . strtoupper($action);
+    $status = $banner_enabled ? 'enabled' : 'disabled';
+    $description = "Admin {$action} banner - Status: {$status}, Type: {$banner_type}";
+    
+    $additional_data = [
+        'banner_enabled' => $banner_enabled,
+        'banner_type' => $banner_type,
+        'banner_text_length' => strlen($banner_text),
+        'banner_text_preview' => substr($banner_text, 0, 100) . (strlen($banner_text) > 100 ? '...' : '')
+    ];
+    
+    logAction($action_type, $description, 'banner', null, $additional_data);
+}
+
+function logBannerEnabled($banner_type, $banner_text) {
+    logBannerAction('enabled', true, $banner_type, $banner_text);
+}
+
+function logBannerDisabled($banner_type, $banner_text) {
+    logBannerAction('disabled', false, $banner_type, $banner_text);
+}
+
+function logBannerUpdated($banner_enabled, $banner_type, $banner_text) {
+    logBannerAction('updated', $banner_enabled, $banner_type, $banner_text);
+}
 ?>
