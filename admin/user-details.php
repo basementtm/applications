@@ -473,7 +473,7 @@ $conn->close();
     <div class="main-content">
         <div class="container">
             <div class="header">
-                <h1>User Details: <?php echo htmlspecialchars($user['username']); ?></h1>
+                <h1>User Details: <?php echo isset($user['username']) ? htmlspecialchars($user['username']) : 'Unknown User'; ?></h1>
             </div>
             
             <div class="content">
@@ -491,12 +491,13 @@ $conn->close();
                 <div class="message error"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
+            <?php if (isset($user) && $user): ?>
             <div class="user-info">
                 <div class="info-card">
                     <h3>Account Information</h3>
                     <div class="info-row">
                         <span class="info-label">Username:</span>
-                        <span class="info-value"><?php echo htmlspecialchars($user['username']); ?></span>
+                        <span class="info-value"><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Email:</span>
@@ -627,6 +628,9 @@ $conn->close();
                     </table>
                 <?php endif; ?>
             </div>
+            <?php else: ?>
+                <div class="message error">User not found or invalid user ID.</div>
+            <?php endif; ?>
         </div>
     </div>
     </div>
