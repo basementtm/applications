@@ -8,12 +8,45 @@
       font-family: Arial, sans-serif;
       background-color: #ffc0cb;
       color: #333;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .main-container {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
       padding: 20px;
+    }
+
+    #notice-banner {
+      background-color: #fff0f5;
+      color: #ff1493;
+      padding: 15px 20px;
+      margin: 0;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      word-wrap: break-word;
+      white-space: normal;
+      width: 100%;
+      box-sizing: border-box;
+      border-bottom: 2px solid #ff69b4;
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeSlideDown 1.2s 0.3s forwards;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    #notice-banner:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255,20,147,0.2);
     }
 
     #form-container, #maintenance {
@@ -28,10 +61,7 @@
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 1s forwards;
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
+      margin-top: 60px; /* Add space for fixed banner */
     }
 
     h1 {
@@ -129,20 +159,9 @@
       .radio-group label { padding: 8px 15px; font-size: 0.9rem; min-width: 70px; }
       button { font-size: 0.95rem; max-width: 100%; }
     }
-    #notice-banner {
-    background-color: #ff1493;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    word-wrap: break-word;
-    white-space: normal;
-    width: 100%;          /* matches container width */
-    box-sizing: border-box;
-}
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
 .form-group {
   position: relative; /* ensures internal absolute elements stay inside */
   margin: 15px 0;
@@ -296,11 +315,12 @@
   </style>
 </head>
 <body>
-  <div id="form-container">
-    <div class="container">
-    <div id="notice-banner">
+  <div id="notice-banner">
         ⚠️ Form has been migrated to girlskissing.dev, the old URL will redirect for a little while.
     </div>
+  <div class="main-container">
+    <div id="form-container">
+    <div class="container">
     <h1>basement application form</h1>
     <form action="submit.php" method="POST" id="applicationForm">
       <input type="text" name="name" placeholder="name" required>
@@ -349,6 +369,7 @@
   </a>
 </p>
     </form>
+</div>
 </div>
 </div>
 <div id="maintenance" style="display:none;">
