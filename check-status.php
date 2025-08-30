@@ -202,7 +202,7 @@ if ($ip_banned) {
         <div class="restricted-notice">
             <div class="icon">🚫</div>
             <h1>Access Restricted</h1>
-            <p>Your IP address has been restricted from accessing this service.</p>
+            <p>Your IP address has been restricted from submitting applications and/or checking application status.</p>
             <p>If you believe this is an error, please contact support.</p>
         </div>
     </body>

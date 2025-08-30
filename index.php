@@ -124,9 +124,8 @@ if ($ip_banned) {
         <div class="restricted-notice">
             <div class="icon">🚫</div>
             <h1>Access Restricted</h1>
-            <p>Your IP address has been restricted from submitting applications.</p>
+            <p>Your IP address has been restricted from submitting applications and/or checking application status.</p>
             <p>If you believe this is an error, please contact support.</p>
-            <p><a href="status-check.html" style="color: #ff1493;">Check Application Status</a></p>
         </div>
     </body>
     </html>
