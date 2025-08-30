@@ -357,18 +357,6 @@ if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
             <div class="message error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card <?= $site_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
-                <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
-                <div class="stat-label">Site Maintenance</div>
-            </div>
-            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
-                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
-                <div class="stat-label">Form Maintenance</div>
-            </div>
-        </div>
-
         <!-- Site Maintenance Control -->
         <div class="maintenance-control">
             <h4>🌐 Site Maintenance Mode</h4>

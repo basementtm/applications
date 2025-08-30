@@ -143,6 +143,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
     }
 }
 
+// Get current maintenance statuses for display
+$site_maintenance_active = false;
+$form_maintenance_active = false;
+
+$site_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'maintenance_mode' LIMIT 1";
+$site_maintenance_result = $conn->query($site_maintenance_sql);
+if ($site_maintenance_result && $site_maintenance_result->num_rows > 0) {
+    $site_maintenance_row = $site_maintenance_result->fetch_assoc();
+    $site_maintenance_active = ($site_maintenance_row['setting_value'] === '1');
+}
+
+$form_maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'form_maintenance_mode' LIMIT 1";
+$form_maintenance_result = $conn->query($form_maintenance_sql);
+if ($form_maintenance_result && $form_maintenance_result->num_rows > 0) {
+    $form_maintenance_row = $form_maintenance_result->fetch_assoc();
+    $form_maintenance_active = ($form_maintenance_row['setting_value'] === '1');
+}
+
 // Pagination
 $page = $_GET['page'] ?? 1;
 $per_page = 20;
@@ -318,11 +336,39 @@ while ($row = $stats_result->fetch_assoc()) {
             border-radius: 10px;
             box-shadow: 0 2px 5px var(--shadow-color);
             text-align: center;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card.maintenance-on {
+            border-color: var(--danger-color);
+            background-color: rgba(255, 71, 87, 0.1);
+        }
+
+        .stat-card.maintenance-off {
+            border-color: var(--success-color);
+            background-color: rgba(46, 213, 115, 0.1);
+        }
+
+        .stat-card.application-stat {
+            border-color: var(--primary-pink);
         }
 
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .stat-card.maintenance-on .stat-number {
+            color: var(--danger-color);
+        }
+
+        .stat-card.maintenance-off .stat-number {
+            color: var(--success-color);
+        }
+
+        .stat-card.application-stat .stat-number {
             color: var(--primary-pink);
         }
 
@@ -566,31 +612,41 @@ while ($row = $stats_result->fetch_assoc()) {
             </div>
         <?php endif; ?>
 
-
-
-        <!-- Statistics -->
+        <!-- Maintenance Statistics -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card <?= $site_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
+                <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
+                <div class="stat-label">Site Maintenance</div>
+            </div>
+            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
+                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
+                <div class="stat-label">Form Maintenance</div>
+            </div>
+        </div>
+
+        <!-- Application Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= $total_applications ?></div>
                 <div>Total Applications</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= $status_counts['unreviewed'] ?? 0 ?></div>
                 <div>Unreviewed</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= ($status_counts['stage2'] ?? 0) + ($status_counts['stage3'] ?? 0) ?></div>
                 <div>In Progress</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= $status_counts['accepted'] ?? 0 ?></div>
                 <div>Accepted</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= $status_counts['denied'] ?? 0 ?></div>
                 <div>Denied</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card application-stat">
                 <div class="stat-number"><?= $status_counts['invalid'] ?? 0 ?></div>
                 <div>Invalid</div>
             </div>
