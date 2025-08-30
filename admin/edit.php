@@ -93,6 +93,32 @@ $stmt->close();
     <title>Edit Application - Admin</title>
     <?php include 'navbar.php'; ?>
     <style>
+        :root {
+            --bg-color: #ffc0cb;
+            --container-bg: #fff0f5;
+            --text-color: #333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            --input-bg: #fff0f5;
+            --success-color: #2ed573;
+            --warning-color: #ffa502;
+            --danger-color: #ff4757;
+            --info-color: #3742fa;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
+        }
+
         <?php echo getNavbarCSS(); ?>
 
         * {
