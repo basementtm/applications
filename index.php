@@ -1,4 +1,7 @@
 <?php
+// Start session to check for admin login
+session_start();
+
 // Database maintenance mode check with fallback
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -7,6 +10,9 @@ $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if (file_exists('admin/action_logger.php')) {
     require_once 'admin/action_logger.php';
 }
+
+// Check if user is logged in as admin
+$is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
 // Function to log visitor activity
 function logVisitor($conn, $page = 'main_form', $action = 'view') {
@@ -1092,6 +1098,35 @@ if ($form_maintenance_active && !$is_admin) {
       background-color: var(--secondary-pink);
       color: white;
     }
+    
+    .admin-panel-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid gold;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeScale 0.3s 0.2s forwards;
+    }
+    
+    .admin-panel-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px var(--shadow-color);
+      background-color: gold;
+      color: white;
+    }
 
     @keyframes fadeScale {
       to { 
@@ -1273,6 +1308,12 @@ if ($form_maintenance_active && !$is_admin) {
   <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
     🌙
   </div>
+  
+  <?php if ($is_admin): ?>
+  <div class="admin-panel-button" id="adminPanelButton" title="Go to Admin Panel">
+    👑
+  </div>
+  <?php endif; ?>
 
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
     <?php
