@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['wipe_applicants'])) {
         $confirm_text = trim($_POST['confirm_text']);
         if ($confirm_text === 'DELETE ALL APPLICATIONS') {
-            $wipe_sql = "DELETE FROM applications";
+            $wipe_sql = "DELETE FROM applicants";
             if ($conn->query($wipe_sql)) {
                 $message = "All applications have been permanently deleted! Count: " . $conn->affected_rows;
             } else {
@@ -145,7 +145,7 @@ if ($maintenance_result && $maintenance_result->num_rows > 0) {
 }
 
 // Get application count
-$count_sql = "SELECT COUNT(*) as total FROM applications";
+$count_sql = "SELECT COUNT(*) as total FROM applicants";
 $count_result = $conn->query($count_sql);
 $app_count = $count_result ? $count_result->fetch_assoc()['total'] : 0;
 
