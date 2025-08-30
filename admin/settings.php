@@ -10,7 +10,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->c;
 }
 
 $username = $_SESSION['admin_username'];
@@ -18,7 +18,7 @@ $message = '';
 $message_type = '';
 
 // Fetch current user settings
-$sql = "SELECT username, email, two_factor_enabled, passkey_enabled, created_at FROM admin_users WHERE username = ? AND active = 1";
+$sql = "SELECT username, email, two_factor_enabled, created_at FROM admin_users WHERE username = ? AND active = 1";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -81,34 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $update_stmt->close();
             break;
-            
-        case 'toggle_passkey':
-            $enable_passkey = $_POST['enable_passkey'] === '1';
-            $update_sql = "UPDATE admin_users SET passkey_enabled = ? WHERE username = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("is", $enable_passkey, $username);
-            if ($update_stmt->execute()) {
-                $user_data['passkey_enabled'] = $enable_passkey;
-                $message = $enable_passkey ? "Passkey authentication enabled!" : "Passkey authentication disabled!";
-                $message_type = "success";
-            } else {
-                $message = "Error updating passkey settings.";
-                $message_type = "error";
-            }
-            $update_stmt->close();
-            break;
     }
 }
 
-// Check if user has any registered passkeys
-$passkey_count = 0;
-$passkey_sql = "SELECT COUNT(*) as count FROM user_passkeys WHERE username = ?";
-$passkey_stmt = $conn->prepare($passkey_sql);
-$passkey_stmt->bind_param("s", $username);
-$passkey_stmt->execute();
-$passkey_result = $passkey_stmt->get_result();
-$passkey_count = $passkey_result->fetch_assoc()['count'];
-$passkey_stmt->close();
+
 
 $conn->close();
 ?>
@@ -552,36 +528,7 @@ $conn->close();
             </p>
             <a href="setup-2fa.php" class="btn btn-info">📲 Setup 2FA</a>
         </div>
-        <?php endif; ?>                <!-- Passkey Authentication -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">Passkey Authentication</div>
-                        <div class="setting-description">Use biometrics or security keys for passwordless login</div>
-                    </div>
-                    <div>
-                        <span class="status-badge <?= $user_data['passkey_enabled'] ? 'status-enabled' : 'status-disabled' ?>">
-                            <?= $user_data['passkey_enabled'] ? 'Enabled' : 'Disabled' ?>
-                        </span>
-                        <form method="POST" style="display: inline; margin-left: 10px;">
-                            <input type="hidden" name="action" value="toggle_passkey">
-                            <input type="hidden" name="enable_passkey" value="<?= $user_data['passkey_enabled'] ? '0' : '1' ?>">
-                            <button type="submit" class="btn <?= $user_data['passkey_enabled'] ? 'btn-danger' : 'btn-success' ?>" onclick="return confirm('<?= $user_data['passkey_enabled'] ? 'Disable' : 'Enable' ?> passkey authentication?')">
-                                <?= $user_data['passkey_enabled'] ? '❌ Disable' : '✅ Enable' ?>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <?php if ($user_data['passkey_enabled']): ?>
-                <div style="margin-top: 15px; padding: 15px; background-color: var(--input-bg); border-radius: 8px;">
-                    <h4>🔑 Registered Passkeys</h4>
-                    <p>You have <?= $passkey_count ?> passkey(s) registered.</p>
-                    <div style="margin-top: 10px;">
-                        <button class="btn btn-primary" onclick="registerPasskey()">➕ Add New Passkey</button>
-                        <a href="manage-passkeys.php" class="btn btn-secondary">🔧 Manage Passkeys</a>
-                    </div>
-                </div>
-                <?php endif; ?>
+        <?php endif; ?>
             </div>
         </div>
     </div>
@@ -632,112 +579,6 @@ $conn->close();
             });
         }
         <?php endif; ?>
-
-        // WebAuthn Passkey Registration
-        async function registerPasskey() {
-            const messageEl = document.getElementById('message');
-            
-            if (!window.PublicKeyCredential) {
-                showMessage('WebAuthn is not supported in this browser. Please use Chrome, Firefox, Safari, or Edge.', 'error');
-                return;
-            }
-
-            // Check if we're in a secure context
-            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                showMessage('WebAuthn requires HTTPS or localhost', 'error');
-                return;
-            }
-
-            try {
-                showMessage('Getting registration challenge...', 'info');
-
-                // Get challenge from server
-                const challengeResponse = await fetch('get-passkey-challenge.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!challengeResponse.ok) {
-                    const errorText = await challengeResponse.text();
-                    throw new Error(`Server error: ${challengeResponse.status} - ${errorText}`);
-                }
-
-                const credentialCreationOptions = await challengeResponse.json();
-                
-                if (credentialCreationOptions.error) {
-                    throw new Error(credentialCreationOptions.error);
-                }
-
-                // Convert arrays to Uint8Arrays
-                credentialCreationOptions.challenge = new Uint8Array(credentialCreationOptions.challenge);
-                credentialCreationOptions.user.id = new Uint8Array(credentialCreationOptions.user.id);
-                
-                if (credentialCreationOptions.excludeCredentials) {
-                    credentialCreationOptions.excludeCredentials.forEach(cred => {
-                        cred.id = new Uint8Array(cred.id);
-                    });
-                }
-
-                showMessage('Creating passkey... Please follow browser prompts.', 'info');
-
-                // Create the credential
-                const credential = await navigator.credentials.create({
-                    publicKey: credentialCreationOptions
-                });
-
-                if (!credential) {
-                    throw new Error('Failed to create credential - user may have cancelled');
-                }
-
-                showMessage('Passkey created! Registering with server...', 'info');
-
-                // Send to server for storage
-                const response = await fetch('register-passkey.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        credential: {
-                            id: credential.id,
-                            rawId: Array.from(new Uint8Array(credential.rawId)),
-                            type: credential.type,
-                            response: {
-                                attestationObject: Array.from(new Uint8Array(credential.response.attestationObject)),
-                                clientDataJSON: Array.from(new Uint8Array(credential.response.clientDataJSON))
-                            }
-                        }
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showMessage('Passkey registered successfully!', 'success');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    throw new Error(result.error || 'Registration failed');
-                }
-                
-            } catch (error) {
-                console.error('Error registering passkey:', error);
-                
-                let errorMessage = 'Failed to register passkey: ';
-                if (error.name === 'NotSupportedError') {
-                    errorMessage += 'Your device does not support passkeys or WebAuthn.';
-                } else if (error.name === 'NotAllowedError') {
-                    errorMessage += 'Registration was cancelled or timed out.';
-                } else if (error.name === 'InvalidStateError') {
-                    errorMessage += 'This passkey is already registered.';
-                } else {
-                    errorMessage += error.message;
-                }
-                
-                showMessage(errorMessage, 'error');
-            }
-        }
     </script>
 </body>
 </html>

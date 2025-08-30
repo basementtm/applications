@@ -335,21 +335,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method) {
             font-weight: bold;
         }
 
-        .auth-methods {
-            margin: 30px 0;
-            padding: 20px 0;
-            border-top: 1px solid var(--border-color);
-        }
 
-        .auth-method {
-            margin: 15px 0;
-        }
-
-        .passkey-info {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 10px;
-        }
 
         .two-fa-form {
             background-color: var(--input-bg);
@@ -490,16 +476,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method) {
                 <button type="submit" class="btn">🔓 Login</button>
             </form>
 
-            <div class="auth-methods">
-                <div class="auth-method">
-                    <button class="btn btn-secondary" onclick="loginWithPasskey()" id="passkeyBtn">
-                        🔑 Login with Passkey
-                    </button>
-                    <div class="passkey-info">
-                        Use biometrics or security key for passwordless login
-                    </div>
-                </div>
-            </div>
+
         <?php endif; ?>
         
         <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
@@ -581,161 +558,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method) {
         }
         <?php endif; ?>
 
-        // Passkey Authentication
-        async function loginWithPasskey() {
-            if (!window.PublicKeyCredential) {
-                alert('WebAuthn is not supported in this browser. Please use a modern browser like Chrome, Firefox, Safari, or Edge.');
-                return;
-            }
 
-            // Check if we're in a secure context
-            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                alert('Passkey authentication requires HTTPS or localhost');
-                return;
-            }
-
-            try {
-                const passkeyBtn = document.getElementById('passkeyBtn');
-                passkeyBtn.disabled = true;
-                passkeyBtn.textContent = '🔄 Getting challenge...';
-
-                // Get authentication challenge from server
-                const challengeResponse = await fetch('get-auth-challenge.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!challengeResponse.ok) {
-                    const errorText = await challengeResponse.text();
-                    throw new Error(`Server error: ${challengeResponse.status} - ${errorText}`);
-                }
-
-                const authOptions = await challengeResponse.json();
-                
-                if (authOptions.error) {
-                    throw new Error(authOptions.error);
-                }
-
-                // Convert arrays to Uint8Arrays
-                authOptions.challenge = new Uint8Array(authOptions.challenge);
-                
-                if (authOptions.allowCredentials) {
-                    authOptions.allowCredentials.forEach(cred => {
-                        cred.id = new Uint8Array(cred.id);
-                    });
-                }
-
-                passkeyBtn.textContent = '🔐 Authenticating...';
-
-                // Get the credential
-                const credential = await navigator.credentials.get({
-                    publicKey: authOptions
-                });
-
-                if (!credential) {
-                    throw new Error('Authentication was cancelled');
-                }
-
-                passkeyBtn.textContent = '✅ Verifying...';
-
-                // Send credential to server for verification
-                const authResponse = await fetch('authenticate-passkey.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        credential: {
-                            id: credential.id,
-                            rawId: Array.from(new Uint8Array(credential.rawId)),
-                            type: credential.type,
-                            response: {
-                                authenticatorData: Array.from(new Uint8Array(credential.response.authenticatorData)),
-                                clientDataJSON: Array.from(new Uint8Array(credential.response.clientDataJSON)),
-                                signature: Array.from(new Uint8Array(credential.response.signature)),
-                                userHandle: credential.response.userHandle ? Array.from(new Uint8Array(credential.response.userHandle)) : null
-                            }
-                        }
-                    })
-                });
-
-                const result = await authResponse.json();
-
-                if (result.success) {
-                    passkeyBtn.textContent = '🎉 Success!';
-                    // Redirect to dashboard
-                    window.location.href = 'dashboard.php';
-                } else {
-                    throw new Error(result.error || 'Authentication failed');
-                }
-                
-            } catch (error) {
-                console.error('Passkey authentication error:', error);
-                
-                let errorMessage = 'Passkey authentication failed: ';
-                if (error.name === 'NotSupportedError') {
-                    errorMessage += 'Your device does not support passkeys.';
-                } else if (error.name === 'NotAllowedError') {
-                    errorMessage += 'Authentication was cancelled or timed out.';
-                } else if (error.name === 'InvalidStateError') {
-                    errorMessage += 'No valid passkey found for this device.';
-                } else if (error.name === 'SecurityError') {
-                    errorMessage += 'Security error - ensure you\'re using HTTPS.';
-                } else {
-                    errorMessage += error.message;
-                }
-                
-                alert(errorMessage);
-                
-            } finally {
-                const passkeyBtn = document.getElementById('passkeyBtn');
-                if (passkeyBtn) {
-                    passkeyBtn.disabled = false;
-                    passkeyBtn.textContent = '🔑 Login with Passkey';
-                }
-            }
-        }
-
-        // Check WebAuthn support and passkey availability
-        async function checkPasskeyAvailability() {
-            const passkeySection = document.querySelector('.auth-methods');
-            const passkeyBtn = document.getElementById('passkeyBtn');
-            
-            if (!window.PublicKeyCredential) {
-                if (passkeySection) passkeySection.style.display = 'none';
-                return;
-            }
-
-            try {
-                // Check if there are any registered passkeys
-                const response = await fetch('get-auth-challenge.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.allowCredentials && data.allowCredentials.length > 0) {
-                        // Passkeys are available
-                        if (passkeySection) passkeySection.style.display = 'block';
-                    } else {
-                        // No passkeys registered
-                        if (passkeySection) passkeySection.style.display = 'none';
-                    }
-                } else {
-                    // Server error, hide passkey option
-                    if (passkeySection) passkeySection.style.display = 'none';
-                }
-            } catch (error) {
-                console.log('Could not check passkey availability:', error);
-                if (passkeySection) passkeySection.style.display = 'none';
-            }
-        }
-
-        // Initialize passkey availability check
-        document.addEventListener('DOMContentLoaded', checkPasskeyAvailability);
     </script>
 </body>
 </html>
