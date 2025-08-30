@@ -723,8 +723,8 @@ while ($row = $stats_result->fetch_assoc()) {
                 <div class="stat-number"><?= $site_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Site Maintenance</div>
             </div>
-            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
-                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
+            <div class="stat-card <?= ($form_maintenance_active || $site_maintenance_active) ? 'maintenance-on' : 'maintenance-off' ?>">
+                <div class="stat-number"><?= ($form_maintenance_active || $site_maintenance_active) ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Form Maintenance</div>
             </div>
         </div>

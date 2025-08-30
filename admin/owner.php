@@ -39,6 +39,53 @@ $error = '';
 
 // Handle actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Handle global maintenance mode toggle
+    if (isset($_POST['action']) && $_POST['action'] === 'global_maintenance') {
+        // Check if site_settings table exists, create if not
+        $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+        if ($table_check->num_rows === 0) {
+            $create_table_sql = "CREATE TABLE site_settings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                setting_name VARCHAR(255) UNIQUE NOT NULL,
+                setting_value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                updated_by VARCHAR(100)
+            )";
+            $conn->query($create_table_sql);
+        }
+        
+        // Set both maintenance modes to ON
+        $admin_username = $_SESSION['admin_username'];
+        
+        // Update admin_maintenance_mode
+        $stmt1 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                               VALUES ('admin_maintenance_mode', '1', ?) 
+                               ON DUPLICATE KEY UPDATE setting_value = '1', updated_by = ?");
+        $stmt1->bind_param("ss", $admin_username, $admin_username);
+        $success1 = $stmt1->execute();
+        $stmt1->close();
+        
+        // Update maintenance_mode
+        $stmt2 = $conn->prepare("INSERT INTO site_settings (setting_name, setting_value, updated_by) 
+                               VALUES ('maintenance_mode', '1', ?) 
+                               ON DUPLICATE KEY UPDATE setting_value = '1', updated_by = ?");
+        $stmt2->bind_param("ss", $admin_username, $admin_username);
+        $success2 = $stmt2->execute();
+        $stmt2->close();
+        
+        if ($success1 && $success2) {
+            $message = "Global maintenance mode enabled successfully. Both public site and admin panel are now in maintenance mode.";
+            
+            // Log the maintenance mode change
+            logAction('MAINTENANCE_GLOBAL_ENABLED', "Admin enabled global maintenance mode", 'maintenance_system', null, [
+                'maintenance_type' => 'global',
+                'new_status' => '1'
+            ]);
+        } else {
+            $error = "Error updating global maintenance mode: " . $conn->error;
+        }
+    }
+    
     // Handle wipe applicants table
     if (isset($_POST['wipe_applicants'])) {
         $confirm_text = trim($_POST['confirm_text']);
@@ -603,8 +650,8 @@ $users_result = $conn->query($users_sql);
                 <div class="stat-number"><?= $admin_maintenance_active ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Admin Panel Maintenance</div>
             </div>
-            <div class="stat-card <?= $form_maintenance_active ? 'maintenance-on' : 'maintenance-off' ?>">
-                <div class="stat-number"><?= $form_maintenance_active ? 'ON' : 'OFF' ?></div>
+            <div class="stat-card <?= ($form_maintenance_active || $site_maintenance_active) ? 'maintenance-on' : 'maintenance-off' ?>">
+                <div class="stat-number"><?= ($form_maintenance_active || $site_maintenance_active) ? 'ON' : 'OFF' ?></div>
                 <div class="stat-label">Form Maintenance</div>
             </div>
         </div>
@@ -645,16 +692,31 @@ $users_result = $conn->query($users_sql);
             </div>
             
             <!-- Admin Panel Maintenance -->
-            <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 71, 87, 0.1); border-radius: 8px; border: 1px solid var(--danger-color);">
-                <h4 style="color: var(--danger-color); margin-bottom: 10px;">👥 Admin Panel Maintenance Mode</h4>
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(0, 123, 255, 0.1); border-radius: 8px; border: 1px solid #007bff;">
+                <h4 style="color: #007bff; margin-bottom: 10px;">👥 Admin Panel Maintenance Mode</h4>
                 <p style="margin-bottom: 15px; font-size: 0.9rem;">Closes the admin panel for all admins except Emma</p>
                 <form method="POST" style="display: inline;">
                     <input type="hidden" name="new_maintenance_status" value="<?= $admin_maintenance_active ? '0' : '1' ?>">
                     <input type="hidden" name="maintenance_type" value="admin_maintenance_mode">
                     <button type="submit" name="toggle_maintenance" 
-                            class="btn <?= $admin_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
+                            class="btn <?= $admin_maintenance_active ? 'btn-success' : '' ?>"
+                            style="<?= !$admin_maintenance_active ? 'background-color: #007bff; color: white;' : '' ?>"
                             onclick="return confirm('Are you sure you want to <?= $admin_maintenance_active ? 'disable' : 'enable' ?> admin panel maintenance mode?')">
                         <?= $admin_maintenance_active ? '✅ Disable Admin Maintenance' : '🚧 Enable Admin Maintenance' ?>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Global Maintenance -->
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(255, 71, 87, 0.1); border-radius: 8px; border: 1px solid var(--danger-color);">
+                <h4 style="color: var(--danger-color); margin-bottom: 10px;">🌍 Global Maintenance Mode</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;"><strong>WARNING:</strong> This will put the entire site (public site and admin panel) into maintenance mode. Only Emma will be able to access the admin panel.</p>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="action" value="global_maintenance">
+                    <button type="submit" 
+                            class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to enable global maintenance mode? This will lock out all users except Emma from both the public site and admin panel.')">
+                        🔒 Enable Global Maintenance
                     </button>
                 </form>
             </div>
