@@ -99,6 +99,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     }
 }
 
+// Handle bulk status updates
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
+    $selected_applications = $_POST['selected_applications'] ?? [];
+    $bulk_status = $_POST['bulk_status'] ?? '';
+    
+    if (!empty($selected_applications) && !empty($bulk_status) && is_array($selected_applications)) {
+        $placeholders = str_repeat('?,', count($selected_applications) - 1) . '?';
+        $bulk_sql = "UPDATE applicants SET status = ? WHERE application_id IN ($placeholders)";
+        $bulk_stmt = $conn->prepare($bulk_sql);
+        
+        // Prepare parameters: status first, then all application IDs
+        $params = array_merge([$bulk_status], $selected_applications);
+        $types = str_repeat('s', count($params));
+        $bulk_stmt->bind_param($types, ...$params);
+        $bulk_stmt->execute();
+        $affected_rows = $bulk_stmt->affected_rows;
+        $bulk_stmt->close();
+        
+        // Redirect with success message
+        header("Location: dashboard.php?bulk_updated=" . $affected_rows);
+        exit();
+    }
+}
+
 // Pagination
 $page = $_GET['page'] ?? 1;
 $per_page = 20;
@@ -555,6 +579,12 @@ while ($row = $stats_result->fetch_assoc()) {
             </div>
         <?php endif; ?>
 
+        <?php if (isset($_GET['bulk_updated'])): ?>
+            <div class="update-success">
+                ✅ Successfully updated <?= (int)$_GET['bulk_updated'] ?> application(s) status!
+            </div>
+        <?php endif; ?>
+
         <?php if (isset($_GET['deleted'])): ?>
             <div class="update-success">
                 🗑️ Application <?= htmlspecialchars($_GET['deleted']) ?> has been permanently deleted.
@@ -665,11 +695,31 @@ while ($row = $stats_result->fetch_assoc()) {
             <a href="dashboard.php" class="btn btn-secondary btn-sm">🔄 Reset</a>
         </form>
 
+        <!-- Bulk Actions -->
+        <form id="bulkForm" method="POST" class="bulk-actions" style="margin: 20px 0; padding: 15px; background: var(--container-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label style="font-weight: bold;">Bulk Actions:</label>
+                <select name="bulk_status" id="bulkStatus" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                    <option value="">Select Action</option>
+                    <option value="unreviewed">Set to Unreviewed</option>
+                    <option value="stage2">Set to Stage 2</option>
+                    <option value="stage3">Set to Stage 3</option>
+                    <option value="accepted">Set to Accepted</option>
+                    <option value="denied">Set to Denied</option>
+                    <option value="invalid">Set to Invalid</option>
+                </select>
+                <button type="button" id="bulkSubmit" class="btn btn-warning btn-sm" style="padding: 8px 15px;">Apply to Selected</button>
+                <span id="selectedCount" style="color: var(--text-color); font-size: 0.9rem;">0 selected</span>
+            </div>
+            <input type="hidden" name="bulk_update" value="1">
+        </form>
+
         <!-- Applications Table -->
         <div class="applications-table">
             <table>
                 <thead>
                     <tr>
+                        <th><input type="checkbox" id="selectAll" title="Select All"></th>
                         <th>Application ID</th>
                         <th>Name</th>
                         <th>Email</th>
@@ -683,6 +733,7 @@ while ($row = $stats_result->fetch_assoc()) {
                 <tbody>
                     <?php foreach ($applications as $app): ?>
                         <tr>
+                            <td><input type="checkbox" name="selected_applications[]" value="<?= htmlspecialchars($app['application_id']) ?>" class="app-checkbox"></td>
                             <td><?= htmlspecialchars($app['application_id']) ?></td>
                             <td><?= htmlspecialchars($app['name']) ?></td>
                             <td><?= htmlspecialchars($app['email']) ?></td>
@@ -766,6 +817,69 @@ while ($row = $stats_result->fetch_assoc()) {
                 localStorage.setItem("theme", "dark");
             }
         });
+
+        // Bulk Actions Functionality
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const appCheckboxes = document.querySelectorAll('.app-checkbox');
+        const selectedCount = document.getElementById('selectedCount');
+        const bulkSubmit = document.getElementById('bulkSubmit');
+        const bulkStatus = document.getElementById('bulkStatus');
+        const bulkForm = document.getElementById('bulkForm');
+
+        // Select All functionality
+        selectAllCheckbox.addEventListener('change', function() {
+            appCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+
+        // Individual checkbox change
+        appCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectedCount();
+                // Update select all checkbox state
+                const checkedCount = document.querySelectorAll('.app-checkbox:checked').length;
+                selectAllCheckbox.checked = checkedCount === appCheckboxes.length;
+                selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < appCheckboxes.length;
+            });
+        });
+
+        // Update selected count display
+        function updateSelectedCount() {
+            const checkedCount = document.querySelectorAll('.app-checkbox:checked').length;
+            selectedCount.textContent = `${checkedCount} selected`;
+            bulkSubmit.disabled = checkedCount === 0 || bulkStatus.value === '';
+        }
+
+        // Enable/disable bulk submit based on status selection
+        bulkStatus.addEventListener('change', function() {
+            updateSelectedCount();
+        });
+
+        // Bulk submit with confirmation
+        bulkSubmit.addEventListener('click', function(e) {
+            e.preventDefault();
+            const checkedCount = document.querySelectorAll('.app-checkbox:checked').length;
+            const statusText = bulkStatus.options[bulkStatus.selectedIndex].text;
+            
+            if (checkedCount === 0) {
+                alert('Please select at least one application.');
+                return;
+            }
+            
+            if (bulkStatus.value === '') {
+                alert('Please select an action.');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to ${statusText.toLowerCase()} for ${checkedCount} selected application(s)?`)) {
+                bulkForm.submit();
+            }
+        });
+
+        // Initialize
+        updateSelectedCount();
     </script>
     
     <?php
