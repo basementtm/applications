@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - basement application form</title>
+    <style>
+        :root {
+            --bg-color: #ffc0cb;
+            --container-bg: #fff0f5;
+            --text-color: #333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            --link-color: #ff1493;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --link-color: #ff8cc8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        h1 {
+            color: var(--primary-pink);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        h2 {
+            color: var(--primary-pink);
+            border-bottom: 2px solid var(--primary-pink);
+            padding-bottom: 5px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+
+        h3 {
+            color: var(--secondary-pink);
+            margin-top: 25px;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background-color: rgba(255, 105, 180, 0.1);
+            border: 2px solid var(--secondary-pink);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .highlight-box h3 {
+            margin-top: 0;
+            color: var(--primary-pink);
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 25px;
+            background-color: var(--secondary-pink);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--container-bg);
+            border: 2px solid var(--secondary-pink);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px var(--shadow-color);
+            background-color: var(--secondary-pink);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .theme-switcher {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+
+    <div class="container">
+        <h1>🔒 Privacy Policy</h1>
+        <div class="last-updated">Last Updated: August 30, 2025</div>
+
+        <div class="highlight-box">
+            <h3>📢 Our Commitment</h3>
+            <p><strong>basementtm will NOT sell, share, or use your personal data for any reason other than application-related purposes.</strong> Your privacy is our priority, and we are committed to protecting your personal information.</p>
+        </div>
+
+        <h2>1. Information We Collect</h2>
+        <p>When you submit an application through our form, we collect the following information:</p>
+        <ul>
+            <li><strong>Personal Information:</strong> Name, email address</li>
+            <li><strong>Application Details:</strong> Your responses to application questions, preferences, and any additional information you provide</li>
+            <li><strong>Technical Information:</strong> IP address, browser information, and timestamps for security and logging purposes</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>Your information is used <strong>exclusively</strong> for the following application-related purposes:</p>
+        <ul>
+            <li>Processing and reviewing your application</li>
+            <li>Communicating with you about your application status</li>
+            <li>Conducting interviews and follow-up communications</li>
+            <li>Maintaining application records and statistics</li>
+            <li>Security monitoring and fraud prevention</li>
+        </ul>
+
+        <h3>What We DON'T Do</h3>
+        <ul>
+            <li>❌ Sell your personal information to third parties</li>
+            <li>❌ Share your data with marketing companies</li>
+            <li>❌ Use your information for advertising purposes</li>
+            <li>❌ Send you promotional emails or newsletters (unless directly related to your application)</li>
+            <li>❌ Share your data with social media platforms or data brokers</li>
+        </ul>
+
+        <h2>3. Data Sharing and Disclosure</h2>
+        <p>We do <strong>NOT</strong> sell, trade, or share your personal information with third parties, except in the following limited circumstances:</p>
+        <ul>
+            <li><strong>Legal Requirements:</strong> If required by law, court order, or government regulation</li>
+            <li><strong>Security:</strong> To protect against fraud, abuse, or illegal activity</li>
+            <li><strong>Business Transfer:</strong> In the unlikely event of a business merger or acquisition (with continued privacy protection)</li>
+        </ul>
+
+        <h2>4. Data Security</h2>
+        <p>We implement appropriate security measures to protect your personal information:</p>
+        <ul>
+            <li>Secure database storage with access controls</li>
+            <li>Regular security monitoring and logging</li>
+            <li>Limited access to personal data on a need-to-know basis</li>
+            <li>Regular security updates and maintenance</li>
+        </ul>
+
+        <h2>5. Data Retention</h2>
+        <p>We retain your application data for the following periods:</p>
+        <ul>
+            <li><strong>Active Applications:</strong> Until the application process is complete</li>
+            <li><strong>Accepted Applications:</strong> For record-keeping and communication purposes</li>
+            <li><strong>Declined Applications:</strong> For a reasonable period to handle any follow-up questions</li>
+            <li><strong>Log Data:</strong> Security and access logs are retained for monitoring purposes</li>
+        </ul>
+
+        <h2>6. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li><strong>Access:</strong> Request information about what personal data we have about you</li>
+            <li><strong>Correction:</strong> Request correction of inaccurate personal information</li>
+            <li><strong>Deletion:</strong> Request deletion of your personal data (subject to legal requirements)</li>
+            <li><strong>Withdrawal:</strong> Withdraw your application and request data removal</li>
+        </ul>
+
+        <h2>7. Cookies and Tracking</h2>
+        <p>Our website uses minimal tracking:</p>
+        <ul>
+            <li><strong>Essential Cookies:</strong> For basic functionality and security</li>
+            <li><strong>Theme Preferences:</strong> To remember your dark/light mode choice</li>
+            <li><strong>No Analytics:</strong> We do not use Google Analytics or similar tracking services</li>
+            <li><strong>No Advertising:</strong> We do not use advertising cookies or trackers</li>
+        </ul>
+
+        <h2>8. Third-Party Services</h2>
+        <p>We do not integrate with third-party services that would have access to your personal data, except for:</p>
+        <ul>
+            <li><strong>Hosting Provider:</strong> Our website hosting service (with contractual privacy protections)</li>
+            <li><strong>Email Service:</strong> For sending application-related communications only</li>
+        </ul>
+
+        <h2>9. Children's Privacy</h2>
+        <p>Our services are not intended for individuals under 13 years of age. We do not knowingly collect personal information from children under 13.</p>
+
+        <h2>10. Changes to This Policy</h2>
+        <p>We may update this privacy policy from time to time. Any changes will be posted on this page with an updated "Last Updated" date. Continued use of our services after changes constitutes acceptance of the updated policy.</p>
+
+        <div class="highlight-box">
+            <h3>📧 Contact Us</h3>
+            <p>If you have any questions about this privacy policy or how we handle your personal information, please contact us through our application system or reach out directly at applications@emmameowss.gay.</p>
+            <p><strong>Remember:</strong> We will never sell, share, or misuse your personal data. Your privacy is our commitment.</p>
+        </div>
+
+        <div class="navigation">
+            <a href="index.php" class="btn">🏠 Back to Application Form</a>
+            <a href="status-check.html" class="btn">📋 Check Application Status</a>
+        </div>
+    </div>
+
+    <script>
+        // Theme Switcher
+        const themeSwitcher = document.getElementById("themeSwitcher");
+        const body = document.body;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem("theme") || "light";
+        if (currentTheme === "dark") {
+            body.setAttribute("data-theme", "dark");
+            themeSwitcher.textContent = "☀️";
+        }
+
+        themeSwitcher.addEventListener("click", () => {
+            const isDark = body.getAttribute("data-theme") === "dark";
+            
+            if (isDark) {
+                body.removeAttribute("data-theme");
+                themeSwitcher.textContent = "🌙";
+                localStorage.setItem("theme", "light");
+            } else {
+                body.setAttribute("data-theme", "dark");
+                themeSwitcher.textContent = "☀️";
+                localStorage.setItem("theme", "dark");
+            }
+        });
+    </script>
+</body>
+</html>

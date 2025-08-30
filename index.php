@@ -928,7 +928,7 @@ if ($form_maintenance_active && !$is_admin) {
 
       <div class="form-group">
   <label class="checkbox-container">
-    I agree to the terms of the Data Retention Policy
+    I agree to the terms of the Privacy Policy
     <input type="checkbox" name="agreeTerms" id="agreeTerms" required>
     <span class="checkmark"></span>
   </label>
@@ -936,9 +936,13 @@ if ($form_maintenance_active && !$is_admin) {
 
       <button type="submit">Submit</button>
 
-      <p style="margin-top: 10px; font-size: 0.9rem;">
+      <p style="margin-top: 15px; font-size: 0.9rem; text-align: center;">
+        <a href="privacy-policy.html" style="color:var(--primary-pink); text-decoration:underline;">
+          🔒 Privacy Policy
+        </a>
+        &nbsp;|&nbsp;
         <a href="status-check.html" style="color:var(--primary-pink); text-decoration:underline;">
-          Check Application Status
+          📋 Check Application Status
         </a>
       </p>
     </form>
