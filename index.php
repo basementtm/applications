@@ -23,6 +23,11 @@ function logVisitor($conn, $page = 'main_form', $action = 'view') {
             $ip_address = $_SERVER['HTTP_X_REAL_IP'];
         }
         
+        // Skip logging for specific IP addresses (e.g., Docker containers, monitoring services)
+        if ($ip_address === '172.17.0.2') {
+            return; // Skip logging for this IP address
+        }
+        
         // Check if action_logs table exists before logging
         $table_check = $conn->query("SHOW TABLES LIKE 'action_logs'");
         if ($table_check && $table_check->num_rows > 0) {

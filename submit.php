@@ -24,6 +24,11 @@ function logVisitor($conn, $page = 'submit_form', $action = 'submit') {
             $ip_address = $_SERVER['HTTP_X_REAL_IP'];
         }
         
+        // Skip logging for specific IP addresses (e.g., Docker containers, monitoring services)
+        if ($ip_address === '172.17.0.2') {
+            return; // Skip logging for this IP address
+        }
+        
         // Add form data for submissions
         $form_data = [];
         if ($action === 'submit') {
