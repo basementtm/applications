@@ -29,7 +29,8 @@ if (!empty($application_id)) {
     $stmt->close();
 }
 
-$conn->close();
+// Don't close connection here - navbar needs it later
+// $conn->close();
 
 if (!$application) {
     header("Location: dashboard.php");
@@ -306,5 +307,12 @@ if (!$application) {
             }
         });
     </script>
+    
+    <?php
+    // Close database connection at the end
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
 </body>
 </html>

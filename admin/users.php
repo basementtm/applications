@@ -91,7 +91,8 @@ $users_sql = "SELECT u.id, u.username, u.role, u.active, u.created_at, u.last_lo
               ORDER BY u.created_at DESC";
 $users_result = $conn->query($users_sql);
 
-$conn->close();
+// Don't close connection here - navbar needs it later
+// $conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -459,5 +460,12 @@ $conn->close();
             }
         });
     </script>
+    
+    <?php
+    // Close database connection at the end
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
 </body>
 </html>

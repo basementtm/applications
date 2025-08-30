@@ -71,7 +71,8 @@ if ($result->num_rows === 1) {
 }
 
 $stmt->close();
-$conn->close();
+// Don't close connection here - navbar needs it later
+// $conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -401,5 +402,12 @@ $conn->close();
             }
         });
     </script>
+    
+    <?php
+    // Close database connection at the end
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
 </body>
 </html>
