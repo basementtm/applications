@@ -106,10 +106,28 @@ $conn->close();
   <meta charset="UTF-8">
   <title>Application Status</title>
   <style>
+    :root {
+      --bg-color: #ffc0cb;
+      --container-bg: #fff0f5;
+      --text-color: #333;
+      --primary-pink: #ff1493;
+      --secondary-pink: #ff69b4;
+      --shadow-color: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d1b2e;
+      --container-bg: #3d2b3e;
+      --text-color: #e0d0e0;
+      --primary-pink: #ff6bb3;
+      --secondary-pink: #d147a3;
+      --shadow-color: rgba(0,0,0,0.3);
+    }
+
     body {
       font-family: Arial, sans-serif;
-      background-color: #ffc0cb;
-      color: #333;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -118,60 +136,169 @@ $conn->close();
       margin: 0;
       padding: 20px;
       text-align: center;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     .container {
-      background-color: #fff0f5;
+      background-color: var(--container-bg);
       padding: 30px 40px;
       border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px var(--shadow-color);
       max-width: 400px;
       width: 100%;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
     h1 {
-      color: #ff1493;
+      color: var(--primary-pink);
+      transition: color 0.3s ease;
     }
     .application-id {
-      background-color: #ff69b4;
+      background-color: var(--secondary-pink);
       color: white;
       padding: 15px;
       border-radius: 10px;
       margin: 20px 0;
       font-weight: bold;
       font-size: 1.1rem;
+      transition: background-color 0.3s ease;
     }
     p {
       margin: 15px 0;
+      color: var(--text-color);
+      transition: color 0.3s ease;
     }
     a.button {
       display: inline-block;
-      margin-top: 20px;
+      margin: 10px 5px;
       padding: 12px 25px;
-      background-color: #ff69b4;
+      background-color: var(--secondary-pink);
       color: white;
       text-decoration: none;
       border-radius: 8px;
-      transition: background-color 0.3s;
+      transition: all 0.3s ease;
+      min-width: 120px;
+      text-align: center;
     }
     a.button:hover {
-      background-color: #ff1493;
+      background-color: var(--primary-pink);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(255, 20, 147, 0.3);
+    }
+
+    a.button.secondary {
+      background-color: var(--primary-pink);
+    }
+    a.button.secondary:hover {
+      background-color: var(--secondary-pink);
+    }
+
+    .button-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (min-width: 480px) {
+      .button-container {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    .theme-switcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--container-bg);
+      border: 2px solid var(--secondary-pink);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+
+    .theme-switcher:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px var(--shadow-color);
+      background-color: var(--secondary-pink);
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 25px;
+      }
+
+      .theme-switcher {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        bottom: 15px;
+        right: 15px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
+    🌙
+  </div>
   <div class="container">
     <?php if ($success): ?>
       <h1>✅ Application Sent</h1>
       <div class="application-id">
         📋 Application ID: <?= htmlspecialchars($applicationId) ?>
       </div>
-      <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, I guess.</p>
-      <p><small>Keep your application ID for reference.</small></p>
+      <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, or use the application checker.</p>
+      <p><small>Keep your application ID for reference. You might need it later. It won't be shown to you again.</small></p>
+      <div class="button-container">
+        <a class="button secondary" href="check-status.php">📋 Check Status</a>
+        <a class="button" href="https://girlskissing.dev">Return to Form</a>
+      </div>
     <?php else: ?>
       <h1>❌ error</h1>
       <p>it's either you broke something or i did</p>
       <p>Error: <?= htmlspecialchars($errorMsg) ?></p>
+      <div class="button-container">
+        <a class="button" href="https://girlskissing.dev">Return to Form</a>
+      </div>
     <?php endif; ?>
-    <a class="button" href="https://girlskissing.dev">Return</a>
   </div>
+
+  <script>
+    // Theme switcher functionality
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    const body = document.body;
+
+    // Load saved theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      body.setAttribute('data-theme', 'dark');
+      themeSwitcher.textContent = '☀️';
+    }
+
+    // Theme toggle
+    themeSwitcher.addEventListener('click', () => {
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      
+      if (isDark) {
+        body.removeAttribute('data-theme');
+        themeSwitcher.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        themeSwitcher.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
 </body>
 </html>

@@ -846,16 +846,7 @@ if ($maintenance_active) {
     <input type="hidden" name="preferredLocation" required>
   </div>
 </div>
-<div class="form-group">
-  <label class="checkbox-container">
-    I agree to the terms of the Data Retention Policy
-    <input type="checkbox" name="agreeTerms" id="agreeTerms" required>
-    <span class="checkmark"></span>
-  </label>
-</div>
-
     <label style="font-weight:bold; display:block; margin-top:10px;">Are you a cat?</label>
-
 <div class="radio-group">
   <input type="radio" id="catYes" name="isCat" value="Yes" required>
   <label for="catYes">Yes</label>
@@ -865,6 +856,14 @@ if ($maintenance_active) {
 </div>
       <!-- Optional owner field -->
       <input type="text" name="owner" id="ownerField" placeholder="Owner's name and/or email address (for cats only)" style="display:none;">
+
+      <div class="form-group">
+  <label class="checkbox-container">
+    I agree to the terms of the Data Retention Policy
+    <input type="checkbox" name="agreeTerms" id="agreeTerms" required>
+    <span class="checkmark"></span>
+  </label>
+</div>
 
       <button type="submit">Submit</button>
 
