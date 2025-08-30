@@ -27,6 +27,7 @@ function renderAdminNavbar($currentPage = '') {
     // Define nav items with their icons and titles
     $navItems = [
         'dashboard.php' => ['🏠', 'Dashboard'],
+        'maintenance-control.php' => ['🚧', 'Maintenance'],
         'banner.php' => ['📢', 'Banner Management'],
         'settings.php' => ['⚙️', 'Settings']
     ];

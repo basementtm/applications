@@ -153,13 +153,9 @@ if ($form_maintenance_active && !$is_admin) {
         <div class="maintenance-container">
             <div class="maintenance-icon">📝</div>
             <h1>Application Form Temporarily Closed</h1>
-            <p>The application form is currently in maintenance mode for administrative testing and updates.</p>
+            <p>The application form is currently in maintenance mode for admin testing and updates.</p>
             <p>We appreciate your patience while we improve the application process.</p>
             <p>Please check back later or contact us if you have any questions.</p>
-            
-            <div class="admin-note">
-                <strong>Note for Admins:</strong> Log in to the admin panel to access the form during maintenance.
-            </div>
         </div>
     </body>
     </html>
