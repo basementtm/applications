@@ -535,6 +535,11 @@ try {
             background-color: rgba(46, 213, 115, 0.1);
             border-color: var(--success-color);
         }
+        
+        [data-theme="light"] .maintenance-control {
+            background-color: #fff;
+            border-color: var(--success-color);
+        }
 
         .maintenance-control h4 {
             color: var(--success-color);
@@ -595,6 +600,16 @@ try {
         .stat-card.maintenance-off {
             border-color: var(--success-color);
             background-color: rgba(46, 213, 115, 0.1);
+        }
+        
+        [data-theme="light"] .stat-card.maintenance-on {
+            background-color: #fff;
+            border-color: var(--danger-color);
+        }
+        
+        [data-theme="light"] .stat-card.maintenance-off {
+            background-color: #fff;
+            border-color: var(--success-color);
         }
 
         .stat-number {

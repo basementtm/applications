@@ -396,6 +396,14 @@ $users_result = $conn->query($users_sql);
             border: 2px solid var(--danger-color);
             background-color: rgba(255, 71, 87, 0.1);
         }
+        
+        [data-theme="dark"] .danger-section {
+            background-color: rgba(255, 71, 87, 0.1);
+        }
+        
+        [data-theme="light"] .danger-section {
+            background-color: #fff;
+        }
 
         .danger-section h3 {
             color: var(--danger-color);
@@ -467,6 +475,16 @@ $users_result = $conn->query($users_sql);
         .stat-card.maintenance-off {
             border-color: var(--success-color);
             background-color: rgba(46, 213, 115, 0.1);
+        }
+        
+        [data-theme="light"] .stat-card.maintenance-on {
+            background-color: #fff;
+            border-color: var(--danger-color);
+        }
+        
+        [data-theme="light"] .stat-card.maintenance-off {
+            background-color: #fff;
+            border-color: var(--success-color);
         }
 
         .stat-number {
