@@ -42,37 +42,9 @@ if (!$application) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Application - <?= htmlspecialchars($application['application_id']) ?></title>
+    <?php include 'navbar.php'; ?>
     <style>
-        :root {
-            --bg-color: #ffc0cb;
-            --container-bg: #fff0f5;
-            --text-color: #333;
-            --primary-pink: #ff1493;
-            --secondary-pink: #ff69b4;
-            --border-color: #ccc;
-            --shadow-color: rgba(0,0,0,0.1);
-            --input-bg: #fff0f5;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #2d1b2e;
-            --container-bg: #3d2b3e;
-            --text-color: #e0d0e0;
-            --primary-pink: #ff6bb3;
-            --secondary-pink: #d147a3;
-            --border-color: #666;
-            --shadow-color: rgba(0,0,0,0.3);
-            --input-bg: #4a3a4a;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+        <?php echo getNavbarCSS(); ?>
 
         .container {
             max-width: 800px;
@@ -81,41 +53,6 @@ if (!$application) {
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 4px 10px var(--shadow-color);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        h1 {
-            color: var(--primary-pink);
-            margin: 0;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            margin: 0 5px;
-        }
-
-        .btn-primary { background-color: var(--primary-pink); color: white; }
-        .btn-secondary { background-color: var(--secondary-pink); color: white; }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px var(--shadow-color);
         }
 
         .application-details {
@@ -213,6 +150,12 @@ if (!$application) {
             color: white;
         }
 
+        .page-title {
+            color: var(--primary-pink);
+            margin: 0 0 30px 0;
+            font-size: 2rem;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -244,13 +187,10 @@ if (!$application) {
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
+    <?php renderAdminNavbar('view.php'); ?>
+    
     <div class="container">
-        <div class="header">
-            <h1>📋 Application Details</h1>
-            <div>
-                <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
-            </div>
-        </div>
+        <h1 class="page-title">📋 Application Details</h1>
 
         <div class="application-details">
             <!-- Basic Information -->

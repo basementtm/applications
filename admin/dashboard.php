@@ -13,6 +13,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Include navbar component
+include('navbar.php');
+
 // Handle status updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $application_id = $_POST['application_id'] ?? '';
@@ -152,26 +155,7 @@ $conn->close();
             line-height: 1.6;
         }
 
-        .header {
-            background-color: var(--container-bg);
-            padding: 15px 20px;
-            box-shadow: 0 2px 5px var(--shadow-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .header h1 {
-            color: var(--primary-pink);
-            font-size: 1.5rem;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+        <?= getNavbarCSS() ?>
 
         .btn {
             padding: 8px 16px;
@@ -400,16 +384,7 @@ $conn->close();
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <div class="header">
-        <h1>🏠 Admin Dashboard</h1>
-        <div class="header-actions">
-            <span>Welcome, <?= htmlspecialchars($_SESSION['admin_username']) ?></span>
-            <a href="settings.php" class="btn btn-secondary btn-sm">⚙️ Settings</a>
-            <a href="change-password.php" class="btn btn-secondary btn-sm">🔐 Change Password</a>
-            <a href="users.php" class="btn btn-secondary btn-sm">👥 Manage Users</a>
-            <a href="logout.php" class="btn btn-primary btn-sm">🚪 Logout</a>
-        </div>
-    </div>
+    <?php renderAdminNavbar('dashboard.php'); ?>
 
     <div class="container">
         <?php if (isset($_GET['updated'])): ?>

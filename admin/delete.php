@@ -61,35 +61,9 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delete Application - Admin</title>
+    <?php include 'navbar.php'; ?>
     <style>
-        :root {
-            --bg-color: #ffc0cb;
-            --container-bg: #fff0f5;
-            --text-color: #333;
-            --primary-pink: #ff1493;
-            --secondary-pink: #ff69b4;
-            --border-color: #ccc;
-            --shadow-color: rgba(0,0,0,0.1);
-            --input-bg: #fff0f5;
-            --danger-color: #ff4757;
-            --warning-bg: #fff3cd;
-            --warning-border: #ffeaa7;
-            --warning-text: #856404;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #2d1b2e;
-            --container-bg: #3d2b3e;
-            --text-color: #e0d0e0;
-            --primary-pink: #ff6bb3;
-            --secondary-pink: #d147a3;
-            --border-color: #666;
-            --shadow-color: rgba(0,0,0,0.3);
-            --input-bg: #4a3a4a;
-            --warning-bg: #4a3a2a;
-            --warning-border: #6b5b2a;
-            --warning-text: #ffd93d;
-        }
+        <?php echo getNavbarCSS(); ?>
 
         * {
             margin: 0;
@@ -97,16 +71,12 @@ $conn->close();
             box-sizing: border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        .page-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: calc(100vh - 80px);
             padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -120,10 +90,21 @@ $conn->close();
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        h1 {
+        .page-title {
             color: var(--danger-color);
             margin-bottom: 30px;
             font-size: 2rem;
+        }
+
+        --danger-color: #ff4757;
+        --warning-bg: #fff3cd;
+        --warning-border: #ffeaa7;
+        --warning-text: #856404;
+
+        [data-theme="dark"] {
+            --warning-bg: #4a3a2a;
+            --warning-border: #6b5b2a;
+            --warning-text: #ffd93d;
         }
 
         .warning-box {
@@ -280,8 +261,11 @@ $conn->close();
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <div class="container">
-        <h1>🗑️ Delete Application</h1>
+    <?php renderAdminNavbar('delete.php'); ?>
+    
+    <div class="page-container">
+        <div class="container">
+            <h1 class="page-title">🗑️ Delete Application</h1>
         
         <?php if (isset($error)): ?>
             <div class="error-message">
@@ -328,6 +312,7 @@ $conn->close();
                 ← Cancel & Go Back
             </a>
         </div>
+    </div>
     </div>
 
     <script>

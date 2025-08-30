@@ -79,44 +79,14 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Application - Admin</title>
+    <?php include 'navbar.php'; ?>
     <style>
-        :root {
-            --bg-color: #ffc0cb;
-            --container-bg: #fff0f5;
-            --text-color: #333;
-            --primary-pink: #ff1493;
-            --secondary-pink: #ff69b4;
-            --border-color: #ccc;
-            --shadow-color: rgba(0,0,0,0.1);
-            --input-bg: #fff0f5;
-            --success-color: #2ed573;
-            --danger-color: #ff4757;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #2d1b2e;
-            --container-bg: #3d2b3e;
-            --text-color: #e0d0e0;
-            --primary-pink: #ff6bb3;
-            --secondary-pink: #d147a3;
-            --border-color: #666;
-            --shadow-color: rgba(0,0,0,0.3);
-            --input-bg: #4a3a4a;
-        }
+        <?php echo getNavbarCSS(); ?>
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -129,7 +99,7 @@ $conn->close();
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        h1 {
+        .page-title {
             color: var(--primary-pink);
             margin-bottom: 30px;
             text-align: center;
@@ -327,8 +297,10 @@ $conn->close();
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
+    <?php renderAdminNavbar('edit.php'); ?>
+    
     <div class="container">
-        <h1>✏️ Edit Application</h1>
+        <h1 class="page-title">✏️ Edit Application</h1>
         
         <div class="app-id">
             Application ID: <?= htmlspecialchars($application_data['application_id']) ?>
