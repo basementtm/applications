@@ -675,8 +675,6 @@ if ($maintenance_active) {
 
     <?= getBannerCSS() ?>
 
-  </style>
-
     @media (max-width: 768px) {
       .main-container {
         padding: 10px;
@@ -716,6 +714,8 @@ if ($maintenance_active) {
   <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
     🌙
   </div>
+
+  <?= renderBanner() ?>
 
   <div class="main-container">
     <div id="form-container">
@@ -830,10 +830,30 @@ if ($maintenance_active) {
     catYes.addEventListener("change", () => { ownerField.style.display = "block"; });
     catNo.addEventListener("change", () => { ownerField.style.display = "none"; });
 
+    // Custom dropdown functionality
     const dropdown = document.getElementById("locationDropdown");
-const selected = dropdown.querySelector(".selected");
-const optionsContainer = dropdown.querySelector(".options");
-const hiddenInput = dropdown.querySelector("input[type='hidden']");
+    const selected = dropdown.querySelector(".selected");
+    const optionsContainer = dropdown.querySelector(".options");
+    const hiddenInput = dropdown.querySelector("input[type='hidden']");
+
+    dropdown.addEventListener("click", () => {
+      dropdown.classList.toggle("active");
+    });
+
+    optionsContainer.addEventListener("click", (e) => {
+      if (e.target.hasAttribute("data-value")) {
+        selected.textContent = e.target.textContent;
+        hiddenInput.value = e.target.getAttribute("data-value");
+        dropdown.classList.remove("active");
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove("active");
+      }
+    });
   </script>
   
   <?php
