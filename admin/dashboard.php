@@ -171,7 +171,8 @@ while ($row = $stats_result->fetch_assoc()) {
     $status_counts[$row['status']] = $row['count'];
 }
 
-$conn->close();
+// Don't close connection here - navbar needs it later
+// $conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -759,5 +760,12 @@ $conn->close();
             }
         });
     </script>
+    
+    <?php
+    // Close database connection at the end
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
 </body>
 </html>
