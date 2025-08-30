@@ -59,8 +59,8 @@ $conn->close();
 $status_display = [
     'unreviewed' => ['🕐', 'Under Review', 'Your application is being reviewed by our team.', '#ff69b4'],
     'denied' => ['❌', 'Application Denied', 'Unfortunately, your application was not successful at this time.', '#ff4757'],
-    'stage 2 (interview)' => ['📞', 'Interview Stage', 'Congratulations! You\'ve been selected for an interview.', '#ffa502'],
-    'stage 3' => ['⭐', 'Final Review', 'Your application is in the final review stage.', '#3742fa'],
+    'stage2' => ['📞', 'Interview Stage', 'Congratulations! You\'ve been selected for an interview. Please check your email for details.', '#ffa502'],
+    'stage3' => ['⭐', 'Final Review', 'Your application and interview is in the final review stage.', '#3742fa'],
     'accepted' => ['✅', 'Accepted', 'Congratulations! Your application has been accepted!', '#2ed573']
 ];
 ?>
