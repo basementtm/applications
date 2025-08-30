@@ -2,8 +2,15 @@
 session_start();
 
 // Include auth functions for user status checking
-require_once 'auth_functions.php';
-
+require_once 'auth_functions.phpif (!empty($action_filter)) {
+    if ($action_filter === 'VISITOR') {
+        $where_conditions[] = "action_type LIKE 'VISITOR_%'";
+    } else {
+        $where_conditions[] = "action_type = ?";
+        $params[] = $action_filter;
+        $param_types .= 's';
+    }
+}
 // Check if user is logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php");
@@ -377,12 +384,11 @@ while ($row = $usernames_result->fetch_assoc()) {
         .action-application { background: #ffc107; color: #000; }
         .action-application-submitted { background: #28a745; color: white; }
         .action-application-status { background: #17a2b8; color: white; }
-        .action-maintenance { background: #6f42c1; color: white; }
-        .action-settings { background: #fd7e14; color: white; }
-        .action-file { background: #20c997; color: white; }
-        .action-default { background: #6c757d; color: white; }
-
-        .ip-address {
+                        .action-maintenance { background: #6f42c1; color: white; }
+                        .action-settings { background: #fd7e14; color: white; }
+                        .action-file { background: #20c997; color: white; }
+                        .action-visitor { background: #3498db; color: white; }
+                        .action-default { background: #6c757d; color: white; }        .ip-address {
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
             background: rgba(0, 0, 0, 0.1);
@@ -632,6 +638,7 @@ while ($row = $usernames_result->fetch_assoc()) {
                         <label for="action_filter">Action Type</label>
                         <select id="action_filter" name="action_filter">
                             <option value="">All Actions</option>
+                            <option value="VISITOR" <?= $action_filter === 'VISITOR' ? 'selected' : '' ?>>Visitor Logs</option>
                             <?php foreach ($action_types as $type): ?>
                                 <option value="<?= htmlspecialchars($type) ?>" <?= $action_filter === $type ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($type) ?>
@@ -707,6 +714,8 @@ while ($row = $usernames_result->fetch_assoc()) {
                                     $action_class = 'action-settings';
                                 } elseif (strpos($log['action_type'], 'FILE') !== false) {
                                     $action_class = 'action-file';
+                                } elseif (strpos($log['action_type'], 'VISITOR') !== false) {
+                                    $action_class = 'action-visitor';
                                 }
                                 ?>
                                 <span class="action-badge <?= $action_class ?>">

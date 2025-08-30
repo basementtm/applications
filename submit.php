@@ -9,6 +9,66 @@ $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 // Include action logger for logging
 require_once 'admin/action_logger.php';
 
+// Function to log visitor activity
+function logVisitor($conn, $page = 'submit_form', $action = 'submit') {
+    try {
+        // Get visitor information
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
+        
+        // Handle proxy/forwarded IPs
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+            $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+        }
+        
+        // Add form data for submissions
+        $form_data = [];
+        if ($action === 'submit') {
+            $form_data = [
+                'name' => isset($_POST['name']) ? $_POST['name'] : null,
+                'email' => isset($_POST['email']) ? $_POST['email'] : null,
+                'page' => $page,
+                'action' => $action,
+                'referrer' => $referrer
+            ];
+        } else {
+            $form_data = [
+                'page' => $page,
+                'action' => $action,
+                'referrer' => $referrer
+            ];
+        }
+        
+        // Check if action_logs table exists before logging
+        $table_check = $conn->query("SHOW TABLES LIKE 'action_logs'");
+        if ($table_check && $table_check->num_rows > 0) {
+            $action_type = 'VISITOR_' . strtoupper($action);
+            $description = "Visitor $action on $page page";
+            $target_type = 'page';
+            $additional_data = json_encode($form_data);
+            
+            // Insert directly into action_logs without using logAction function
+            // (since logAction requires admin session)
+            $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                    VALUES (NULL, 'Visitor', ?, ?, ?, NULL, ?, ?, ?)";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data);
+            
+            if (!$stmt->execute()) {
+                error_log("Failed to log visitor: " . $stmt->error);
+            }
+            
+            $stmt->close();
+        }
+    } catch (Exception $e) {
+        error_log("Visitor logging error: " . $e->getMessage());
+    }
+}
+
 // Check if user is an admin (for IP ban bypass)
 $is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 
@@ -77,6 +137,9 @@ if ($ip_banned) {
 
 $maintenance_active = false;
 if (!$conn->connect_error) {
+    // Log visitor to the submit page
+    logVisitor($conn, 'submit_form', 'visit');
+    
     // Check if site_settings table exists
     $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
     if ($table_check && $table_check->num_rows > 0) {
@@ -257,7 +320,14 @@ $errorMsg = $stmt->error;
 
 // Log the application submission if successful (before closing connection)
 if ($success) {
+    // Log using the admin action logger
     logApplicationSubmission($applicationId, $name, $email);
+    
+    // Log using the visitor logger with more details
+    logVisitor($conn, 'submit_form', 'submit_success');
+} else {
+    // Log submission failure
+    logVisitor($conn, 'submit_form', 'submit_failed');
 }
 
 $stmt->close();

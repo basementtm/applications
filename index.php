@@ -3,6 +3,57 @@
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
+// Include action logger for visitor logging
+if (file_exists('admin/action_logger.php')) {
+    require_once 'admin/action_logger.php';
+}
+
+// Function to log visitor activity
+function logVisitor($conn, $page = 'main_form', $action = 'view') {
+    try {
+        // Get visitor information
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
+        
+        // Handle proxy/forwarded IPs
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+            $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+        }
+        
+        // Check if action_logs table exists before logging
+        $table_check = $conn->query("SHOW TABLES LIKE 'action_logs'");
+        if ($table_check && $table_check->num_rows > 0) {
+            $action_type = 'VISITOR_' . strtoupper($action);
+            $description = "Visitor accessed $page page";
+            $target_type = 'page';
+            $additional_data = json_encode([
+                'page' => $page,
+                'action' => $action,
+                'referrer' => $referrer
+            ]);
+            
+            // Insert directly into action_logs without using logAction function
+            // (since logAction requires admin session)
+            $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                    VALUES (NULL, 'Visitor', ?, ?, ?, NULL, ?, ?, ?)";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssss", $action_type, $description, $target_type, $ip_address, $user_agent, $additional_data);
+            
+            if (!$stmt->execute()) {
+                error_log("Failed to log visitor: " . $stmt->error);
+            }
+            
+            $stmt->close();
+        }
+    } catch (Exception $e) {
+        error_log("Visitor logging error: " . $e->getMessage());
+    }
+}
+
 $maintenance_active = false;
 $form_maintenance_active = false;
 if (!$conn->connect_error) {
@@ -1237,6 +1288,12 @@ if ($form_maintenance_active && !$is_admin) {
   <div class="main-container">
     <div id="form-container">
       <h1>basement application form</h1>
+      
+      <?php
+      // Log visitor access to the main form
+      logVisitor($conn, 'main_form', 'view');
+      ?>
+      
       <form action="submit.php" method="POST" id="applicationForm">
       <input type="text" name="name" placeholder="name" required>
       <input type="email" name="email" placeholder="email" required>
