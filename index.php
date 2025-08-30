@@ -1,7 +1,6 @@
 <?php
 // Database maintenance mode check with fallback
 include('/var/www/config/db_config.php');
-include('includes/banner_helper.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
 $maintenance_active = false;
@@ -14,6 +13,38 @@ if (!$conn->connect_error) {
         if ($result && $result->num_rows > 0) {
             $row = $result->fetch_assoc();
             $maintenance_active = ($row['setting_value'] === '1');
+        }
+    }
+}
+
+// Get banner settings
+$banner_settings = [
+    'text' => '',
+    'enabled' => false,
+    'type' => 'info'
+];
+
+if (!$conn->connect_error) {
+    $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
+    if ($table_check && $table_check->num_rows > 0) {
+        $settings_sql = "SELECT setting_name, setting_value FROM site_settings 
+                         WHERE setting_name IN ('banner_text', 'banner_enabled', 'banner_type')";
+        $settings_result = $conn->query($settings_sql);
+        
+        if ($settings_result) {
+            while ($row = $settings_result->fetch_assoc()) {
+                switch ($row['setting_name']) {
+                    case 'banner_text':
+                        $banner_settings['text'] = $row['setting_value'];
+                        break;
+                    case 'banner_enabled':
+                        $banner_settings['enabled'] = ($row['setting_value'] === '1');
+                        break;
+                    case 'banner_type':
+                        $banner_settings['type'] = $row['setting_value'];
+                        break;
+                }
+            }
         }
     }
 }
@@ -673,7 +704,39 @@ if ($maintenance_active) {
       }
     }
 
-    <?= getBannerCSS() ?>
+    /* Banner styles */
+    #notice-banner {
+      background-color: var(--banner-bg);
+      color: var(--banner-text);
+      padding: 15px 20px;
+      margin: 0;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 4px 10px var(--shadow-color);
+      word-wrap: break-word;
+      white-space: normal;
+      width: 100%;
+      box-sizing: border-box;
+      border-bottom: 2px solid var(--secondary-pink);
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeSlideDown 1.2s 0.3s forwards;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .banner-info { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+    .banner-warning { background-color: #fff3cd; color: #856404; border-color: #ffeaa7; }
+    .banner-error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+    .banner-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+
+    [data-theme="dark"] .banner-info { background-color: #0c5460; color: #d1ecf1; }
+    [data-theme="dark"] .banner-warning { background-color: #856404; color: #fff3cd; }
+    [data-theme="dark"] .banner-error { background-color: #721c24; color: #f8d7da; }
+    [data-theme="dark"] .banner-success { background-color: #155724; color: #d4edda; }
 
     @media (max-width: 768px) {
       .main-container {
@@ -715,7 +778,11 @@ if ($maintenance_active) {
     🌙
   </div>
 
-  <?= renderBanner() ?>
+  <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
+    <div id="notice-banner" class="banner-<?= htmlspecialchars($banner_settings['type']) ?>">
+      <?= htmlspecialchars($banner_settings['text']) ?>
+    </div>
+  <?php endif; ?>
 
   <div class="main-container">
     <div id="form-container">
