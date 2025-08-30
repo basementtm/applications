@@ -218,17 +218,22 @@ function base32_decode($data) {
 }
 
 function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $failureReason = null) {
-    if ($success) {
-        $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, session_id) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, session_id());
-    } else {
-        $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, failure_reason) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, $failureReason);
+    try {
+        if ($success) {
+            $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, session_id) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, session_id());
+        } else {
+            $sql = "INSERT INTO login_attempts (username, ip_address, user_agent, success, method, failure_reason) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssiss", $username, $ip, $userAgent, $success, $method, $failureReason);
+        }
+        $stmt->execute();
+        $stmt->close();
+    } catch (Exception $e) {
+        // Silently fail if logging doesn't work - don't break login process
+        error_log("Login attempt logging failed: " . $e->getMessage());
     }
-    $stmt->execute();
-    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
