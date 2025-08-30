@@ -65,3 +65,11 @@ echo json_encode([
     'success' => true,
     'notifications' => $notifications
 ]);
+
+} catch (Exception $e) {
+    // Handle any errors that occurred
+    echo json_encode([
+        'success' => false,
+        'error' => 'An error occurred: ' . $e->getMessage()
+    ]);
+}
