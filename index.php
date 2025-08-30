@@ -775,7 +775,7 @@ if ($form_maintenance_active && !$is_admin) {
 
     .theme-switcher {
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
       z-index: 1000;
       background-color: var(--container-bg);
@@ -1119,6 +1119,18 @@ if ($form_maintenance_active && !$is_admin) {
       opacity: 0;
       transform: scale(0.8);
       animation: fadeScale 0.3s 0.2s forwards;
+    }
+    
+    /* Animation for fading in buttons */
+    @keyframes fadeScale {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
     
     .admin-panel-button:hover {
@@ -1472,6 +1484,14 @@ if ($form_maintenance_active && !$is_admin) {
         dropdown.classList.remove("active");
       }
     });
+    
+    // Admin panel button click handler
+    const adminPanelButton = document.getElementById('adminPanelButton');
+    if (adminPanelButton) {
+      adminPanelButton.addEventListener('click', () => {
+        window.location.href = 'admin/dashboard.php';
+      });
+    }
   </script>
   
   <!-- Privacy Policy Notification System -->
