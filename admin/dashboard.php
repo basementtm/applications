@@ -40,8 +40,19 @@ if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma'
 // Include navbar component
 include('navbar.php');
 
+// Helper function to check if user is read-only
+function isReadOnlyUser() {
+    return isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin';
+}
+
 // Handle maintenance toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
+    // Check if user has permission to toggle maintenance
+    if (isReadOnlyUser()) {
+        header("Location: dashboard.php?error=access_denied");
+        exit();
+    }
+    
     // Check if site_settings table exists first
     $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
     
@@ -103,6 +114,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])
 
 // Handle status updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+    // Check if user has permission to update status
+    if (isReadOnlyUser()) {
+        header("Location: dashboard.php?error=access_denied");
+        exit();
+    }
+    
     $application_id = $_POST['application_id'] ?? '';
     $new_status = $_POST['new_status'] ?? '';
     
@@ -121,6 +138,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 // Handle bulk status updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
+    // Check if user has permission to bulk update
+    if (isReadOnlyUser()) {
+        header("Location: dashboard.php?error=access_denied");
+        exit();
+    }
+    
     $selected_applications = $_POST['selected_applications'] ?? [];
     $bulk_status = $_POST['bulk_status'] ?? '';
     
@@ -321,6 +344,19 @@ while ($row = $stats_result->fetch_assoc()) {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .stats-grid {
@@ -588,6 +624,12 @@ while ($row = $stats_result->fetch_assoc()) {
     <?php renderAdminNavbar('dashboard.php'); ?>
 
     <div class="container">
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'access_denied'): ?>
+            <div class="message error">
+                ❌ Access denied. You don't have permission to perform this action.
+            </div>
+        <?php endif; ?>
+        
         <?php if (isset($_GET['updated'])): ?>
             <div class="update-success">
                 ✅ Application <?= htmlspecialchars($_GET['updated']) ?> status updated successfully!
@@ -676,6 +718,7 @@ while ($row = $stats_result->fetch_assoc()) {
 
         <!-- Applications Table with Bulk Actions -->
         <form id="bulkForm" method="POST">
+            <?php if (!isReadOnlyUser()): ?>
             <!-- Bulk Actions -->
             <div class="bulk-actions" style="margin: 20px 0; padding: 15px; background: var(--container-bg); border-radius: 8px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -694,12 +737,15 @@ while ($row = $stats_result->fetch_assoc()) {
                 </div>
                 <input type="hidden" name="bulk_update" value="1">
             </div>
+            <?php endif; ?>
 
         <div class="applications-table">
             <table>
                 <thead>
                     <tr>
+                        <?php if (!isReadOnlyUser()): ?>
                         <th><input type="checkbox" id="selectAll" title="Select All"></th>
+                        <?php endif; ?>
                         <th>Application ID</th>
                         <th>Name</th>
                         <th>Email</th>
@@ -707,13 +753,19 @@ while ($row = $stats_result->fetch_assoc()) {
                         <th>Cat</th>
                         <th>Cage/Week</th>
                         <th>Submitted</th>
+                        <?php if (!isReadOnlyUser()): ?>
                         <th>Actions</th>
+                        <?php else: ?>
+                        <th>View</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($applications as $app): ?>
                         <tr>
+                            <?php if (!isReadOnlyUser()): ?>
                             <td><input type="checkbox" name="selected_applications[]" value="<?= htmlspecialchars($app['application_id']) ?>" class="app-checkbox"></td>
+                            <?php endif; ?>
                             <td><?= htmlspecialchars($app['application_id']) ?></td>
                             <td><?= htmlspecialchars($app['name']) ?></td>
                             <td><?= htmlspecialchars($app['email']) ?></td>
@@ -725,6 +777,7 @@ while ($row = $stats_result->fetch_assoc()) {
                             <td><?= htmlspecialchars($app['isCat']) ?></td>
                             <td><?= htmlspecialchars($app['cage']) ?></td>
                             <td><?= htmlspecialchars($app['submitted_at']) ?></td>
+                            <?php if (!isReadOnlyUser()): ?>
                             <td>
                                 <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                     <form method="POST" style="display: inline;">
@@ -745,6 +798,11 @@ while ($row = $stats_result->fetch_assoc()) {
                                     <a href="delete.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" onclick="return confirm('Are you sure you want to delete this application?')">🗑️</a>
                                 </div>
                             </td>
+                            <?php else: ?>
+                            <td>
+                                <a href="view.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">👁️ View</a>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

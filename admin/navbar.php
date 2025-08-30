@@ -26,11 +26,15 @@ function renderAdminNavbar($currentPage = '') {
     
     // Define nav items with their icons and titles
     $navItems = [
-        'dashboard.php' => ['🏠', 'Dashboard'],
-        'maintenance-control.php' => ['🚧', 'Maintenance'],
-        'banner.php' => ['📢', 'Banner Management'],
-        'settings.php' => ['⚙️', 'Settings']
+        'dashboard.php' => ['🏠', 'Dashboard']
     ];
+    
+    // Add maintenance and settings only for non-readonly users
+    if (!isset($_SESSION['admin_role']) || $_SESSION['admin_role'] !== 'readonly_admin') {
+        $navItems['maintenance-control.php'] = ['🚧', 'Maintenance'];
+        $navItems['banner.php'] = ['📢', 'Banner Management'];
+        $navItems['settings.php'] = ['⚙️', 'Settings'];
+    }
     
     // Add link to return to main form
     $navItems['../index.php'] = ['📝', 'Return to Form'];
@@ -49,7 +53,22 @@ function renderAdminNavbar($currentPage = '') {
     echo '<div class="header">';
     echo '<h1>🏠 Admin Dashboard</h1>';
     echo '<div class="header-actions">';
-    echo '<span>Welcome, ' . htmlspecialchars($username) . '</span>';
+    echo '<span>Welcome, ' . htmlspecialchars($username);
+    
+    // Add role indicator
+    if (isset($_SESSION['admin_role'])) {
+        $roleDisplay = '';
+        switch($_SESSION['admin_role']) {
+            case 'readonly_admin':
+                $roleDisplay = ' <span style="color: var(--warning-color); font-size: 0.8rem;">(Read-Only)</span>';
+                break;
+            case 'super_admin':
+                $roleDisplay = ' <span style="color: var(--primary-pink); font-size: 0.8rem;">(Super Admin)</span>';
+                break;
+        }
+        echo $roleDisplay;
+    }
+    echo '</span>';
     
     // Add maintenance status indicator
     if ($maintenance_active) {

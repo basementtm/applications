@@ -11,6 +11,12 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
+// Check if user has permission to access maintenance controls
+if (isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin') {
+    header("Location: dashboard.php?error=access_denied");
+    exit();
+}
+
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) {

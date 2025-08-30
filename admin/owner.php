@@ -444,6 +444,7 @@ $users_result = $conn->query($users_sql);
 
         .role-super_admin { background-color: var(--primary-pink); color: white; }
         .role-admin { background-color: var(--secondary-pink); color: white; }
+        .role-readonly_admin { background-color: var(--warning-color); color: white; }
 
         .warning-text {
             color: var(--danger-color);
@@ -638,6 +639,7 @@ $users_result = $conn->query($users_sql);
                         <div class="form-group">
                             <label for="role">Role:</label>
                             <select id="role" name="role" required>
+                                <option value="readonly_admin">Read-Only Admin</option>
                                 <option value="admin">Admin</option>
                                 <option value="super_admin">Super Admin</option>
                             </select>
