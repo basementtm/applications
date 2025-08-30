@@ -132,6 +132,46 @@ $banned_ips_result = $conn->query("SELECT * FROM banned_ips ORDER BY banned_at D
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IP Ban Management - Admin Dashboard</title>
     <style>
+        :root {
+            --bg-color: #ffc0cb;
+            --container-bg: #fff0f5;
+            --text-color: #333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            --input-bg: #fff0f5;
+            --success-color: #2ed573;
+            --warning-color: #ffa502;
+            --danger-color: #ff4757;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
         <?= getNavbarCSS() ?>
         
         .container {
@@ -301,9 +341,62 @@ $banned_ips_result = $conn->query("SELECT * FROM banned_ips ORDER BY banned_at D
             color: #666;
             font-style: italic;
         }
+
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--container-bg);
+            border: 2px solid var(--secondary-pink);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-pink);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .actions .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .theme-switcher {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+    
     <?php renderAdminNavbar('ip-ban-management.php'); ?>
     
     <div class="container">
@@ -412,6 +505,39 @@ $banned_ips_result = $conn->query("SELECT * FROM banned_ips ORDER BY banned_at D
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        // Dark theme functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeSwitcher.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            
+            if (savedTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeSwitcher.textContent = '☀️';
+            }
+        });
+
+        // Theme switcher click event
+        document.getElementById('themeSwitcher').addEventListener('click', toggleTheme);
+    </script>
 </body>
 </html>
 
