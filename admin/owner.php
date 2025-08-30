@@ -127,24 +127,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Handle user disable/enable functionality
-    if (isset($_POST['toggle_status'])) {
-        $user_id = $_POST['user_id'];
-        $new_status = $_POST['new_status'];
+    if (isset($_POST['action']) && $_POST['action'] == 'toggle_status') {
+        $user_id = (int)$_POST['user_id'];
         
-        // Don't allow disabling self
-        if ($user_id != $_SESSION['admin_id']) {
-            $update_sql = "UPDATE admin_users SET active = ? WHERE id = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("ii", $new_status, $user_id);
-            
-            if ($update_stmt->execute()) {
-                $message = "User status updated successfully!";
+        // Get current user status and username
+        $check_sql = "SELECT active, username FROM admin_users WHERE id = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->bind_param("i", $user_id);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result();
+        $user_data = $result->fetch_assoc();
+        $check_stmt->close();
+        
+        if ($user_data) {
+            // Don't allow disabling emma or self
+            if ($user_data['username'] !== 'emma' && $user_id != $_SESSION['admin_id']) {
+                $new_status = $user_data['active'] ? 0 : 1; // Toggle status
+                $update_sql = "UPDATE admin_users SET active = ? WHERE id = ?";
+                $update_stmt = $conn->prepare($update_sql);
+                $update_stmt->bind_param("ii", $new_status, $user_id);
+                
+                if ($update_stmt->execute()) {
+                    $status_text = $new_status ? "enabled" : "disabled";
+                    $message = "User has been {$status_text} successfully!";
+                } else {
+                    $error = "Error updating user status: " . $conn->error;
+                }
+                $update_stmt->close();
             } else {
-                $error = "Error updating user status: " . $conn->error;
+                $error = "You cannot disable this user account!";
             }
-            $update_stmt->close();
         } else {
-            $error = "You cannot disable your own account!";
+            $error = "User not found!";
         }
     }
 }
