@@ -260,6 +260,24 @@
   </div>
 
   <script>
+    // Check for application ID in URL parameters and auto-populate
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Auto-populate application ID if provided in URL
+    const urlAppId = getUrlParameter('id');
+    const appIdInput = document.querySelector('input[name="application_id"]');
+    
+    if (urlAppId) {
+      appIdInput.value = urlAppId;
+      // Optional: Auto-submit the form
+      // document.querySelector('form').submit();
+    }
+
     // Theme Switcher
     const themeSwitcher = document.getElementById("themeSwitcher");
     const body = document.body;
@@ -286,7 +304,6 @@
     });
 
     // Auto-format application ID input
-    const appIdInput = document.querySelector('input[name="application_id"]');
     appIdInput.addEventListener('input', function(e) {
       let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
       

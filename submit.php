@@ -260,7 +260,7 @@ $conn->close();
       <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, or use the application checker.</p>
       <p><small>Keep your application ID for reference. You might need it later. It won't be shown to you again.</small></p>
       <div class="button-container">
-        <a class="button secondary" href="check-status.php">📋 Check Status</a>
+        <a class="button secondary" href="status-check.html?id=<?= urlencode($applicationId) ?>">📋 Check Status</a>
         <a class="button" href="https://girlskissing.dev">Return to Form</a>
       </div>
     <?php else: ?>
