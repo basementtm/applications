@@ -309,11 +309,13 @@ if ($maintenance_active) {
         <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">
             🌙
         </div>
-        <div class="maintenance-notice">
-            <h1>🚧 Site Under Maintenance</h1>
-            <p>We're performing scheduled maintenance to improve our services.</p>
-            <p>Please try again later. Thank you for your patience!</p>
-        </div>
+        <div class='container'>
+        <div class='maintenance-icon'>🚧</div>
+        <h1>Maintenance</h1>
+        <p><strong>Application status checking is temporarily unavailable.</strong></p>
+        <p>We're performing scheduled maintenance to improve our services.</p>
+        <p>Please try again later. Thank you for your patience!</p>
+      </div>
 
         <script>
             // Theme switcher functionality
