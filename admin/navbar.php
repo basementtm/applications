@@ -27,13 +27,13 @@ function renderAdminNavbar($currentPage = '') {
     // Define nav items with their icons and titles
     $navItems = [
         'dashboard.php' => ['🏠', 'Dashboard'],
-        'banner.php' => ['�', 'Banner Management'],
+        'banner.php' => ['📢', 'Banner Management'],
         'settings.php' => ['⚙️', 'Settings']
     ];
     
     // Add owner-only navigation for Emma
     if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] === 'emma') {
-        $navItems['owner.php'] = ['�', 'Owner Panel'];
+        $navItems['owner.php'] = ['👧', 'Owner Panel'];
     }
     
     // Add user management for super admins (but not on owner page to avoid duplication)
