@@ -31,6 +31,9 @@ function renderAdminNavbar($currentPage = '') {
         'settings.php' => ['⚙️', 'Settings']
     ];
     
+    // Add link to return to main form
+    $navItems['../index.php'] = ['📝', 'Return to Form'];
+    
     // Add owner-only navigation for Emma
     if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] === 'emma') {
         $navItems['owner.php'] = ['👧', 'Owner Panel'];

@@ -533,7 +533,7 @@ $users_result = $conn->query($users_sql);
                     <button type="submit" name="toggle_maintenance" 
                             class="btn <?= $admin_maintenance_active ? 'btn-success' : 'btn-danger' ?>"
                             onclick="return confirm('Are you sure you want to <?= $admin_maintenance_active ? 'disable' : 'enable' ?> admin panel maintenance mode?')">
-                        <?= $admin_maintenance_active ? '✅ Disable Admin Maintenance' : '� Enable Admin Maintenance' ?>
+                        <?= $admin_maintenance_active ? '✅ Disable Admin Maintenance' : '🚧 Enable Admin Maintenance' ?>
                     </button>
                 </form>
             </div>
