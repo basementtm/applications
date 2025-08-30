@@ -29,6 +29,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Include action logger
+require_once 'action_logger.php';
+
 // Check admin maintenance mode - only allow Emma to access during maintenance
 if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
     try {
@@ -86,7 +89,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])
             'form_maintenance_mode' => 'Form'
         ];
         $type_label = $type_labels[$maintenance_type] ?? $maintenance_type;
-        $message = "$type_label maintenance mode " . ($new_status === '1' ? "enabled" : "disabled") . " successfully!";
+        $status_text = ($new_status === '1' ? 'enabled' : 'disabled');
+        $message = "$type_label maintenance mode $status_text successfully!";
+        
+        // Log the maintenance action
+        $action_type = 'MAINTENANCE_' . strtoupper($type_label) . '_' . strtoupper($status_text);
+        $description = "Admin $status_text " . strtolower($type_label) . " maintenance mode";
+        $additional_data = [
+            'maintenance_type' => $maintenance_type,
+            'previous_status' => $new_status === '1' ? '0' : '1',
+            'new_status' => $new_status
+        ];
+        
+        logAction($action_type, $description, 'maintenance_system', null, $additional_data);
     } else {
         $error = "Error updating maintenance mode: " . $conn->error;
     }
