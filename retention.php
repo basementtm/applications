@@ -1,7 +1,68 @@
 <?php
+// Start session for potential admin check
+session_start();
+
 // Database connection for banner functionality
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
+
+// Check if user is an admin (for IP ban bypass)
+$is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+
+// Check if IP is banned (skip check for admins)
+$ip_banned = false;
+if (!$is_admin && !$conn->connect_error) {
+    $user_ip = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+    
+    // Handle proxy/forwarded IPs
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwarded_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $user_ip = trim($forwarded_ips[0]);
+    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+        $user_ip = $_SERVER['HTTP_X_REAL_IP'];
+    }
+    
+    // Check if banned_ips table exists and if IP is banned
+    $table_check = $conn->query("SHOW TABLES LIKE 'banned_ips'");
+    if ($table_check && $table_check->num_rows > 0) {
+        $ban_check_sql = "SELECT id FROM banned_ips WHERE ip_address = ? AND is_active = 1 LIMIT 1";
+        $ban_stmt = $conn->prepare($ban_check_sql);
+        $ban_stmt->bind_param("s", $user_ip);
+        $ban_stmt->execute();
+        $ban_result = $ban_stmt->get_result();
+        $ip_banned = ($ban_result->num_rows > 0);
+        $ban_stmt->close();
+    }
+}
+
+// If IP is banned, show banned page and exit
+if ($ip_banned) {
+    http_response_code(403);
+    echo "<!DOCTYPE html>
+    <html lang='en'>
+    <head>
+      <meta charset='UTF-8'>
+      <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+      <title>Access Denied</title>
+      <style>
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); margin: 0; padding: 0; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 500px; }
+        h1 { color: #ff1744; font-size: 2.5em; margin-bottom: 20px; }
+        p { color: #666; font-size: 1.1em; line-height: 1.6; margin-bottom: 30px; }
+        .error-code { font-size: 1.5em; color: #ff1744; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div class='container'>
+        <h1>🚫 Access Denied</h1>
+        <div class='error-code'>Error 403 - Forbidden</div>
+        <p>Your IP address has been banned from accessing this service.</p>
+        <p>If you believe this is an error, please contact the website administrator.</p>
+      </div>
+    </body>
+    </html>";
+    exit;
+}
 
 // Get banner settings
 $banner_settings = [
