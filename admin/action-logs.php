@@ -27,6 +27,70 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Handle manual log addition
+$manual_log_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_manual_log'])) {
+    $action_type = trim($_POST['manual_action_type'] ?? '');
+    $action_description = trim($_POST['manual_description'] ?? '');
+    $target_type = !empty($_POST['manual_target_type']) ? trim($_POST['manual_target_type']) : null;
+    $target_id = !empty($_POST['manual_target_id']) ? trim($_POST['manual_target_id']) : null;
+    $additional_notes = !empty($_POST['manual_notes']) ? trim($_POST['manual_notes']) : null;
+    
+    if (!empty($action_type) && !empty($action_description)) {
+        $user_id = $_SESSION['admin_id'] ?? null;
+        $username = $_SESSION['admin_username'] ?? 'emma';
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Manual Entry';
+        
+        // Handle proxy/forwarded IPs
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
+            $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+        }
+        
+        // Prepare additional data
+        $additional_data = null;
+        if ($additional_notes) {
+            $additional_data = json_encode([
+                'manual_entry' => true,
+                'notes' => $additional_notes,
+                'added_by' => $username
+            ]);
+        } else {
+            $additional_data = json_encode(['manual_entry' => true, 'added_by' => $username]);
+        }
+        
+        try {
+            $sql = "INSERT INTO action_logs (user_id, username, action_type, action_description, target_type, target_id, ip_address, user_agent, additional_data) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("issssisss", $user_id, $username, $action_type, $action_description, $target_type, $target_id, $ip_address, $user_agent, $additional_data);
+            
+            if ($stmt->execute()) {
+                $manual_log_message = "Manual log entry added successfully!";
+                // Redirect to prevent form resubmission
+                header("Location: action-logs.php?manual_added=1");
+                exit();
+            } else {
+                $manual_log_message = "Error adding manual log entry: " . $stmt->error;
+            }
+            
+            $stmt->close();
+        } catch (Exception $e) {
+            $manual_log_message = "Error adding manual log entry: " . $e->getMessage();
+        }
+    } else {
+        $manual_log_message = "Please fill in both Action Type and Description fields.";
+    }
+}
+
+// Check for success message from redirect
+if (isset($_GET['manual_added'])) {
+    $manual_log_message = "Manual log entry added successfully!";
+}
+
 // Include navbar component
 include('navbar.php');
 
@@ -419,6 +483,122 @@ while ($row = $usernames_result->fetch_assoc()) {
             font-size: 0.85rem;
             border-left: 3px solid var(--primary-pink);
         }
+
+        /* Message Styles */
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--container-bg);
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background-color: var(--primary-pink);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal form {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -429,7 +609,16 @@ while ($row = $usernames_result->fetch_assoc()) {
         <div class="page-header">
             <h1>📊 Action Logs</h1>
             <p>Monitor all admin activities and system actions</p>
+            <div style="margin-top: 15px;">
+                <button onclick="showAddLogModal()" class="btn btn-primary">➕ Add Manual Log</button>
+            </div>
         </div>
+
+        <?php if (!empty($manual_log_message)): ?>
+            <div class="message <?= strpos($manual_log_message, 'Error') !== false ? 'error' : 'success' ?>">
+                <?= htmlspecialchars($manual_log_message) ?>
+            </div>
+        <?php endif; ?>
 
         <div class="stats-info">
             Total Records: <?= number_format($total_records) ?>
@@ -593,6 +782,62 @@ while ($row = $usernames_result->fetch_assoc()) {
         <?php endif; ?>
     </div>
 
+    <!-- Manual Log Addition Modal -->
+    <div id="addLogModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Add Manual Log Entry</h3>
+                <span class="close" onclick="hideAddLogModal()">&times;</span>
+            </div>
+            <form method="POST" action="action-logs.php" id="addLogForm">
+                <input type="hidden" name="add_manual_log" value="1">
+                
+                <div class="form-group">
+                    <label for="manual_action_type">Action Type:</label>
+                    <input type="text" id="manual_action_type" name="manual_action_type" required 
+                           placeholder="e.g., MANUAL_SYSTEM_NOTE, MANUAL_MAINTENANCE, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="manual_description">Description:</label>
+                    <textarea id="manual_description" name="manual_description" required 
+                              placeholder="Describe what action was taken or what this log represents..." rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manual_target_type">Target Type (optional):</label>
+                    <select id="manual_target_type" name="manual_target_type">
+                        <option value="">None</option>
+                        <option value="application">Application</option>
+                        <option value="admin_user">Admin User</option>
+                        <option value="system">System</option>
+                        <option value="settings">Settings</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="security">Security</option>
+                        <option value="banner">Banner</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manual_target_id">Target ID (optional):</label>
+                    <input type="text" id="manual_target_id" name="manual_target_id" 
+                           placeholder="e.g., application ID, user ID, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="manual_notes">Additional Notes (optional):</label>
+                    <textarea id="manual_notes" name="manual_notes" 
+                              placeholder="Any additional context or notes..." rows="2"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">💾 Add Log Entry</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideAddLogModal()">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Dark theme functionality
         function toggleTheme() {
@@ -634,6 +879,32 @@ while ($row = $usernames_result->fetch_assoc()) {
                 element.style.display = 'none';
             }
         }
+
+        // Add Log Modal functions
+        function showAddLogModal() {
+            document.getElementById('addLogModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideAddLogModal() {
+            document.getElementById('addLogModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('addLogModal');
+            if (event.target === modal) {
+                hideAddLogModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideAddLogModal();
+            }
+        });
     </script>
 </body>
 </html>
