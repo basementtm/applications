@@ -404,6 +404,7 @@ $conn->close();
         <h1>🏠 Admin Dashboard</h1>
         <div class="header-actions">
             <span>Welcome, <?= htmlspecialchars($_SESSION['admin_username']) ?></span>
+            <a href="change-password.php" class="btn btn-secondary btn-sm">🔐 Change Password</a>
             <a href="users.php" class="btn btn-secondary btn-sm">👥 Manage Users</a>
             <a href="logout.php" class="btn btn-primary btn-sm">🚪 Logout</a>
         </div>
@@ -413,6 +414,12 @@ $conn->close();
         <?php if (isset($_GET['updated'])): ?>
             <div class="update-success">
                 ✅ Application <?= htmlspecialchars($_GET['updated']) ?> status updated successfully!
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['deleted'])): ?>
+            <div class="update-success">
+                🗑️ Application <?= htmlspecialchars($_GET['deleted']) ?> has been permanently deleted.
             </div>
         <?php endif; ?>
 
@@ -491,19 +498,23 @@ $conn->close();
                             <td><?= htmlspecialchars($app['cage']) ?></td>
                             <td><?= htmlspecialchars($app['submitted_at']) ?></td>
                             <td>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['application_id']) ?>">
-                                    <select name="new_status" onchange="this.form.submit()">
-                                        <option value="">Change Status</option>
-                                        <option value="unreviewed" <?= $app['status'] === 'unreviewed' ? 'disabled' : '' ?>>Unreviewed</option>
-                                        <option value="stage2" <?= $app['status'] === 'stage2' ? 'disabled' : '' ?>>Stage 2</option>
-                                        <option value="stage3" <?= $app['status'] === 'stage3' ? 'disabled' : '' ?>>Stage 3</option>
-                                        <option value="accepted" <?= $app['status'] === 'accepted' ? 'disabled' : '' ?>>Accepted</option>
-                                        <option value="denied" <?= $app['status'] === 'denied' ? 'disabled' : '' ?>>Denied</option>
-                                    </select>
-                                    <input type="hidden" name="update_status" value="1">
-                                </form>
-                                <a href="view.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-secondary btn-sm">👁️ View</a>
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    <form method="POST" style="display: inline;">
+                                        <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['application_id']) ?>">
+                                        <select name="new_status" onchange="this.form.submit()" style="width: auto; padding: 4px; font-size: 0.8rem;">
+                                            <option value="">Change Status</option>
+                                            <option value="unreviewed" <?= $app['status'] === 'unreviewed' ? 'disabled' : '' ?>>Unreviewed</option>
+                                            <option value="stage2" <?= $app['status'] === 'stage2' ? 'disabled' : '' ?>>Stage 2</option>
+                                            <option value="stage3" <?= $app['status'] === 'stage3' ? 'disabled' : '' ?>>Stage 3</option>
+                                            <option value="accepted" <?= $app['status'] === 'accepted' ? 'disabled' : '' ?>>Accepted</option>
+                                            <option value="denied" <?= $app['status'] === 'denied' ? 'disabled' : '' ?>>Denied</option>
+                                        </select>
+                                        <input type="hidden" name="update_status" value="1">
+                                    </form>
+                                    <a href="view.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">👁️</a>
+                                    <a href="edit.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">✏️</a>
+                                    <a href="delete.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" onclick="return confirm('Are you sure you want to delete this application?')">🗑️</a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
