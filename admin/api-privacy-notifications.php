@@ -4,12 +4,17 @@
  * Returns JSON with active notifications that should be shown to users
  */
 
-// Include necessary files
-require_once '../config/db.php';
-require_once 'auth_functions.php';
+// Enable error handling - log errors but don't display them
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-// Set content type to JSON
-header('Content-Type: application/json');
+// Set up error handling to capture any issues
+try {
+    // Include necessary files
+    require_once '/var/www/config/db_config.php';
+
+    // Set content type to JSON
+    header('Content-Type: application/json');
 
 // Check if the privacy_notifications table exists
 $table_exists = $conn->query("SHOW TABLES LIKE 'privacy_notifications'")->num_rows > 0;
