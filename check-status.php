@@ -288,11 +288,11 @@ $status_display = [
           <span class="detail-value"><?= htmlspecialchars($application_data['email']) ?></span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Cage Nights:</span>
+          <span class="detail-label">Nights in Cage:</span>
           <span class="detail-value"><?= htmlspecialchars($application_data['cage']) ?>/week</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Cat Status:</span>
+          <span class="detail-label">Cat:</span>
           <span class="detail-value"><?= htmlspecialchars($application_data['isCat']) ?></span>
         </div>
         <?php if ($application_data['preferredLocation']): ?>
