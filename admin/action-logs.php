@@ -341,11 +341,12 @@ while ($row = $usernames_result->fetch_assoc()) {
 
         .logs-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             margin-top: 20px;
             background: var(--container-bg);
             border-radius: 10px;
-            overflow: hidden;
+            overflow-x: auto;
             box-shadow: 0 2px 4px var(--shadow-color);
         }
 
@@ -354,6 +355,9 @@ while ($row = $usernames_result->fetch_assoc()) {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .logs-table th {
@@ -394,11 +398,18 @@ while ($row = $usernames_result->fetch_assoc()) {
             background: rgba(0, 0, 0, 0.1);
             padding: 2px 6px;
             border-radius: 3px;
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .timestamp {
             font-size: 0.9rem;
             white-space: nowrap;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .pagination {
@@ -680,16 +691,17 @@ while ($row = $usernames_result->fetch_assoc()) {
         </div>
 
         <!-- Action Logs Table -->
+        <div style="overflow-x: auto; width: 100%;">
         <table class="logs-table">
             <thead>
                 <tr>
-                    <th>Timestamp</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Description</th>
-                    <th>Target</th>
-                    <th>IP Address</th>
-                    <th>Details</th>
+                    <th style="width: 12%;">Timestamp</th>
+                    <th style="width: 10%;">User</th>
+                    <th style="width: 18%;">Action</th>
+                    <th style="width: 30%;">Description</th>
+                    <th style="width: 10%;">Target</th>
+                    <th style="width: 12%;">IP Address</th>
+                    <th style="width: 8%;">Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -767,6 +779,7 @@ while ($row = $usernames_result->fetch_assoc()) {
                 <?php endif; ?>
             </tbody>
         </table>
+        </div>
 
         <!-- Pagination -->
         <?php if ($total_pages > 1): ?>
