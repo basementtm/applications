@@ -380,6 +380,11 @@ while ($row = $usernames_result->fetch_assoc()) {
             font-weight: bold;
             text-transform: uppercase;
             display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: break-all;
         }
 
         .action-login-success { background: #28a745; color: white; }
@@ -697,8 +702,8 @@ while ($row = $usernames_result->fetch_assoc()) {
                 <tr>
                     <th style="width: 12%;">Timestamp</th>
                     <th style="width: 10%;">User</th>
-                    <th style="width: 18%;">Action</th>
-                    <th style="width: 30%;">Description</th>
+                    <th style="width: 15%;">Action</th>
+                    <th style="width: 33%;">Description</th>
                     <th style="width: 10%;">Target</th>
                     <th style="width: 12%;">IP Address</th>
                     <th style="width: 8%;">Details</th>
@@ -738,10 +743,18 @@ while ($row = $usernames_result->fetch_assoc()) {
                                 }
                                 ?>
                                 <span class="action-badge <?= $action_class ?>">
-                                    <?= htmlspecialchars($log['action_type']) ?>
+                                    <?php 
+                                    $action_text = $log['action_type'];
+                                    // For application status changes, make the display more concise
+                                    if (strpos($action_text, 'ADMIN_APPLICATION_STATUS_CHANGED') === 0) {
+                                        echo 'APP STATUS CHANGED';
+                                    } else {
+                                        echo htmlspecialchars($action_text);
+                                    }
+                                    ?>
                                 </span>
                             </td>
-                            <td><?= htmlspecialchars($log['action_description']) ?></td>
+                            <td style="word-break: break-word;"><?= htmlspecialchars($log['action_description']) ?></td>
                             <td>
                                 <?php if ($log['target_type'] && $log['target_id']): ?>
                                     <small style="opacity: 0.7;">
