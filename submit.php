@@ -318,7 +318,7 @@ $applicationId = 'APP-' . $timestamp . '-' . $randomSuffix;
 $sql = "INSERT INTO applicants (application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sssisisssss", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
+$stmt->bind_param("ssssisssiss", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;

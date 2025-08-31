@@ -103,6 +103,7 @@ $offset = ($page - 1) * $limit;
 $action_filter = isset($_GET['action_filter']) ? $_GET['action_filter'] : '';
 $user_filter = isset($_GET['user_filter']) ? $_GET['user_filter'] : '';
 $date_filter = isset($_GET['date_filter']) ? $_GET['date_filter'] : '';
+$hide_visitor_logs = isset($_GET['hide_visitor']) ? true : false;
 
 // Build WHERE clause
 $where_conditions = [];
@@ -117,6 +118,8 @@ if (!empty($action_filter)) {
         $params[] = "%$action_filter%";
         $param_types .= 's';
     }
+} elseif ($hide_visitor_logs) {
+    $where_conditions[] = "action_type NOT LIKE 'VISITOR_%'";
 }
 
 if (!empty($user_filter)) {
@@ -615,6 +618,7 @@ while ($row = $usernames_result->fetch_assoc()) {
             <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
                 <button onclick="showAddLogModal()" class="btn btn-primary">➕ Add Manual Log</button>
                 <a href="?action_filter=VISITOR" class="btn" style="background-color: #3498db; color: white;">👀 View Visitor Logs</a>
+                <a href="?hide_visitor=1" class="btn" style="background-color: #e74c3c; color: white;">🚫 Hide Visitor Logs</a>
                 <a href="action-logs.php" class="btn btn-secondary">🔄 Show All Logs</a>
             </div>
         </div>
@@ -667,6 +671,10 @@ while ($row = $usernames_result->fetch_assoc()) {
                             <a href="action-logs.php" class="btn btn-secondary">✖ Clear</a>
                         </div>
                     </div>
+                </div>
+                <div style="margin-top: 10px; display: flex; align-items: center;">
+                    <input type="checkbox" id="hide_visitor" name="hide_visitor" value="1" <?= $hide_visitor_logs ? 'checked' : '' ?> style="margin-right: 8px;">
+                    <label for="hide_visitor" style="margin-bottom: 0; cursor: pointer;">Hide visitor logs</label>
                 </div>
             </form>
         </div>
@@ -764,7 +772,7 @@ while ($row = $usernames_result->fetch_assoc()) {
         <?php if ($total_pages > 1): ?>
             <div class="pagination">
                 <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
+                    <a href="?page=<?= $page - 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?><?= $hide_visitor_logs ? '&hide_visitor=1' : '' ?>">
                         ← Previous
                     </a>
                 <?php endif; ?>
@@ -775,14 +783,14 @@ while ($row = $usernames_result->fetch_assoc()) {
                 
                 for ($i = $start_page; $i <= $end_page; $i++):
                 ?>
-                    <a href="?page=<?= $i ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>" 
+                    <a href="?page=<?= $i ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?><?= $hide_visitor_logs ? '&hide_visitor=1' : '' ?>" 
                        class="<?= $i === $page ? 'active' : '' ?>">
                         <?= $i ?>
                     </a>
                 <?php endfor; ?>
                 
                 <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?= $page + 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?>">
+                    <a href="?page=<?= $page + 1 ?>&action_filter=<?= urlencode($action_filter) ?>&user_filter=<?= urlencode($user_filter) ?>&date_filter=<?= urlencode($date_filter) ?><?= $hide_visitor_logs ? '&hide_visitor=1' : '' ?>">
                         Next →
                     </a>
                 <?php endif; ?>
