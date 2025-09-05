@@ -7,7 +7,7 @@ require_once 'auth_functions.php';
 require_once 'action_logger.php';
 
 // Check if user is logged in
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+if (!isset($_SESSION['admin_logged_in']) && !isset($_SESSION['read_only_logged_in'])) {
     header("Location: login.php");
     exit();
 }
