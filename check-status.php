@@ -341,7 +341,7 @@ if (!empty($application_id)) {
         $errorMsg = "Invalid application ID format. Please use format: APP-YYYYMMDD-XXXXXX";
     } else {
         // Query the database for the application
-        $sql = "SELECT application_id, name, email, status, cage, isCat, preferredLocation FROM applicants WHERE application_id = ?";
+        $sql = "SELECT application_id, name, email, status, cage, isCat, preferredLocation, status_change_reason FROM applicants WHERE application_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $application_id);
         $stmt->execute();
@@ -601,8 +601,15 @@ $status_display = [
       
       <div class="status-display status-<?= $status ?>" style="border-color: var(--status-color); color: var(--status-color);">
         <div class="status-icon"><?= $status_info[0] ?></div>
-        <div style="font-size: 1.3rem; margin-bottom: 10px;"><?= $status_info[1] ?></div>
-        <div style="font-size: 1rem; font-weight: normal; opacity: 0.8; color: var(--text-color);"><?= $status_info[2] ?></div>
+        <div style="font-size: 1.3rem; margin-bottom: 10px;">
+          <?= $status_info[1] ?>
+        </div>
+        <div style="font-size: 1rem; font-weight: normal; opacity: 0.8; color: var(--text-color);">
+          <?= $status_info[2] ?>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.9rem; font-style: italic; color: var(--text-color);">
+          Reason: <?= htmlspecialchars($application_data['status_change_reason'] ?? 'N/A') ?>
+        </div>
       </div>
 
       <div class="application-details">
@@ -633,12 +640,6 @@ $status_display = [
           <span class="detail-value"><?= htmlspecialchars($application_data['preferredLocation']) ?></span>
         </div>
         <?php endif; ?>
-        <div class="detail-row">
-          <span class="detail-label">Reason for Status Change:</span>
-          <span class="detail-value">
-            <?= htmlspecialchars($application_data['status_change_reason'] ?? 'N/A') ?>
-          </span>
-        </div>
       </div>
 
     <?php elseif ($errorMsg): ?>
