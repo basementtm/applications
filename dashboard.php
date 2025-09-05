@@ -279,7 +279,7 @@ $current_page = 'dashboard.php';
     
     <?php if ($show_welcome): ?>
         <div class="welcome-banner">
-            <h2>🎉 Welcome to Girls Kissing, <?php echo htmlspecialchars($user_data['username']); ?>!</h2>
+            <h2>🎉 Welcome to girlskissing.dev, <?php echo htmlspecialchars($user_data['username']); ?>!</h2>
             <p>Your account has been created successfully. You can now submit and track your applications.</p>
         </div>
     <?php endif; ?>

@@ -225,7 +225,7 @@ function renderUserNavbar($current_page = '', $is_main_site = false) {
     }
     
     echo '<div class="header">';
-    echo '<h1>' . ($is_main_site ? '🌸 Girls Kissing Application' : '🏠 Admin Dashboard') . '</h1>';
+    echo '<h1>' . ($is_main_site ? '🌸 girlskissing.dev' : '🏠 Admin Dashboard') . '</h1>';
     echo '<div class="header-actions">';
     
     if ($is_logged_in) {
