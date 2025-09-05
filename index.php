@@ -623,7 +623,7 @@ if ($form_maintenance_active && !$is_admin) {
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px 20px 60px 20px;
+      padding: 20px;
       flex-direction: column;
     }
 
@@ -864,7 +864,7 @@ if ($form_maintenance_active && !$is_admin) {
       opacity: 0;
       transform: translateY(20px);
       animation: fadeUp 1s forwards;
-      margin-top: 20px;
+      margin-top: 60px;
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
