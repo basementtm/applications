@@ -3,15 +3,24 @@
 // This replaces admin-specific auth functions with a unified system
 
 function startUserSession($user_data, $remember_me = false) {
+    // Set unified user session variables
     $_SESSION['user_logged_in'] = true;
     $_SESSION['user_id'] = $user_data['id'];
     $_SESSION['username'] = $user_data['username'];
     $_SESSION['user_role'] = $user_data['role'];
     $_SESSION['user_email'] = $user_data['email'];
     
+    // Set admin session variables for compatibility with admin panel
+    $_SESSION['admin_logged_in'] = true;
+    $_SESSION['admin_id'] = $user_data['id'];
+    $_SESSION['admin_username'] = $user_data['username'];
+    $_SESSION['admin_role'] = $user_data['role'];
+    
     // Set session duration based on remember me
     $session_duration = $remember_me ? (30 * 24 * 60 * 60) : (8 * 60 * 60); // 30 days or 8 hours
     $_SESSION['session_expires'] = time() + $session_duration;
+    $_SESSION['remember_me'] = $remember_me;
+    $_SESSION['login_time'] = time();
     
     // Update last login
     global $conn;
@@ -85,6 +94,7 @@ function requireAdmin($redirect_to = 'dashboard.php?error=access_denied') {
 }
 
 function destroyUserSession() {
+    // Clear all session variables
     $_SESSION = array();
     
     if (ini_get("session.use_cookies")) {

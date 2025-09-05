@@ -12,7 +12,7 @@ require_once '../user_auth.php';
 require_once 'action_logger.php';
 
 // Check if user is logged in and is admin
-requireAdmin('login.php');
+requireAdmin('../login.php?redirect=admin/dashboard.php');
 
 // Check if user is still active (not disabled)
 checkUserStatus();
