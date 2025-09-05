@@ -146,10 +146,13 @@ function getUserApplications($user_id = null) {
     }
     
     $id = $user_id ?? $_SESSION['user_id'];
+    
+    // Make sure we're selecting all fields needed for the dashboard display
     $sql = "SELECT application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status, created_at 
             FROM applicants 
             WHERE user_id = ? 
             ORDER BY created_at DESC";
+    
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();

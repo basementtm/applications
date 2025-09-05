@@ -13,6 +13,17 @@ requireLogin();
 // Debug user ID
 $debug_user_id = $_SESSION['user_id'] ?? 'No user ID in session';
 
+// Database connection check
+$debug_conn_status = "Not connected";
+global $conn;
+if (isset($conn) && $conn) {
+    if (!$conn->connect_error) {
+        $debug_conn_status = "Connected successfully";
+    } else {
+        $debug_conn_status = "Connection failed: " . $conn->connect_error;
+    }
+}
+
 // Get user data
 $user_data = getUserData();
 $applications = getUserApplications();
@@ -20,8 +31,8 @@ $applications = getUserApplications();
 // Debug applications count
 $debug_apps_count = count($applications);
 
-// Let's check the database connection and try to get applications directly
-global $conn;
+// Direct query to get applications count
+$debug_direct_count = "Unknown";
 if (isset($conn) && $conn && !$conn->connect_error) {
     $debug_direct_query = "SELECT COUNT(*) as total FROM applicants WHERE user_id = " . (int)$_SESSION['user_id'];
     $debug_result = $conn->query($debug_direct_query);
@@ -178,24 +189,39 @@ $current_page = 'dashboard.php';
             text-transform: uppercase;
         }
         
-        .status-pending {
+        .status-unreviewed {
             background-color: #ffeaa7;
             color: #d63031;
         }
         
-        .status-approved {
+        .status-stage2, .status-under-review {
+            background-color: #a29bfe;
+            color: #6c5ce7;
+        }
+        
+        .status-stage3 {
+            background-color: #81ecec;
+            color: #00cec9;
+        }
+        
+        .status-accepted, .status-approved {
             background-color: #55efc4;
             color: #00b894;
         }
         
-        .status-rejected {
+        .status-rejected, .status-denied {
             background-color: #fab1a0;
             color: #e17055;
         }
         
-        .status-under-review {
-            background-color: #a29bfe;
-            color: #6c5ce7;
+        .status-invalid {
+            background-color: #e67e22;
+            color: white;
+        }
+        
+        .status-pending {
+            background-color: #ffeaa7;
+            color: #d63031;
         }
         
         .application-details {
@@ -355,19 +381,36 @@ $current_page = 'dashboard.php';
                     <span class="icon">📝</span>
                     <h4>No Applications Yet</h4>
                     <p>You haven't submitted any applications yet. Ready to get started?</p>
-                    <!-- Debug info only visible to admins -->
-                    <?php if (isAdmin()): ?>
+                    <!-- Debug info visible to all users temporarily while debugging -->
                     <div style="text-align: left; background-color: #f8f9fa; padding: 10px; margin: 15px 0; border-radius: 5px; font-size: 0.9rem;">
-                        <strong>Debug Info (Admin Only):</strong><br>
+                        <strong>Debug Info:</strong><br>
                         User ID: <?php echo $debug_user_id; ?><br>
                         Applications count from function: <?php echo $debug_apps_count; ?><br>
-                        Applications count direct query: <?php echo $debug_direct_count; ?>
+                        Applications count direct query: <?php echo $debug_direct_count; ?><br>
+                        <?php if (isset($conn) && $conn && !$conn->connect_error): ?>
+                            <strong>Database connection:</strong> OK<br>
+                            <?php 
+                            // Display one raw application if available for debugging
+                            $debug_raw_app_query = "SELECT * FROM applicants WHERE user_id = " . (int)$_SESSION['user_id'] . " LIMIT 1";
+                            $debug_raw_app_result = $conn->query($debug_raw_app_query);
+                            if ($debug_raw_app_result && $debug_raw_app_result->num_rows > 0): 
+                                $debug_raw_app = $debug_raw_app_result->fetch_assoc();
+                            ?>
+                            <strong>Raw application data:</strong><br>
+                            <pre style="font-size: 0.8rem; overflow: auto; max-height: 200px;"><?php print_r($debug_raw_app); ?></pre>
+                            <?php else: ?>
+                            <strong>No raw application data found</strong>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <strong>Database connection:</strong> FAILED
+                        <?php endif; ?>
                     </div>
-                    <?php endif; ?>
                     <a href="index.php" class="action-btn">Submit Your First Application</a>
                 </div>
             <?php else: ?>
-                <?php foreach ($applications as $app): ?>
+                <?php foreach ($applications as $app): 
+                    if (!$app) { continue; } // Skip if $app is null
+                ?>
                     <div class="application-item">
                         <div class="application-header">
                             <span class="application-id">#<?php echo htmlspecialchars($app['application_id']); ?></span>
@@ -377,11 +420,23 @@ $current_page = 'dashboard.php';
                         </div>
                         <div class="application-details">
                             <strong><?php echo htmlspecialchars($app['name']); ?></strong> • <?php echo htmlspecialchars($app['email']); ?>
-                            <?php if (!empty($app['cage'])): ?>
+                            <?php if (!empty($app['gfphone'])): ?>
+                                <br>Phone: <?php echo htmlspecialchars($app['gfphone']); ?>
+                            <?php endif; ?>
+                            <?php if (!empty($app['reason'])): ?>
+                                <br>Reason: <?php echo htmlspecialchars($app['reason']); ?>
+                            <?php endif; ?>
+                            <?php if ($app['cage'] > 0): ?>
                                 <br>Nights in Cage: <?php echo htmlspecialchars($app['cage']); ?>
                             <?php endif; ?>
                             <?php if (!empty($app['isCat'])): ?>
                                 <br>Cat: <?php echo htmlspecialchars($app['isCat']); ?>
+                            <?php endif; ?>
+                            <?php if (!empty($app['owner'])): ?>
+                                <br>Owner: <?php echo htmlspecialchars($app['owner']); ?>
+                            <?php endif; ?>
+                            <?php if (!empty($app['preferredLocation'])): ?>
+                                <br>Preferred Location: <?php echo htmlspecialchars($app['preferredLocation']); ?>
                             <?php endif; ?>
                         </div>
                         <div class="application-date">
