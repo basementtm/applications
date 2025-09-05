@@ -300,11 +300,14 @@ function getUserNavbarCSS() {
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             border-radius: 10px;
             opacity: 0;
             transform: translateY(-10px);
             animation: fadeSlideDown 0.8s forwards;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         @keyframes fadeSlideDown {

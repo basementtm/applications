@@ -1034,7 +1034,8 @@ if ($form_maintenance_active && !$is_admin) {
       user-select: none;
       color: var(--text-color);
       transition: color 0.3s ease;
-      gap: 10px;
+      gap: 8px;
+      padding-left: 0;
     }
 
     .checkbox-container input {
@@ -1047,16 +1048,14 @@ if ($form_maintenance_active && !$is_admin) {
     }
 
     .checkbox-container .checkmark {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
+      position: relative;
       height: 20px;
       width: 20px;
       background-color: var(--input-bg);
       border: 2px solid var(--secondary-pink);
       border-radius: 5px;
       transition: 0.3s all;
+      flex-shrink: 0;
     }
 
     .checkbox-container input:checked ~ .checkmark {
