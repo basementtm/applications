@@ -1,6 +1,6 @@
 <?php
 // user_auth.php handles session starting
-require_once __DIR__ . '/../includes/user_auth.php';
+require_once __DIR__ . '/../user_auth.php';
 
 // Include action logging functions
 require_once 'action_logger.php';
@@ -55,7 +55,7 @@ if (!$application) {
     <style>
         <?php 
         // user_auth.php is already included, which contains navbar functions
-        echo getNavbarCSS(); 
+        echo getUserNavbarCSS(); 
         ?>
 
         .container {
@@ -206,7 +206,7 @@ if (!$application) {
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <?php renderAdminNavbar('view.php'); ?>
+    <?php renderUserNavbar('view.php'); ?>
     
     <div class="container">
         <h1 class="page-title">📋 Application Details</h1>
@@ -319,7 +319,7 @@ if (!$application) {
         });
     </script>
     
-    <?php echo getNavbarJS(); ?>
+    <?php echo getUserNavbarJS(); ?>
 
     <?php
     // Close database connection at the end

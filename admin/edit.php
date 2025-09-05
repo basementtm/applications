@@ -1,16 +1,14 @@
 <?php
 // user_auth.php handles session starting
-require_once __DIR__ . '/../includes/user_auth.php';
-// Include action logging functions
+require_once '../user_auth.php';
 require_once 'action_logger.php';
 
-// Revalidate session and ensure user is an admin
-revalidateUserSession();
-if (!isAdmin()) {
-    // Redirect to a unified login page, not the old admin one
-    header("Location: /login.php?unauthorized=true");
-    exit();
-}
+// Check if user is logged in and is admin
+$redirect_id = isset($_GET['id']) ? urlencode($_GET['id']) : '';
+requireAdmin('../login.php?redirect=admin/edit.php?id=' . $redirect_id);
+
+// Check if user is still active (not disabled)
+checkUserStatus();
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -133,7 +131,7 @@ $stmt->close();
             --input-bg: #4a3a4a;
         }
 
-        <?php echo getNavbarCSS(); ?>
+        <?php echo getUserNavbarCSS(); ?>
 
         * {
             margin: 0;
@@ -349,7 +347,7 @@ $stmt->close();
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <?php renderAdminNavbar('edit.php'); ?>
+    <?php renderUserNavbar('edit.php'); ?>
     
     <div class="container">
         <h1 style="color: var(--primary-pink); margin-bottom: 30px; text-align: center; font-size: 2rem;">✏️ Edit Application</h1>
@@ -455,7 +453,7 @@ $stmt->close();
         });
     </script>
     
-    <?php echo getNavbarJS(); ?>
+    <?php echo getUserNavbarJS(); ?>
     
     <?php
     // Close database connection at the end
