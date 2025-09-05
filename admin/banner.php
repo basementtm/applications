@@ -494,6 +494,8 @@ if ($table_check && $table_check->num_rows > 0) {
         });
     </script>
     
+    <?php echo getNavbarJS(); ?>
+    
     <?php
     // Close database connection at the end
     if (isset($conn)) {

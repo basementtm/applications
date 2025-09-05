@@ -1132,6 +1132,8 @@ $users_result = $conn->query($users_sql);
         });
     </script>
     
+    <?php echo getNavbarJS(); ?>
+    
     <?php
     // Close database connection at the end
     if (isset($conn)) {

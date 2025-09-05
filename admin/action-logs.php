@@ -948,6 +948,8 @@ while ($row = $usernames_result->fetch_assoc()) {
             }
         });
     </script>
+    
+    <?php echo getNavbarJS(); ?>
 </body>
 </html>
 

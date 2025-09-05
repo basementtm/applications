@@ -538,6 +538,8 @@ $banned_ips_result = $conn->query("SELECT * FROM banned_ips ORDER BY banned_at D
         // Theme switcher click event
         document.getElementById('themeSwitcher').addEventListener('click', toggleTheme);
     </script>
+    
+    <?php echo getNavbarJS(); ?>
 </body>
 </html>
 
