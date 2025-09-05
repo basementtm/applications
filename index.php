@@ -1026,7 +1026,7 @@ if ($form_maintenance_active && !$is_admin) {
     .checkbox-container {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       position: relative;
       margin: 15px 0;
       cursor: pointer;
