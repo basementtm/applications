@@ -287,7 +287,7 @@ function getUserNavbarCSS() {
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 80px 20px 20px 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
         }
