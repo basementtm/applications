@@ -683,11 +683,52 @@ $users_result = $conn->query($users_sql);
             transform: translate(-50%, -50%) scale(0.8);
             background: var(--container-bg);
             border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 25px;
             z-index: 1000;
-            box-shadow: 0 4px 10px var(--shadow-color);
+            box-shadow: 0 8px 25px var(--shadow-color);
             animation: fadeScale 0.3s forwards;
+            min-width: 400px;
+            max-width: 500px;
+        }
+
+        #rolePopup h3 {
+            margin-bottom: 20px;
+            color: var(--primary-pink);
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--primary-pink);
+            padding-bottom: 10px;
+        }
+
+        #rolePopup label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        #rolePopup select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        #rolePopup select:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.2);
+        }
+
+        #rolePopup .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
         #blurOverlay {
@@ -1007,7 +1048,7 @@ $users_result = $conn->query($users_sql);
 
     <div id="blurOverlay"></div>
     <div id="rolePopup">
-      <h3 style="margin-bottom: 15px;">Change User Role</h3>
+      <h3>Change User Role</h3>
       <form id="roleForm" method="POST">
         <input type="hidden" name="action" value="change_role">
         <input type="hidden" name="user_id" id="popupUserId">
@@ -1017,7 +1058,7 @@ $users_result = $conn->query($users_sql);
           <option value="admin">Admin</option>
           <option value="super_admin">Super Admin</option>
         </select>
-        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="cancelRole" class="btn btn-secondary">Cancel</button>
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>

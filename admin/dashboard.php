@@ -741,12 +741,14 @@ while ($row = $stats_result->fetch_assoc()) {
             transform: translate(-50%, -50%) scale(0.8);
             background: var(--container-bg);
             border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 25px;
             z-index: 1000;
-            box-shadow: 0 4px 10px var(--shadow-color);
+            box-shadow: 0 8px 25px var(--shadow-color);
             opacity: 0;
             animation: fadeScale 0.3s forwards;
+            min-width: 400px;
+            max-width: 500px;
         }
 
         @keyframes fadeScale {
@@ -757,21 +759,135 @@ while ($row = $stats_result->fetch_assoc()) {
         }
 
         #reasonPopup h3 {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            color: var(--primary-pink);
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--primary-pink);
+            padding-bottom: 10px;
         }
 
         #reasonPopup textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 5px;
+            border-radius: 8px;
             background-color: var(--input-bg);
             color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
+
+        #reasonPopup textarea:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 2px rgba(255, 20, 147, 0.2);
         }
 
         #reasonPopup .btn {
-            padding: 8px 12px;
-            font-size: 0.9rem;
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin-right: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Confirmation Popup */
+        #confirmPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px;
+            z-index: 1001;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            opacity: 0;
+            animation: fadeScale 0.3s forwards;
+            min-width: 400px;
+            max-width: 500px;
+        }
+
+        #confirmPopup h3 {
+            margin-bottom: 20px;
+            color: var(--danger-color);
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        #confirmPopup p {
+            margin-bottom: 25px;
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        #confirmPopup .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        #confirmPopup .btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        /* Custom Alert Popup */
+        #alertPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px;
+            z-index: 1001;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            opacity: 0;
+            animation: fadeScale 0.3s forwards;
+            min-width: 350px;
+            max-width: 450px;
+        }
+
+        #alertPopup h3 {
+            margin-bottom: 20px;
+            color: var(--primary-pink);
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        #alertPopup p {
+            margin-bottom: 25px;
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        #alertPopup .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        #alertPopup .btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            min-width: 100px;
         }
     </style>
 </head>
@@ -958,7 +1074,7 @@ while ($row = $stats_result->fetch_assoc()) {
                                     </form>
                                     <a href="view.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">👁️</a>
                                     <a href="edit.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">✏️</a>
-                                    <a href="delete.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" onclick="return confirm('Are you sure you want to delete this application?')">🗑️</a>
+                                    <a href="#" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" onclick="showConfirmation('Are you sure you want to delete this application?', () => { window.location.href = 'delete.php?id=<?= urlencode($app['application_id']) ?>'; }); return false;">🗑️</a>
                                 </div>
                             </td>
                             <?php else: ?>
@@ -1005,6 +1121,25 @@ while ($row = $stats_result->fetch_assoc()) {
         <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
             <button id="cancelReason" class="btn btn-secondary">Cancel</button>
             <button id="submitReason" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Popup -->
+    <div id="confirmPopup">
+        <h3>⚠️ Confirmation Required</h3>
+        <p id="confirmMessage"></p>
+        <div class="button-group">
+            <button type="button" id="confirmCancel" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="confirmOK" class="btn btn-danger">OK</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert Popup -->
+    <div id="alertPopup">
+        <h3>ℹ️ Notice</h3>
+        <p id="alertMessage"></p>
+        <div class="button-group">
+            <button type="button" id="alertOK" class="btn btn-primary">OK</button>
         </div>
     </div>
 
@@ -1080,24 +1215,24 @@ while ($row = $stats_result->fetch_assoc()) {
             const action = bulkAction.value;
 
             if (checkedCount === 0) {
-                alert('Please select at least one application.');
+                showAlert('Please select at least one application.');
                 return;
             }
 
             if (action === '') {
-                alert('Please select an action.');
+                showAlert('Please select an action.');
                 return;
             }
 
             if (action === 'bulk_delete') {
-                if (confirm(`Are you sure you want to delete ${checkedCount} selected application(s)? This action cannot be undone.`)) {
+                showConfirmation(`Are you sure you want to delete ${checkedCount} selected application(s)? This action cannot be undone.`, () => {
                     bulkForm.submit();
-                }
+                });
             } else if (action === 'bulk_status') {
                 const statusText = bulkStatus.options[bulkStatus.selectedIndex].text;
-                if (confirm(`Are you sure you want to ${statusText.toLowerCase()} for ${checkedCount} selected application(s)?`)) {
+                showConfirmation(`Are you sure you want to ${statusText.toLowerCase()} for ${checkedCount} selected application(s)?`, () => {
                     bulkForm.submit();
-                }
+                });
             }
         });
 
@@ -1157,6 +1292,73 @@ while ($row = $stats_result->fetch_assoc()) {
             document.body.appendChild(form);
             form.submit();
         });
+
+        // Custom Confirmation Popup
+        const confirmPopup = document.getElementById('confirmPopup');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancel = document.getElementById('confirmCancel');
+        const confirmOK = document.getElementById('confirmOK');
+
+        let confirmCallback = null;
+
+        function showConfirmation(message, callback) {
+            confirmMessage.textContent = message;
+            confirmCallback = callback;
+            confirmPopup.style.display = 'block';
+            blurOverlay.style.display = 'block';
+        }
+
+        function hideConfirmation() {
+            confirmPopup.style.display = 'none';
+            blurOverlay.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        confirmCancel.addEventListener('click', () => {
+            hideConfirmation();
+        });
+
+        confirmOK.addEventListener('click', () => {
+            hideConfirmation();
+            if (confirmCallback) {
+                confirmCallback();
+            }
+        });
+
+        // Custom Alert Popup
+        const alertPopup = document.getElementById('alertPopup');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertOK = document.getElementById('alertOK');
+
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            alertPopup.style.display = 'block';
+            blurOverlay.style.display = 'block';
+        }
+
+        function hideAlert() {
+            alertPopup.style.display = 'none';
+            blurOverlay.style.display = 'none';
+        }
+
+        alertOK.addEventListener('click', () => {
+            hideAlert();
+        });
+
+        // Override default alert and confirm functions for this page
+        window.customAlert = showAlert;
+        window.customConfirm = function(message) {
+            return new Promise((resolve) => {
+                showConfirmation(message, () => resolve(true));
+                // If cancelled, resolve with false
+                const originalCancel = confirmCancel.onclick;
+                confirmCancel.onclick = () => {
+                    hideConfirmation();
+                    resolve(false);
+                    confirmCancel.onclick = originalCancel;
+                };
+            });
+        };
 
         // Initialize
         updateSelectedCount();
