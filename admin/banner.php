@@ -364,8 +364,6 @@ if ($table_check && $table_check->num_rows > 0) {
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
-    
     <?php renderAdminNavbar('banner.php'); ?>
 
     <div class="container">

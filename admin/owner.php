@@ -775,8 +775,6 @@ $users_result = $conn->query($users_sql);
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
-    
     <?php renderAdminNavbar('owner.php'); ?>
 
     <div class="container">

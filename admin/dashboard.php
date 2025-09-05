@@ -904,8 +904,6 @@ while ($row = $stats_result->fetch_assoc()) {
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
-    
     <?php renderAdminNavbar('dashboard.php'); ?>
 
     <div class="container">

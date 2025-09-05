@@ -757,8 +757,6 @@ try {
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
-    
     <?php renderAdminNavbar('maintenance-control.php'); ?>
 
     <!-- JavaScript for Theme Switcher -->

@@ -388,8 +388,6 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
-    
     <?php renderAdminNavbar('delete.php'); ?>
     
     <div class="page-container">

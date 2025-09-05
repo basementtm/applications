@@ -26,8 +26,7 @@ function renderAdminNavbar($currentPage = '') {
     
     // Define nav items with their icons and titles
     $navItems = [
-        'dashboard.php' => ['🏠', 'Dashboard'],
-        'settings.php' => ['⚙️', 'Settings']
+        'dashboard.php' => ['🏠', 'Dashboard']
     ];
     
     // Add maintenance and banner management only for non-readonly users
@@ -35,9 +34,6 @@ function renderAdminNavbar($currentPage = '') {
         $navItems['maintenance-control.php'] = ['🚧', 'Maintenance'];
         $navItems['banner.php'] = ['📢', 'Banner Management'];
     }
-    
-    // Add link to return to main form
-    $navItems['../index.php'] = ['📝', 'Return to Form'];
     
     // Add owner-only navigation for Emma
     if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] === 'emma') {
@@ -55,6 +51,10 @@ function renderAdminNavbar($currentPage = '') {
         echo '<span class="maintenance-badge" title="Maintenance Mode Active - Applications Closed">🚧 MAINTENANCE</span>';
     }
     
+    // Return to Form button (outside dropdown)
+    $returnActiveClass = ($currentPage === '../index.php') ? ' nav-active' : '';
+    echo '<a href="../index.php" class="nav-external-btn' . $returnActiveClass . '">📝 Return to Form</a>';
+    
     // Navigation dropdown
     echo '<div class="nav-dropdown">';
     echo '<button class="nav-toggle" id="navToggle">☰ Menu</button>';
@@ -67,6 +67,10 @@ function renderAdminNavbar($currentPage = '') {
         $activeClass = ($currentPage === $page) ? ' nav-active' : '';
         echo '<a href="' . $page . '" class="nav-item' . $activeClass . '">' . $icon . ' ' . $title . '</a>';
     }
+    
+    // Add Settings above Logout
+    $settingsActiveClass = ($currentPage === 'settings.php') ? ' nav-active' : '';
+    echo '<a href="settings.php" class="nav-item' . $settingsActiveClass . '">⚙️ Settings</a>';
     
     echo '<a href="logout.php" class="nav-item nav-logout">🚪 Logout</a>';
     echo '</div>';
@@ -142,6 +146,35 @@ function getNavbarCSS() {
         .header-actions span {
             margin-right: 10px;
             font-weight: bold;
+        }
+
+        /* External Navigation Button (Return to Form) */
+        .nav-external-btn {
+            background-color: var(--secondary-pink);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-external-btn:hover {
+            background-color: var(--primary-pink);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .nav-external-btn.nav-active {
+            background-color: var(--primary-pink);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px var(--shadow-color);
         }
 
         /* Navigation Dropdown */

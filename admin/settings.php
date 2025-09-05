@@ -131,7 +131,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Settings - Admin</title>
+    <?php include 'navbar.php'; ?>
     <style>
+        <?php echo getNavbarCSS(); ?>
         :root {
             --bg-color: #ffc0cb;
             --container-bg: #fff0f5;
@@ -171,28 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             min-height: 100vh;
             padding: 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .header {
-            background-color: var(--container-bg);
-            padding: 15px 20px;
-            box-shadow: 0 2px 5px var(--shadow-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border-radius: 10px;
-        }
-
-        .header h1 {
-            color: var(--primary-pink);
-            font-size: 1.8rem;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
 
         .container {
@@ -434,30 +414,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 15px 0;
         }
 
-        /* Theme Switcher */
-        .theme-switcher {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
+        /* Theme Switcher Section */
+        .theme-section {
             background-color: var(--container-bg);
-            border: 2px solid var(--secondary-pink);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .theme-toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .theme-switcher-btn {
+            background-color: var(--secondary-pink);
+            color: white;
+            border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 24px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px var(--shadow-color);
         }
 
-        .theme-switcher:hover {
+        .theme-switcher-btn:hover {
             transform: scale(1.1);
-            background-color: var(--secondary-pink);
-            color: white;
+            background-color: var(--primary-pink);
         }
 
         @media (max-width: 768px) {
@@ -479,14 +471,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+    <?php renderAdminNavbar('settings.php'); ?>
     
     <div class="container">
-        <div class="header">
-            <h1>⚙️ User Settings</h1>
-            <div class="header-actions">
-                <span>Logged in as: <strong><?= htmlspecialchars($username) ?></strong></span>
-                <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
+        <!-- Theme Settings Section -->
+        <div class="theme-section">
+            <h2 class="section-title">🎨 Theme Settings</h2>
+            <div class="theme-toggle-container">
+                <div class="setting-info">
+                    <div class="setting-title">Dark Mode</div>
+                    <div class="setting-description">Switch between light and dark theme</div>
+                </div>
+                <button class="theme-switcher-btn" id="themeSwitcher" title="Toggle Dark Mode">🌙</button>
             </div>
         </div>
 
@@ -526,6 +522,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
                 </form>
 
+                <!-- Two-Factor Authentication moved here -->
+                <div style="margin-top: 30px;">
+                    <h3 style="color: var(--primary-pink); margin-bottom: 15px;">🔒 Two-Factor Authentication</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Two-Factor Authentication</div>
+                            <div class="setting-description">Add an extra layer of security with TOTP authentication</div>
+                        </div>
+                        <div>
+                            <span class="status-badge <?= $user_data['two_factor_enabled'] ? 'status-enabled' : 'status-disabled' ?>">
+                                <?= $user_data['two_factor_enabled'] ? 'Enabled' : 'Disabled' ?>
+                            </span>
+                            <?php if (!isReadOnlyUser()): ?>
+                            <form method="POST" style="display: inline; margin-left: 10px;">
+                                <input type="hidden" name="action" value="toggle_2fa">
+                                <input type="hidden" name="enable_2fa" value="<?= $user_data['two_factor_enabled'] ? '0' : '1' ?>">
+                                <button type="submit" class="btn <?= $user_data['two_factor_enabled'] ? 'btn-danger' : 'btn-success' ?>" onclick="return confirm('<?= $user_data['two_factor_enabled'] ? 'Disable' : 'Enable' ?> 2FA?')">
+                                    <?= $user_data['two_factor_enabled'] ? '❌ Disable' : '✅ Enable' ?>
+                                </button>
+                            </form>
+                            <?php else: ?>
+                            <button type="button" class="btn btn-secondary" disabled title="Read-only mode - modifications disabled" style="margin-left: 10px;">
+                                <?= $user_data['two_factor_enabled'] ? '❌ Disable (Read-Only)' : '✅ Enable (Read-Only)' ?>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <?php if ($user_data['two_factor_enabled'] && !empty($user_data['two_factor_secret'])): ?>
+                        <?php
+                        // Check if 2FA setup is complete by checking for backup codes
+                        $setup_complete = false;
+                        $backup_check_sql = "SELECT COUNT(*) as count FROM two_factor_backup_codes WHERE username = ?";
+                        $backup_check_stmt = $conn->prepare($backup_check_sql);
+                        $backup_check_stmt->bind_param("s", $username);
+                        $backup_check_stmt->execute();
+                        $backup_check_result = $backup_check_stmt->get_result();
+                        $backup_count = $backup_check_result->fetch_assoc()['count'];
+                        $backup_check_stmt->close();
+                        $setup_complete = $backup_count > 0;
+                        ?>
+                        
+                        <?php if (!$setup_complete): ?>
+                        <div class="qr-code-container">
+                            <h4>📱 Complete 2FA Setup</h4>
+                            <p>2FA is enabled but setup is incomplete. Click below to finish setup:</p>
+                            <a href="setup-2fa.php" class="btn btn-warning">⚠️ Complete 2FA Setup</a>
+                        </div>
+                        <?php else: ?>
+                        <div class="qr-code-container">
+                            <h4>✅ 2FA Setup Complete</h4>
+                            <p>Two-factor authentication is active and configured.</p>
+                            <a href="setup-2fa.php" class="btn btn-info">🔧 Manage 2FA</a>
+                        </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+
                 <div style="margin-top: 30px;">
                     <h3 style="color: var(--primary-pink); margin-bottom: 15px;">Account Information</h3>
                     <div class="setting-item">
@@ -541,70 +595,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
-
-                <div style="margin-top: 20px;">
-                    <a href="change-password.php" class="btn btn-warning">🔐 Change Password</a>
-                </div>
-            </div>
-
-            <!-- Security Settings -->
-            <div class="settings-section">
-                <h2 class="section-title">🔒 Security Settings</h2>
-                
-                <!-- Two-Factor Authentication -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">Two-Factor Authentication</div>
-                        <div class="setting-description">Add an extra layer of security with TOTP authentication</div>
-                    </div>
-                    <div>
-                        <span class="status-badge <?= $user_data['two_factor_enabled'] ? 'status-enabled' : 'status-disabled' ?>">
-                            <?= $user_data['two_factor_enabled'] ? 'Enabled' : 'Disabled' ?>
-                        </span>
-                        <?php if (!isReadOnlyUser()): ?>
-                        <form method="POST" style="display: inline; margin-left: 10px;">
-                            <input type="hidden" name="action" value="toggle_2fa">
-                            <input type="hidden" name="enable_2fa" value="<?= $user_data['two_factor_enabled'] ? '0' : '1' ?>">
-                            <button type="submit" class="btn <?= $user_data['two_factor_enabled'] ? 'btn-danger' : 'btn-success' ?>" onclick="return confirm('<?= $user_data['two_factor_enabled'] ? 'Disable' : 'Enable' ?> 2FA?')">
-                                <?= $user_data['two_factor_enabled'] ? '❌ Disable' : '✅ Enable' ?>
-                            </button>
-                        </form>
-                        <?php else: ?>
-                        <button type="button" class="btn btn-secondary" disabled title="Read-only mode - modifications disabled" style="margin-left: 10px;">
-                            <?= $user_data['two_factor_enabled'] ? '❌ Disable (Read-Only)' : '✅ Enable (Read-Only)' ?>
-                        </button>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-        <?php if ($user_data['two_factor_enabled'] && !empty($user_data['two_factor_secret'])): ?>
-            <?php
-            // Check if 2FA setup is complete by checking for backup codes
-            $setup_complete = false;
-            $backup_check_sql = "SELECT COUNT(*) as count FROM two_factor_backup_codes WHERE username = ?";
-            $backup_check_stmt = $conn->prepare($backup_check_sql);
-            $backup_check_stmt->bind_param("s", $username);
-            $backup_check_stmt->execute();
-            $backup_check_result = $backup_check_stmt->get_result();
-            $backup_count = $backup_check_result->fetch_assoc()['count'];
-            $backup_check_stmt->close();
-            $setup_complete = $backup_count > 0;
-            ?>
-            
-            <?php if (!$setup_complete): ?>
-            <div class="qr-code-container">
-                <h4>📱 Complete 2FA Setup</h4>
-                <p>2FA is enabled but setup is incomplete. Click below to finish setup:</p>
-                <a href="setup-2fa.php" class="btn btn-warning">⚠️ Complete 2FA Setup</a>
-            </div>
-            <?php else: ?>
-            <div class="qr-code-container">
-                <h4>✅ 2FA Setup Complete</h4>
-                <p>Two-factor authentication is active and configured.</p>
-                <a href="setup-2fa.php" class="btn btn-info">� Manage 2FA</a>
-            </div>
-            <?php endif; ?>
-        <?php endif; ?>
             </div>
         </div>
     </div>
@@ -636,6 +626,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         });
     </script>
+    
+    <?php echo getNavbarJS(); ?>
 </body>
 </html>
 
