@@ -302,6 +302,13 @@ function getUserNavbarCSS() {
             flex-wrap: wrap;
             margin-bottom: 30px;
             border-radius: 10px;
+            opacity: 0;
+            transform: translateY(-10px);
+            animation: fadeSlideDown 0.8s forwards;
+        }
+
+        @keyframes fadeSlideDown {
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .header h1 {
