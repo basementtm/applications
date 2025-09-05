@@ -365,7 +365,7 @@ function getUserNavbarCSS() {
             border: 1px solid var(--border-color);
             border-radius: 10px;
             box-shadow: 0 8px 25px var(--shadow-color);
-            z-index: 1000;
+            z-index: 9999;
             min-width: 200px;
             overflow: hidden;
             margin-top: 5px;
