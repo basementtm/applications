@@ -638,6 +638,40 @@ $users_result = $conn->query($users_sql);
             color: white;
         }
 
+        #rolePopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            animation: fadeScale 0.3s forwards;
+        }
+
+        #blurOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        @keyframes fadeScale {
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -894,16 +928,7 @@ $users_result = $conn->query($users_sql);
                                                 <?= $user['active'] ? 'Disable' : 'Enable' ?>
                                             </button>
                                         </form>
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="action" value="change_role">
-                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-                                            <select name="new_role" required>
-                                                <option value="readonly_admin" <?= $user['role'] === 'readonly_admin' ? 'selected' : '' ?>>Read-Only Admin</option>
-                                                <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-                                                <option value="super_admin" <?= $user['role'] === 'super_admin' ? 'selected' : '' ?>>Super Admin</option>
-                                            </select>
-                                            <button type="submit" class="btn btn-sm btn-primary">Change Role</button>
-                                        </form>
+                                        <button class="btn btn-sm btn-primary" onclick="openRolePopup(<?= $user['id'] ?>, '<?= $user['role'] ?>')">Change Role</button>
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="action" value="delete_user">
                                             <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
@@ -919,6 +944,25 @@ $users_result = $conn->query($users_sql);
                 </table>
             </div>
         </div>
+    </div>
+
+    <div id="blurOverlay"></div>
+    <div id="rolePopup">
+      <h3 style="margin-bottom: 15px;">Change User Role</h3>
+      <form id="roleForm" method="POST">
+        <input type="hidden" name="action" value="change_role">
+        <input type="hidden" name="user_id" id="popupUserId">
+        <label for="popupRole">Select Role:</label>
+        <select name="new_role" id="popupRole" required>
+          <option value="readonly_admin">Read-Only Admin</option>
+          <option value="admin">Admin</option>
+          <option value="super_admin">Super Admin</option>
+        </select>
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="cancelRole" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
     </div>
 
     <script>
@@ -956,6 +1000,25 @@ $users_result = $conn->query($users_sql);
             
             return confirm('This will permanently delete ALL applications. This action cannot be undone. Are you absolutely sure?');
         }
+
+        const rolePopup = document.getElementById('rolePopup');
+        const blurOverlay = document.getElementById('blurOverlay');
+        const cancelRole = document.getElementById('cancelRole');
+        const roleForm = document.getElementById('roleForm');
+        const popupUserId = document.getElementById('popupUserId');
+        const popupRole = document.getElementById('popupRole');
+
+        function openRolePopup(userId, currentRole) {
+          popupUserId.value = userId;
+          popupRole.value = currentRole;
+          rolePopup.style.display = 'block';
+          blurOverlay.style.display = 'block';
+        }
+
+        cancelRole.addEventListener('click', () => {
+          rolePopup.style.display = 'none';
+          blurOverlay.style.display = 'none';
+        });
     </script>
     
     <?php
