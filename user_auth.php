@@ -25,7 +25,11 @@ function startUserSession($user_data, $remember_me = false) {
 }
 
 function isLoggedIn() {
-    if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+    // Check both new unified login and legacy admin login session flags
+    $logged_in = (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) ||
+                 (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
+    
+    if (!$logged_in) {
         return false;
     }
     
@@ -43,20 +47,27 @@ function isAdmin() {
         return false;
     }
     
-    $role = $_SESSION['user_role'] ?? '';
+    // Check both new and legacy admin role session variables
+    $role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? '';
     return in_array($role, ['readonly_admin', 'admin', 'super_admin']);
 }
 
 function isReadOnlyUser() {
-    return isLoggedIn() && ($_SESSION['user_role'] ?? '') === 'readonly_admin';
+    // Check both new and legacy admin role session variables
+    $role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? '';
+    return isLoggedIn() && $role === 'readonly_admin';
 }
 
 function isSuperAdmin() {
-    return isLoggedIn() && ($_SESSION['user_role'] ?? '') === 'super_admin';
+    // Check both new and legacy admin role session variables
+    $role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? '';
+    return isLoggedIn() && $role === 'super_admin';
 }
 
 function isOwner() {
-    return isLoggedIn() && ($_SESSION['username'] ?? '') === 'emma';
+    // Check both new and legacy username session variables
+    $username = $_SESSION['username'] ?? $_SESSION['admin_username'] ?? '';
+    return isLoggedIn() && $username === 'emma';
 }
 
 function requireLogin($redirect_to = 'login.php') {
