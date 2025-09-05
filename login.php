@@ -97,7 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" <?php
+$theme = $_COOKIE['theme'] ?? 'light';
+if ($theme === 'dark') {
+    echo 'data-theme="dark"';
+}
+?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,6 +117,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --border-color: #ccc;
             --shadow-color: rgba(0,0,0,0.1);
             --input-bg: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
         }
 
         body {

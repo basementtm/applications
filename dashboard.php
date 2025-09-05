@@ -43,12 +43,43 @@ $current_page = 'dashboard.php';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" <?php
+$theme = $_COOKIE['theme'] ?? 'light';
+if ($theme === 'dark') {
+    echo 'data-theme="dark"';
+}
+?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - girlskissing.dev</title>
     <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --input-bg: #f1f3f5;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2d1b2e;
+            --container-bg: #3d2b3e;
+            --text-color: #e0d0e0;
+            --primary-pink: #ff6bb3;
+            --secondary-pink: #d147a3;
+            --border-color: #666;
+            --shadow-color: rgba(0,0,0,0.3);
+            --input-bg: #4a3a4a;
+        }
+        
         <?php echo getUserNavbarCSS(); ?>
         
         .welcome-banner {
@@ -276,6 +307,32 @@ $current_page = 'dashboard.php';
             color: white;
         }
         
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--container-bg);
+            border: 2px solid var(--secondary-pink);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-pink);
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -398,6 +455,35 @@ $current_page = 'dashboard.php';
         </div>
     </div>
     
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
+    
     <?php echo getUserNavbarJS(); ?>
+    
+    <script>
+        // Theme Switcher
+        const themeSwitcher = document.getElementById("themeSwitcher");
+        const htmlEl = document.documentElement;
+
+        // Set initial theme from cookie
+        const currentTheme = "<?php echo $theme; ?>";
+        if (currentTheme === "dark") {
+            htmlEl.setAttribute("data-theme", "dark");
+            themeSwitcher.textContent = "☀️";
+        }
+
+        themeSwitcher.addEventListener("click", () => {
+            const isDark = htmlEl.getAttribute("data-theme") === "dark";
+            
+            if (isDark) {
+                htmlEl.removeAttribute("data-theme");
+                themeSwitcher.textContent = "🌙";
+                document.cookie = "theme=light;path=/;max-age=31536000";
+            } else {
+                htmlEl.setAttribute("data-theme", "dark");
+                themeSwitcher.textContent = "☀️";
+                document.cookie = "theme=dark;path=/;max-age=31536000";
+            }
+        });
+    </script>
 </body>
 </html>
