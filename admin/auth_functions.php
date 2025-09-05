@@ -36,7 +36,7 @@ function checkUserStatus() {
         }
         
         $user_id = $_SESSION['admin_id'];
-        $check_sql = "SELECT active FROM admin_users WHERE id = ?";
+        $check_sql = "SELECT active FROM users WHERE id = ?";
         $check_stmt = $conn->prepare($check_sql);
         $check_stmt->bind_param("i", $user_id);
         $check_stmt->execute();
