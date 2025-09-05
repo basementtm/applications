@@ -621,8 +621,8 @@ if ($form_maintenance_active && !$is_admin) {
     .main-container {
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      align-items: flex-start;
+      min-height: calc(100vh - 80px);
       padding: 20px;
       flex-direction: column;
     }
