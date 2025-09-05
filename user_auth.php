@@ -361,9 +361,9 @@ function getUserNavbarCSS() {
 
         .nav-menu {
             display: none;
-            position: fixed;
-            right: 20px;
-            top: 70px;
+            position: absolute;
+            right: 0;
+            top: 100%;
             background-color: var(--container-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;

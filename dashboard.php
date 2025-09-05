@@ -307,10 +307,6 @@ $current_page = 'dashboard.php';
                     <span class="stat-number"><?php echo $user_data['two_factor_enabled'] ? 'Yes' : 'No'; ?></span>
                     <span class="stat-label">2FA Enabled</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number"><?php echo date('M j', strtotime($user_data['created_at'])); ?></span>
-                    <span class="stat-label">Member Since</span>
-                </div>
             </div>
         </div>
         
