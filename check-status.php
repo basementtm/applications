@@ -134,40 +134,6 @@ if ($ip_banned) {
           background-color: var(--heading-color);
           color: white;
         }
-
-        #reasonPopup {
-          display: none;
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) scale(0.8);
-          background: var(--container-bg);
-          border: 1px solid var(--border-color);
-          padding: 20px;
-          border-radius: 8px;
-          z-index: 1000;
-          box-shadow: 0 4px 10px var(--shadow-color);
-          animation: fadeScale 0.3s forwards;
-        }
-
-        #blurOverlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(5px);
-          z-index: 999;
-        }
-
-        @keyframes fadeScale {
-          to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
       </style>
     </head>
     <body>
@@ -180,16 +146,6 @@ if ($ip_banned) {
         <p>Your IP address has been banned from accessing this service.</p>
         <p>If you believe this is an error, please contact the website administrator.</p>
         <p style='margin-top: 15px;'><a href='https://status.girlskissing.dev' target='_blank' style='color: var(--heading-color); text-decoration: underline;'>Check System Status Page</a></p>
-      </div>
-
-      <div id="blurOverlay"></div>
-      <div id="reasonPopup">
-        <h3 style="margin-bottom: 15px;">Provide a Reason</h3>
-        <textarea id="reasonInput" rows="4" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg); color: var(--text-color);"></textarea>
-        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button id="cancelReason" class="btn btn-secondary">Cancel</button>
-          <button id="submitReason" class="btn btn-primary">Submit</button>
-        </div>
       </div>
 
       <script>
@@ -217,27 +173,6 @@ if ($ip_banned) {
             themeSwitcher.textContent = '☀️';
             localStorage.setItem('theme', 'dark');
           }
-        });
-
-        const reasonPopup = document.getElementById('reasonPopup');
-        const blurOverlay = document.getElementById('blurOverlay');
-        const cancelReason = document.getElementById('cancelReason');
-        const submitReason = document.getElementById('submitReason');
-
-        function openReasonPopup() {
-          reasonPopup.style.display = 'block';
-          blurOverlay.style.display = 'block';
-        }
-
-        cancelReason.addEventListener('click', () => {
-          reasonPopup.style.display = 'none';
-          blurOverlay.style.display = 'none';
-        });
-
-        submitReason.addEventListener('click', () => {
-          reasonPopup.style.display = 'none';
-          blurOverlay.style.display = 'none';
-          // Add your submit logic here
         });
       </script>
     </body>
@@ -341,40 +276,6 @@ if ($maintenance_active) {
           background-color: var(--primary-pink);
           color: white;
         }
-
-        #reasonPopup {
-          display: none;
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) scale(0.8);
-          background: var(--container-bg);
-          border: 1px solid var(--border-color);
-          padding: 20px;
-          border-radius: 8px;
-          z-index: 1000;
-          box-shadow: 0 4px 10px var(--shadow-color);
-          animation: fadeScale 0.3s forwards;
-        }
-
-        #blurOverlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(5px);
-          z-index: 999;
-        }
-
-        @keyframes fadeScale {
-          to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
       </style>
     </head>
     <body>
@@ -388,16 +289,6 @@ if ($maintenance_active) {
         <p>We're performing scheduled maintenance to improve our services.</p>
         <p>Please try again later. Thank you for your patience!</p>
         <p style='margin-top: 15px;'><a href='https://status.girlskissing.dev' target='_blank' style='color: var(--primary-pink); text-decoration: underline;'>Check System Status Page</a></p>
-      </div>
-
-      <div id="blurOverlay"></div>
-      <div id="reasonPopup">
-        <h3 style="margin-bottom: 15px;">Provide a Reason</h3>
-        <textarea id="reasonInput" rows="4" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--input-bg); color: var(--text-color);"></textarea>
-        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button id="cancelReason" class="btn btn-secondary">Cancel</button>
-          <button id="submitReason" class="btn btn-primary">Submit</button>
-        </div>
       </div>
 
       <script>
@@ -425,27 +316,6 @@ if ($maintenance_active) {
             themeSwitcher.textContent = '☀️';
             localStorage.setItem('theme', 'dark');
           }
-        });
-
-        const reasonPopup = document.getElementById('reasonPopup');
-        const blurOverlay = document.getElementById('blurOverlay');
-        const cancelReason = document.getElementById('cancelReason');
-        const submitReason = document.getElementById('submitReason');
-
-        function openReasonPopup() {
-          reasonPopup.style.display = 'block';
-          blurOverlay.style.display = 'block';
-        }
-
-        cancelReason.addEventListener('click', () => {
-          reasonPopup.style.display = 'none';
-          blurOverlay.style.display = 'none';
-        });
-
-        submitReason.addEventListener('click', () => {
-          reasonPopup.style.display = 'none';
-          blurOverlay.style.display = 'none';
-          // Add your submit logic here
         });
       </script>
     </body>

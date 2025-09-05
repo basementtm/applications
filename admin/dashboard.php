@@ -721,18 +721,39 @@ while ($row = $stats_result->fetch_assoc()) {
         }
 
         /* Reason Popup */
+        #blurOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
         #reasonPopup {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.8);
             background: var(--container-bg);
             border: 1px solid var(--border-color);
             padding: 20px;
             border-radius: 8px;
             z-index: 1000;
             box-shadow: 0 4px 10px var(--shadow-color);
+            opacity: 0;
+            animation: fadeScale 0.3s forwards;
+        }
+
+        @keyframes fadeScale {
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
 
         #reasonPopup h3 {
@@ -974,6 +995,9 @@ while ($row = $stats_result->fetch_assoc()) {
         <?php endif; ?>
     </div>
 
+    <!-- Blur Overlay -->
+    <div id="blurOverlay"></div>
+
     <!-- Add a popup for entering a reason -->
     <div id="reasonPopup">
         <h3>Provide a Reason</h3>
@@ -1079,6 +1103,7 @@ while ($row = $stats_result->fetch_assoc()) {
 
         // Reason Popup
         const reasonPopup = document.getElementById('reasonPopup');
+        const blurOverlay = document.getElementById('blurOverlay');
         const reasonInput = document.getElementById('reasonInput');
         const cancelReason = document.getElementById('cancelReason');
         const submitReason = document.getElementById('submitReason');
@@ -1091,15 +1116,18 @@ while ($row = $stats_result->fetch_assoc()) {
             currentNewStatus = newStatus;
             reasonInput.value = '';
             reasonPopup.style.display = 'block';
+            blurOverlay.style.display = 'block';
         }
 
         cancelReason.addEventListener('click', () => {
             reasonPopup.style.display = 'none';
+            blurOverlay.style.display = 'none';
         });
 
         submitReason.addEventListener('click', () => {
             const reason = reasonInput.value.trim() || 'N/A';
             reasonPopup.style.display = 'none';
+            blurOverlay.style.display = 'none';
 
             // Submit the form with the reason
             const form = document.createElement('form');
