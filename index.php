@@ -632,7 +632,7 @@ if ($form_maintenance_active && !$is_admin) {
       padding: 30px;
       border-radius: 15px;
       box-shadow: 0 4px 15px var(--shadow-color);
-      max-width: 600px;
+      max-width: 800px;
       width: 100%;
       position: relative;
     }
@@ -871,9 +871,8 @@ if ($form_maintenance_active && !$is_admin) {
     h1 {
       color: var(--primary-pink);
       margin-bottom: 20px;
-      opacity: 0;
-      transform: translateY(-10px);
-      animation: fadeSlideDown 0.8s forwards;
+      opacity: 1;
+      transform: translateY(0);
       transition: color 0.3s ease;
     }
 
