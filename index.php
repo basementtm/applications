@@ -632,7 +632,7 @@ if ($form_maintenance_active && !$is_admin) {
       padding: 30px;
       border-radius: 15px;
       box-shadow: 0 4px 15px var(--shadow-color);
-      max-width: 1000px;
+      max-width: 1400px;
       width: 100%;
       position: relative;
     }
