@@ -5,7 +5,13 @@ ini_set('display_errors', 1);
 
 // Include required files
 require_once '/var/www/config/db_config.php';
-require_once 'user_auth.php';
+// Include appropriate auth file based on context
+if (strpos($_SERVER['SCRIPT_FILENAME'], '/admin/') !== false) {
+    require_once 'auth_functions.php';
+} else {
+    require_once 'user_auth.php';
+}
+require_once 'action_logger_lite.php';
 
 // Check if user is logged in
 requireLogin();
@@ -40,7 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_stmt = $conn->prepare($update_sql);
                 $update_stmt->bind_param("si", $new_email, $_SESSION['user_id']);
                 if ($update_stmt->execute()) {
+                    $old_email = $user_data['email'];
                     $user_data['email'] = $new_email;
+                    
+                    // Log the email change
+                    logEmailChange($old_email, $new_email);
+                    
                     $message = "Email updated successfully!";
                     $message_type = "success";
                 } else {
@@ -75,6 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($secret)) {
                     $user_data['two_factor_secret'] = $secret;
                 }
+                
+                // Log the 2FA change
+                log2FAChange($enable_2fa);
+                
                 $message = $enable_2fa ? "2FA enabled successfully! Please complete setup." : "2FA disabled successfully!";
                 $message_type = "success";
             } else {
@@ -95,7 +110,14 @@ $theme = $_COOKIE['theme'] ?? 'light';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Settings</title>
     <style>
-        <?php echo getUserNavbarCSS(); ?>
+        <?php
+        // Use the appropriate navbar CSS based on user role
+        if (isAdmin()) {
+            echo getNavbarCSS(); 
+        } else {
+            echo getUserNavbarCSS();
+        }
+        ?>
         /* Using root variables from getUserNavbarCSS */
         body {
             font-family: Arial, sans-serif;
@@ -364,9 +386,18 @@ $theme = $_COOKIE['theme'] ?? 'light';
     </style>
 </head>
 <body>
-    <?php renderUserNavbar('settings.php'); ?>
+    <?php 
+    // Determine which navbar to use based on user role
+    if (isAdmin()) {
+        renderAdminNavbar('settings.php');
+    } else {
+        renderUserNavbar('settings.php'); 
+    }
+    ?>
     
     <div class="container">
+        <h1 style="color: var(--primary-pink); text-align: center; margin-bottom: 20px;">Account Settings</h1>
+        
         <!-- Theme Settings Section -->
         <div class="theme-section">
             <h2 class="section-title">🎨 Theme Settings</h2>
@@ -487,6 +518,30 @@ $theme = $_COOKIE['theme'] ?? 'light';
                             <div class="setting-description"><?= date('F j, Y', strtotime($user_data['created_at'])) ?></div>
                         </div>
                     </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Account Type</div>
+                            <div class="setting-description">
+                                <?php
+                                if (isOwner()) {
+                                    echo "Owner (Super Administrator)";
+                                } elseif (isSuperAdmin()) {
+                                    echo "Super Administrator";
+                                } elseif (isAdmin() && !isReadOnlyUser()) {
+                                    echo "Administrator";
+                                } elseif (isReadOnlyUser()) {
+                                    echo "Read-Only Administrator";
+                                } else {
+                                    echo "Standard User";
+                                }
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="message" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; margin-top: 20px;">
+                        <strong>📝 Note:</strong> To change your password, please contact support.
+                    </div>
                 </div>
             </div>
         </div>
@@ -508,19 +563,40 @@ $theme = $_COOKIE['theme'] ?? 'light';
         themeSwitcher.addEventListener("click", () => {
             const isDark = body.getAttribute("data-theme") === "dark";
             
+            const oldTheme = isDark ? "dark" : "light";
+            const newTheme = isDark ? "light" : "dark";
+            
             if (isDark) {
                 body.removeAttribute("data-theme");
                 themeSwitcher.textContent = "🌙";
                 localStorage.setItem("theme", "light");
+                document.cookie = "theme=light; path=/; max-age=31536000"; // 1 year
             } else {
                 body.setAttribute("data-theme", "dark");
                 themeSwitcher.textContent = "☀️";
                 localStorage.setItem("theme", "dark");
+                document.cookie = "theme=dark; path=/; max-age=31536000"; // 1 year
             }
+            
+            // Log theme change via AJAX to avoid page reload
+            fetch('log_theme_change.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `old_theme=${oldTheme}&new_theme=${newTheme}`
+            });
         });
     </script>
     
-    <?php echo getUserNavbarJS(); ?>
+    <?php 
+    // Use the appropriate navbar JavaScript based on user role
+    if (isAdmin()) {
+        echo getNavbarJS(); 
+    } else {
+        echo getUserNavbarJS();
+    }
+    ?>
 </body>
 </html>
 
