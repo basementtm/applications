@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (!empty($username) && !empty($password)) {
             // Check if username already exists
-            $check_sql = "SELECT id FROM admin_users WHERE username = ?";
+            $check_sql = "SELECT id FROM users WHERE username = ?";
             $check_stmt = $conn->prepare($check_sql);
             $check_stmt->bind_param("s", $username);
             $check_stmt->execute();
@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($check_result->num_rows === 0) {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $insert_sql = "INSERT INTO admin_users (username, password, role, active, created_by) VALUES (?, ?, ?, 1, ?)";
+                $insert_sql = "INSERT INTO users (username, password, role, active, created_by) VALUES (?, ?, ?, 1, ?)";
                 $insert_stmt = $conn->prepare($insert_sql);
                 $insert_stmt->bind_param("sssi", $username, $hashed_password, $role, $_SESSION['admin_id']);
                 
@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_id = (int)$_POST['user_id'];
         
         // Get current user status and username
-        $check_sql = "SELECT active, username FROM admin_users WHERE id = ?";
+        $check_sql = "SELECT active, username FROM users WHERE id = ?";
         $check_stmt = $conn->prepare($check_sql);
         $check_stmt->bind_param("i", $user_id);
         $check_stmt->execute();
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Don't allow disabling emma or self
             if ($user_data['username'] !== 'emma' && $user_id != $_SESSION['admin_id']) {
                 $new_status = $user_data['active'] ? 0 : 1; // Toggle status
-                $update_sql = "UPDATE admin_users SET active = ? WHERE id = ?";
+                $update_sql = "UPDATE users SET active = ? WHERE id = ?";
                 $update_stmt = $conn->prepare($update_sql);
                 $update_stmt->bind_param("ii", $new_status, $user_id);
                 
@@ -280,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'change_role') {
         $user_id = (int)$_POST['user_id'];
         $new_role = $_POST['new_role'];
-        $update_role_sql = "UPDATE admin_users SET role = ? WHERE id = ?";
+        $update_role_sql = "UPDATE users SET role = ? WHERE id = ?";
         $stmt = $conn->prepare($update_role_sql);
         $stmt->bind_param("si", $new_role, $user_id);
         if ($stmt->execute()) {
@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (isset($_POST['action']) && $_POST['action'] === 'delete_user') {
         $user_id = (int)$_POST['user_id'];
-        $delete_user_sql = "DELETE FROM admin_users WHERE id = ?";
+        $delete_user_sql = "DELETE FROM users WHERE id = ?";
         $stmt = $conn->prepare($delete_user_sql);
         $stmt->bind_param("i", $user_id);
         if ($stmt->execute()) {
@@ -338,8 +338,8 @@ $app_count = $count_result ? $count_result->fetch_assoc()['total'] : 0;
 // Get all users
 $users_sql = "SELECT u.id, u.username, u.role, u.active, u.created_at, u.last_login, 
                      creator.username as created_by_name
-              FROM admin_users u 
-              LEFT JOIN admin_users creator ON u.created_by = creator.id 
+              FROM users u 
+              LEFT JOIN users creator ON u.created_by = creator.id 
               ORDER BY u.created_at DESC";
 $users_result = $conn->query($users_sql);
 ?>

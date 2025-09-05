@@ -1,19 +1,16 @@
 <?php
-session_start();
-
-// Include auth functions for user status checking
-require_once 'auth_functions.php';
+// user_auth.php handles session starting
+require_once __DIR__ . '/../includes/user_auth.php';
 // Include action logging functions
 require_once 'action_logger.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['admin_logged_in']) && !isset($_SESSION['read_only_logged_in'])) {
-    header("Location: login.php");
+// Revalidate session and ensure user is an admin
+revalidateUserSession();
+if (!isAdmin()) {
+    // Redirect to a unified login page, not the old admin one
+    header("Location: /login.php?unauthorized=true");
     exit();
 }
-
-// Check if user is still active (not disabled)
-checkUserStatus();
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -109,7 +106,6 @@ $stmt->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Application - Admin</title>
-    <?php include 'navbar.php'; ?>
     <style>
         :root {
             --bg-color: #ffc0cb;
@@ -458,6 +454,8 @@ $stmt->close();
             }
         });
     </script>
+    
+    <?php echo getNavbarJS(); ?>
     
     <?php
     // Close database connection at the end
