@@ -108,6 +108,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    // Handle git pull operation
+    if (isset($_POST['git_pull'])) {
+        $confirm_text = trim($_POST['git_pull_confirm']);
+        if ($confirm_text === 'UPDATE WEBSITE') {
+            try {
+                // Change to the website directory and run git pull
+                $website_dir = '/var/www/html'; // Adjust this path as needed
+                $command = "cd $website_dir && git pull origin master 2>&1";
+                
+                // Execute the command
+                $output = shell_exec($command);
+                $exit_code = 0;
+                
+                if ($output === null) {
+                    $error = "Failed to execute git pull command.";
+                } else {
+                    // Check if the output indicates success or failure
+                    if (strpos($output, 'error:') !== false || strpos($output, 'fatal:') !== false) {
+                        $error = "Git pull failed: " . htmlspecialchars($output);
+                    } else {
+                        $message = "Git pull completed successfully! Output: " . htmlspecialchars($output);
+                        
+                        // Log the git pull action
+                        logAction('GIT_PULL', "Admin executed git pull to update website", 'system', null, [
+                            'output' => $output,
+                            'website_directory' => $website_dir
+                        ]);
+                    }
+                }
+            } catch (Exception $e) {
+                $error = "Error executing git pull: " . $e->getMessage();
+            }
+        } else {
+            $error = "Confirmation text doesn't match. Git pull was NOT executed.";
+        }
+    }
+    
     // Handle maintenance mode toggle
     if (isset($_POST['toggle_maintenance'])) {
         $new_status = $_POST['new_maintenance_status'];
@@ -827,6 +864,28 @@ $users_result = $conn->query($users_sql);
             </div>
         </div>
 
+        <!-- System Operations -->
+        <div class="section">
+            <h3>🔧 System Operations</h3>
+            <p>Perform system-level operations on the server.</p>
+            
+            <div style="margin: 20px 0; padding: 15px; background-color: rgba(0, 123, 255, 0.1); border-radius: 8px; border: 1px solid #007bff;">
+                <h4 style="color: #007bff; margin-bottom: 10px;">🔄 Update Website Code</h4>
+                <p style="margin-bottom: 15px; font-size: 0.9rem;">Pull the latest code changes from the Git repository to update the website</p>
+                
+                <form method="POST" onsubmit="return confirmGitPull()">
+                    <div class="form-group">
+                        <label for="git_pull_confirm">Type "UPDATE WEBSITE" to confirm:</label>
+                        <input type="text" id="git_pull_confirm" name="git_pull_confirm" 
+                               class="confirm-input" placeholder="UPDATE WEBSITE" required>
+                    </div>
+                    <button type="submit" name="git_pull" class="btn" style="background-color: #007bff; color: white;">
+                        🔄 Git Pull - Update Website
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- Dangerous Operations -->
         <div class="section danger-section">
             <h3>⚠️ Dangerous Operations</h3>
@@ -999,6 +1058,17 @@ $users_result = $conn->query($users_sql);
             }
             
             return confirm('This will permanently delete ALL applications. This action cannot be undone. Are you absolutely sure?');
+        }
+
+        // Confirm git pull operation
+        function confirmGitPull() {
+            const confirmText = document.getElementById('git_pull_confirm').value;
+            if (confirmText !== 'UPDATE WEBSITE') {
+                alert('You must type "UPDATE WEBSITE" exactly to confirm.');
+                return false;
+            }
+            
+            return confirm('This will pull the latest code from Git and update the website. Are you sure you want to proceed?');
         }
 
         const rolePopup = document.getElementById('rolePopup');
