@@ -1340,12 +1340,6 @@ if ($form_maintenance_active && !$is_admin) {
   </div>
   <?php endif; ?>
 
-  <?php if ($logout_message): ?>
-    <div id="logout-banner" style="background-color: var(--success-color); color: white; padding: 10px; text-align: center; margin-bottom: 20px; border-radius: 8px;">
-      ✅ You have been successfully logged out. Thank you for visiting!
-    </div>
-  <?php endif; ?>
-
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
     <?php
     $emoji = '';
