@@ -258,7 +258,12 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" <?php
+$theme = $_COOKIE['theme'] ?? 'light';
+if ($theme === 'dark') {
+    echo 'data-theme="dark"';
+}
+?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -480,7 +485,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
         }
     </style>
 </head>
-<body>
+<body <?php if ($theme === 'dark') echo 'data-theme="dark"'; ?>>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
     <div class="container">
@@ -545,7 +550,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
         <?php endif; ?>
         
         <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
-            <a href="../index.html" style="color: var(--primary-pink); text-decoration: none;">← Back to Application Form</a>
+            <a href="../index.php" style="color: var(--primary-pink); text-decoration: none;">← Back to Application Form</a>
         </p>
     </div>
 
@@ -554,7 +559,7 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
         const themeSwitcher = document.getElementById("themeSwitcher");
         const body = document.body;
 
-        const currentTheme = localStorage.getItem("theme") || "light";
+        const currentTheme = "<?php echo $theme; ?>";
         if (currentTheme === "dark") {
             body.setAttribute("data-theme", "dark");
             themeSwitcher.textContent = "☀️";
@@ -566,11 +571,11 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
             if (isDark) {
                 body.removeAttribute("data-theme");
                 themeSwitcher.textContent = "🌙";
-                localStorage.setItem("theme", "light");
+                document.cookie = "theme=light;path=/;max-age=31536000";
             } else {
                 body.setAttribute("data-theme", "dark");
                 themeSwitcher.textContent = "☀️";
-                localStorage.setItem("theme", "dark");
+                document.cookie = "theme=dark;path=/;max-age=31536000";
             }
         });
 

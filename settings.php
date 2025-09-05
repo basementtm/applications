@@ -1,81 +1,44 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Include auth functions for user status checking
-require_once 'admin/auth_functions.php';
-// Include action logging functions
-require_once 'admin/action_logger.php';
+// Include required files
+require_once '/var/www/config/db_config.php';
+require_once 'user_auth.php';
 
 // Check if user is logged in
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
+requireLogin();
 
-// Check if user is still active (not disabled)
-checkUserStatus();
-
-include('/var/www/config/db_config.php');
+// Establish database connection
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check maintenance mode - only allow Emma to access during maintenance
-if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
-    try {
-        $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
-        if ($table_check && $table_check->num_rows > 0) {
-            $maintenance_sql = "SELECT setting_value FROM site_settings WHERE setting_name = 'admin_maintenance_mode' LIMIT 1";
-            $maintenance_result = $conn->query($maintenance_sql);
-            if ($maintenance_result && $maintenance_result->num_rows > 0) {
-                $maintenance_row = $maintenance_result->fetch_assoc();
-                if ($maintenance_row['setting_value'] === '1') {
-                    header("Location: maintenance.php");
-                    exit();
-                }
-            }
-        }
-    } catch (Exception $e) {
-        // Continue if there's a database error
-    }
-}
+// Check user status
+checkUserStatus();
 
-$username = $_SESSION['admin_username'];
+// Get user data
+$user_data = getUserData();
+if (!$user_data) {
+    die("Could not retrieve user data.");
+}
+$username = $user_data['username'];
 $message = '';
 $message_type = '';
 
-// Helper function to check if user is read-only
-function isReadOnlyUser() {
-    return isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin';
-}
-
-// Fetch current user settings
-$sql = "SELECT username, email, two_factor_enabled, created_at FROM admin_users WHERE username = ? AND active = 1";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
-$user_data = $result->fetch_assoc();
-$stmt->close();
-
 // Handle settings updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if user has permission to modify settings
-    if (isReadOnlyUser()) {
-        header("Location: settings.php?error=access_denied");
-        exit();
-    }
-    
     $action = $_POST['action'] ?? '';
     
     switch ($action) {
         case 'update_email':
             $new_email = trim($_POST['email'] ?? '');
             if (filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
-                $update_sql = "UPDATE admin_users SET email = ? WHERE username = ?";
+                $update_sql = "UPDATE users SET email = ? WHERE id = ?";
                 $update_stmt = $conn->prepare($update_sql);
-                $update_stmt->bind_param("ss", $new_email, $username);
+                $update_stmt->bind_param("si", $new_email, $_SESSION['user_id']);
                 if ($update_stmt->execute()) {
                     $user_data['email'] = $new_email;
                     $message = "Email updated successfully!";
@@ -92,19 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
             
         case 'toggle_2fa':
-            $enable_2fa = $_POST['enable_2fa'] === '1';
+            $enable_2fa = isset($_POST['enable_2fa']) && $_POST['enable_2fa'] === '1';
             
             if ($enable_2fa && empty($user_data['two_factor_secret'])) {
                 // Generate new secret when enabling 2FA
                 $secret = generateRandomSecret();
-                $update_sql = "UPDATE admin_users SET two_factor_enabled = ?, two_factor_secret = ? WHERE username = ?";
+                $update_sql = "UPDATE users SET two_factor_enabled = ?, two_factor_secret = ? WHERE id = ?";
                 $update_stmt = $conn->prepare($update_sql);
-                $update_stmt->bind_param("iss", $enable_2fa, $secret, $username);
+                $update_stmt->bind_param("isi", $enable_2fa, $secret, $_SESSION['user_id']);
             } else {
                 // Just toggle the enabled status
-                $update_sql = "UPDATE admin_users SET two_factor_enabled = ? WHERE username = ?";
+                $update_sql = "UPDATE users SET two_factor_enabled = ? WHERE id = ?";
                 $update_stmt = $conn->prepare($update_sql);
-                $update_stmt->bind_param("is", $enable_2fa, $username);
+                $update_stmt->bind_param("ii", $enable_2fa, $_SESSION['user_id']);
             }
             
             if ($update_stmt->execute()) {
@@ -123,97 +86,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
+$theme = $_COOKIE['theme'] ?? 'light';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" <?php if ($theme === 'dark') { echo 'data-theme="dark"'; } ?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Settings - Admin</title>
-    <?php include 'navbar.php'; ?>
+    <title>User Settings</title>
     <style>
-        <?php echo getNavbarCSS(); ?>
-        :root {
-            --bg-color: #ffc0cb;
-            --container-bg: #fff0f5;
-            --text-color: #333;
-            --primary-pink: #ff1493;
-            --secondary-pink: #ff69b4;
-            --border-color: #ccc;
-            --shadow-color: rgba(0,0,0,0.1);
-            --input-bg: #fff0f5;
-            --success-color: #2ed573;
-            --danger-color: #ff4757;
-            --warning-color: #ffa502;
-            --info-color: #3742fa;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #2d1b2e;
-            --container-bg: #3d2b3e;
-            --text-color: #e0d0e0;
-            --primary-pink: #ff6bb3;
-            --secondary-pink: #d147a3;
-            --border-color: #666;
-            --shadow-color: rgba(0,0,0,0.3);
-            --input-bg: #4a3a4a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        <?php echo getUserNavbarCSS(); ?>
+        /* Using root variables from getUserNavbarCSS */
         body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-top: 80px; /* Adjust for fixed navbar */
         }
-
         .container {
             max-width: 1000px;
             margin: 0 auto;
+            padding: 0 20px;
         }
-
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 30px;
         }
-
         .settings-section {
             background-color: var(--container-bg);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 4px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-
         .section-title {
             color: var(--primary-pink);
             font-size: 1.4rem;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: var(--primary-pink);
         }
-
         input[type="email"], input[type="text"] {
             width: 100%;
             padding: 12px;
@@ -222,52 +138,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 1rem;
             background-color: var(--input-bg);
             color: var(--text-color);
-            transition: all 0.3s ease;
         }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-pink);
-            box-shadow: 0 0 5px rgba(255, 20, 147, 0.3);
-        }
-
         .btn {
             padding: 10px 20px;
             border: none;
             border-radius: 8px;
             font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
             margin: 5px;
             font-weight: bold;
         }
-
-        .btn-primary {
-            background-color: var(--primary-pink);
-            color: white;
-        }
-
-        .btn-secondary {
-            background-color: var(--secondary-pink);
-            color: white;
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-
-        .btn-warning {
-            background-color: var(--warning-color);
-            color: white;
-        }
+        .btn-primary { background-color: var(--primary-pink); color: white; }
+        .btn-secondary { background-color: var(--secondary-pink); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-warning { background-color: #ffc107; color: white; }
+        .btn-info { background-color: #17a2b8; color: white; }
 
         .btn:hover {
             transform: translateY(-2px);
@@ -471,7 +359,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <?php renderAdminNavbar('settings.php'); ?>
+    <?php renderUserNavbar('settings.php'); ?>
     
     <div class="container">
         <!-- Theme Settings Section -->
