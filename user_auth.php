@@ -297,9 +297,9 @@ function getUserNavbarCSS() {
             padding: 15px 20px;
             box-shadow: 0 2px 5px var(--shadow-color);
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
+            flex-wrap: wrap;
             margin-bottom: 30px;
             border-radius: 10px;
             opacity: 0;
@@ -321,10 +321,8 @@ function getUserNavbarCSS() {
             display: flex;
             gap: 15px;
             align-items: center;
-            justify-content: center;
             flex-wrap: wrap;
             position: relative;
-            width: 100%;
         }
 
         .user-info {

@@ -1024,29 +1024,33 @@ if ($form_maintenance_active && !$is_admin) {
     }
 
     .checkbox-container {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
-      padding-left: 30px;
       margin: 15px 0;
       cursor: pointer;
       font-size: 0.95rem;
       user-select: none;
       color: var(--text-color);
       transition: color 0.3s ease;
+      gap: 10px;
     }
 
     .checkbox-container input {
-      position: absolute;
+      position: relative;
       opacity: 0;
       cursor: pointer;
-      height: 0;
-      width: 0;
+      height: 20px;
+      width: 20px;
+      margin: 0;
     }
 
     .checkbox-container .checkmark {
       position: absolute;
-      top: 0;
+      top: 50%;
       left: 0;
+      transform: translateY(-50%);
       height: 20px;
       width: 20px;
       background-color: var(--input-bg);
