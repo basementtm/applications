@@ -607,7 +607,7 @@ $status_display = [
         <div style="font-size: 1rem; font-weight: normal; opacity: 0.8; color: var(--text-color);">
           <?= $status_info[2] ?>
         </div>
-        <div style="margin-top: 10px; font-size: 0.9rem; font-style: italic; color: var(--text-color);">
+        <div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-color);">
           Reason: <?= htmlspecialchars($application_data['status_change_reason'] ?? 'N/A') ?>
         </div>
       </div>
