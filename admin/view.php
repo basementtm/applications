@@ -5,13 +5,14 @@ require_once __DIR__ . '/../user_auth.php';
 // Include action logging functions
 require_once 'action_logger.php';
 
-// Revalidate session and ensure user is an admin
-revalidateUserSession();
-if (!isAdmin()) {
-    // Redirect to a unified login page
-    header("Location: /login.php?unauthorized=true");
-    exit();
-}
+// Include navbar component
+include('navbar.php');
+
+// Check if user is logged in and is admin
+requireAdmin('../login.php?redirect=admin/view.php');
+
+// Check if user is still active (not disabled)
+checkUserStatus();
 
 include('/var/www/config/db_config.php');
 $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
@@ -55,7 +56,7 @@ if (!$application) {
     <style>
         <?php 
         // user_auth.php is already included, which contains navbar functions
-        echo getUserNavbarCSS(); 
+        echo getNavbarCSS(); 
         ?>
 
         .container {
@@ -206,7 +207,7 @@ if (!$application) {
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <?php renderUserNavbar('view.php'); ?>
+    <?php renderAdminNavbar('view.php'); ?>
     
     <div class="container">
         <h1 class="page-title">📋 Application Details</h1>
@@ -319,7 +320,7 @@ if (!$application) {
         });
     </script>
     
-    <?php echo getUserNavbarJS(); ?>
+    <?php echo getNavbarJS(); ?>
 
     <?php
     // Close database connection at the end

@@ -3,6 +3,9 @@
 require_once '../user_auth.php';
 require_once 'action_logger.php';
 
+// Include navbar component
+include('navbar.php');
+
 // Check if user is logged in and is admin
 $redirect_id = isset($_GET['id']) ? urlencode($_GET['id']) : '';
 requireAdmin('../login.php?redirect=admin/edit.php?id=' . $redirect_id);
@@ -131,7 +134,7 @@ $stmt->close();
             --input-bg: #4a3a4a;
         }
 
-        <?php echo getUserNavbarCSS(); ?>
+        <?php echo getNavbarCSS(); ?>
 
         * {
             margin: 0;
@@ -347,7 +350,7 @@ $stmt->close();
 <body>
     <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
     
-    <?php renderUserNavbar('edit.php'); ?>
+    <?php renderAdminNavbar('edit.php'); ?>
     
     <div class="container">
         <h1 style="color: var(--primary-pink); margin-bottom: 30px; text-align: center; font-size: 2rem;">✏️ Edit Application</h1>
@@ -453,7 +456,7 @@ $stmt->close();
         });
     </script>
     
-    <?php echo getUserNavbarJS(); ?>
+    <?php echo getNavbarJS(); ?>
     
     <?php
     // Close database connection at the end
