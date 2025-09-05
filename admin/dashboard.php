@@ -46,11 +46,6 @@ if (!isOwner()) {
 // Include navbar component
 include('navbar.php');
 
-// Helper function to check if user is read-only
-function isReadOnlyUser() {
-    return isset($_SESSION['admin_role']) && $_SESSION['admin_role'] === 'readonly_admin';
-}
-
 // Handle maintenance toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])) {
     // Check if user has permission to toggle maintenance
