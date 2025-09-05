@@ -84,7 +84,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - girlskissing.dev</title>
     <style>
-        <?php echo getUserNavbarCSS(); ?>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffc0cb;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
         
         .main-container {
             display: flex;
@@ -97,10 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .container {
             max-width: 400px;
-            background-color: var(--container-bg);
+            background-color: #fff0f5;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 8px 25px var(--shadow-color);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             margin-top: 60px;
         }
         
@@ -212,9 +220,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <!-- User Navigation -->
-    <?php renderUserNavbar('register.php', true); ?>
-    
     <div class="main-container">
         <div class="container">
         <div class="register-header">
@@ -261,8 +266,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     </div>
-    
-    <!-- Include navbar JavaScript -->
-    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>

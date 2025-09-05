@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
 // Include database connection
@@ -87,7 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - girlskissing.dev</title>
     <style>
-        <?php echo getUserNavbarCSS(); ?>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffc0cb;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
         
         .main-container {
             display: flex;
@@ -100,10 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .container {
             max-width: 400px;
-            background-color: var(--container-bg);
+            background-color: #fff0f5;
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 8px 25px var(--shadow-color);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             margin-top: 60px;
         }
         
@@ -140,18 +152,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group input[type="password"] {
             width: 100%;
             padding: 12px;
-            border: 2px solid var(--border-color);
+            border: 2px solid #ccc;
             border-radius: 8px;
             font-size: 1rem;
-            background-color: var(--input-bg);
-            color: var(--text-color);
+            background-color: white;
+            color: #333;
             transition: border-color 0.3s ease;
             box-sizing: border-box;
         }
         
         .form-group input:focus {
             outline: none;
-            border-color: var(--primary-pink);
+            border-color: #ff1493;
         }
         
         .checkbox-group {
@@ -243,9 +255,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <!-- User Navigation -->
-    <?php renderUserNavbar('login.php', true); ?>
-    
     <div class="main-container">
         <div class="container">
         <div class="login-header">
@@ -289,8 +298,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     </div>
-    
-    <!-- Include navbar JavaScript -->
-    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>
