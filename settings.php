@@ -5,12 +5,8 @@ ini_set('display_errors', 1);
 
 // Include required files
 require_once '/var/www/config/db_config.php';
-// Include appropriate auth file based on context
-if (strpos($_SERVER['SCRIPT_FILENAME'], '/admin/') !== false) {
-    require_once 'auth_functions.php';
-} else {
-    require_once 'user_auth.php';
-}
+// Include user auth file
+require_once 'user_auth.php';
 require_once 'action_logger_lite.php';
 
 // Check if user is logged in
@@ -108,16 +104,9 @@ $theme = $_COOKIE['theme'] ?? 'light';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Settings</title>
+    <title>Settings - girlskissing.dev</title>
     <style>
-        <?php
-        // Use the appropriate navbar CSS based on user role
-        if (isAdmin()) {
-            echo getNavbarCSS(); 
-        } else {
-            echo getUserNavbarCSS();
-        }
-        ?>
+        <?php echo getUserNavbarCSS(); ?>
         /* Using root variables from getUserNavbarCSS */
         body {
             font-family: Arial, sans-serif;
@@ -329,42 +318,49 @@ $theme = $_COOKIE['theme'] ?? 'light';
             margin: 15px 0;
         }
 
-        /* Theme Switcher Section */
-        .theme-section {
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
             background-color: var(--container-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 30px;
-        }
-
-        .theme-toggle-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-        }
-
-        .theme-switcher-btn {
-            background-color: var(--secondary-pink);
-            color: white;
-            border: none;
+            border: 2px solid var(--secondary-pink);
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px var(--shadow-color);
         }
 
-        .theme-switcher-btn:hover {
+        .theme-switcher:hover {
             transform: scale(1.1);
+            background-color: var(--secondary-pink);
+            color: white;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
             background-color: var(--primary-pink);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover {
+            background-color: var(--secondary-pink);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
 
         @media (max-width: 768px) {
@@ -386,29 +382,10 @@ $theme = $_COOKIE['theme'] ?? 'light';
     </style>
 </head>
 <body>
-    <?php 
-    // Determine which navbar to use based on user role
-    if (isAdmin()) {
-        renderAdminNavbar('settings.php');
-    } else {
-        renderUserNavbar('settings.php'); 
-    }
-    ?>
+    <?php renderUserNavbar('settings.php', true); ?>
     
     <div class="container">
         <h1 style="color: var(--primary-pink); text-align: center; margin-bottom: 20px;">Account Settings</h1>
-        
-        <!-- Theme Settings Section -->
-        <div class="theme-section">
-            <h2 class="section-title">🎨 Theme Settings</h2>
-            <div class="theme-toggle-container">
-                <div class="setting-info">
-                    <div class="setting-title">Dark Mode</div>
-                    <div class="setting-description">Switch between light and dark theme</div>
-                </div>
-                <button class="theme-switcher-btn" id="themeSwitcher" title="Toggle Dark Mode">🌙</button>
-            </div>
-        </div>
 
         <?php if (isset($_GET['error']) && $_GET['error'] === 'access_denied'): ?>
             <div class="message error">
@@ -492,13 +469,13 @@ $theme = $_COOKIE['theme'] ?? 'light';
                         <div class="qr-code-container">
                             <h4>📱 Complete 2FA Setup</h4>
                             <p>2FA is enabled but setup is incomplete. Click below to finish setup:</p>
-                            <a href="setup-2fa.php" class="btn btn-warning">⚠️ Complete 2FA Setup</a>
+                            <a href="setup-2fa.php" class="btn btn-warning action-btn">⚠️ Complete 2FA Setup</a>
                         </div>
                         <?php else: ?>
                         <div class="qr-code-container">
                             <h4>✅ 2FA Setup Complete</h4>
                             <p>Two-factor authentication is active and configured.</p>
-                            <a href="setup-2fa.php" class="btn btn-info">🔧 Manage 2FA</a>
+                            <a href="setup-2fa.php" class="btn btn-info action-btn">🔧 Manage 2FA</a>
                         </div>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -546,36 +523,37 @@ $theme = $_COOKIE['theme'] ?? 'light';
             </div>
         </div>
     </div>
+    
+    <div class="theme-switcher" id="themeSwitcher" title="Toggle Dark Mode">🌙</div>
 
     <?php $conn->close(); ?>
 
     <script>
         // Theme Switcher
         const themeSwitcher = document.getElementById("themeSwitcher");
-        const body = document.body;
+        const htmlEl = document.documentElement;
 
-        const currentTheme = localStorage.getItem("theme") || "light";
+        // Set initial theme from cookie
+        const currentTheme = "<?php echo $theme; ?>";
         if (currentTheme === "dark") {
-            body.setAttribute("data-theme", "dark");
+            htmlEl.setAttribute("data-theme", "dark");
             themeSwitcher.textContent = "☀️";
         }
 
         themeSwitcher.addEventListener("click", () => {
-            const isDark = body.getAttribute("data-theme") === "dark";
+            const isDark = htmlEl.getAttribute("data-theme") === "dark";
             
             const oldTheme = isDark ? "dark" : "light";
             const newTheme = isDark ? "light" : "dark";
             
             if (isDark) {
-                body.removeAttribute("data-theme");
+                htmlEl.removeAttribute("data-theme");
                 themeSwitcher.textContent = "🌙";
-                localStorage.setItem("theme", "light");
-                document.cookie = "theme=light; path=/; max-age=31536000"; // 1 year
+                document.cookie = "theme=light;path=/;max-age=31536000";
             } else {
-                body.setAttribute("data-theme", "dark");
+                htmlEl.setAttribute("data-theme", "dark");
                 themeSwitcher.textContent = "☀️";
-                localStorage.setItem("theme", "dark");
-                document.cookie = "theme=dark; path=/; max-age=31536000"; // 1 year
+                document.cookie = "theme=dark;path=/;max-age=31536000";
             }
             
             // Log theme change via AJAX to avoid page reload
@@ -589,14 +567,7 @@ $theme = $_COOKIE['theme'] ?? 'light';
         });
     </script>
     
-    <?php 
-    // Use the appropriate navbar JavaScript based on user role
-    if (isAdmin()) {
-        echo getNavbarJS(); 
-    } else {
-        echo getUserNavbarJS();
-    }
-    ?>
+    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>
 
