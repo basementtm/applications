@@ -77,8 +77,6 @@ $current_page = 'dashboard.php';
             border-radius: 10px;
             box-shadow: 0 4px 15px var(--shadow-color);
             border: 1px solid var(--border-color);
-            position: relative;
-            z-index: 1;
         }
         
         .dashboard-card h3 {
@@ -302,10 +300,6 @@ $current_page = 'dashboard.php';
                     <span class="stat-label">Applications</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number"><?php echo ucfirst($user_data['role']); ?></span>
-                    <span class="stat-label">Account Type</span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-number"><?php echo $user_data['two_factor_enabled'] ? 'Yes' : 'No'; ?></span>
                     <span class="stat-label">2FA Enabled</span>
                 </div>
@@ -313,7 +307,7 @@ $current_page = 'dashboard.php';
         </div>
         
         <!-- Quick Actions -->
-        <div class="dashboard-card" style="position: relative; z-index: 1;">
+        <div class="dashboard-card">
             <h3>⚡ Quick Actions</h3>
             <div class="quick-actions">
                 <a href="index.php" class="action-btn">

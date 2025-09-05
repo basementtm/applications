@@ -146,7 +146,7 @@ function getUserApplications($user_id = null) {
     }
     
     $id = $user_id ?? $_SESSION['user_id'];
-    $sql = "SELECT application_id, name, email, status, cage_nights, current_cat, created_at 
+    $sql = "SELECT application_id, name, email, status, cage, isCat, created_at 
             FROM applicants 
             WHERE user_id = ? 
             ORDER BY created_at DESC";
@@ -290,6 +290,8 @@ function getUserNavbarCSS() {
             padding: 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -305,8 +307,8 @@ function getUserNavbarCSS() {
             opacity: 0;
             transform: translateY(-10px);
             animation: fadeSlideDown 0.8s forwards;
-            overflow: visible;
-            z-index: 10001;
+            position: relative;
+            z-index: 100;
         }
 
         @keyframes fadeSlideDown {
@@ -335,7 +337,6 @@ function getUserNavbarCSS() {
         .nav-dropdown {
             position: relative;
             display: inline-block;
-            z-index: 100000;
         }
 
         .nav-toggle {
@@ -351,8 +352,6 @@ function getUserNavbarCSS() {
             display: flex;
             align-items: center;
             gap: 8px;
-            position: relative;
-            z-index: 100000;
         }
 
         .nav-toggle:hover {
@@ -370,7 +369,7 @@ function getUserNavbarCSS() {
             border: 1px solid var(--border-color);
             border-radius: 10px;
             box-shadow: 0 8px 25px var(--shadow-color);
-            z-index: 999999;
+            z-index: 1001;
             min-width: 220px;
             overflow: hidden;
             margin-top: 5px;
@@ -468,9 +467,14 @@ function getUserNavbarJS() {
             const navMenu = document.getElementById("navMenu");
             
             if (navToggle && navMenu) {
+                // Make sure the menu has the highest z-index when shown
                 navToggle.addEventListener("click", function(e) {
                     e.stopPropagation();
                     navMenu.classList.toggle("show");
+                    if (navMenu.classList.contains("show")) {
+                        // When menu is shown, ensure it\'s above all content
+                        navMenu.style.zIndex = "9999";
+                    }
                 });
                 
                 // Close menu when clicking outside
