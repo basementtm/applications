@@ -21,57 +21,57 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$application_id = $_GET['id'] ?? '';
+$user_id = $_GET['id'] ?? '';
 $confirm = $_GET['confirm'] ?? '';
 
-if (empty($application_id)) {
+if (empty($user_id)) {
     header("Location: dashboard.php");
     exit();
 }
 
-// If confirmed, delete the application
+// If confirmed, delete the user
 if ($confirm === 'yes') {
-    // First get the application data for logging
-    $fetch_sql = "SELECT name FROM applicants WHERE application_id = ?";
+    // First get the user data for logging
+    $fetch_sql = "SELECT username FROM users WHERE user_id = ?";
     $fetch_stmt = $conn->prepare($fetch_sql);
-    $fetch_stmt->bind_param("s", $application_id);
+    $fetch_stmt->bind_param("i", $user_id);
     $fetch_stmt->execute();
     $fetch_result = $fetch_stmt->get_result();
-    $app_data = $fetch_result->fetch_assoc();
+    $user_data = $fetch_result->fetch_assoc();
     $fetch_stmt->close();
     
-    if ($app_data) {
-        $sql = "DELETE FROM applicants WHERE application_id = ?";
+    if ($user_data) {
+        $sql = "DELETE FROM users WHERE user_id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $application_id);
+        $stmt->bind_param("i", $user_id);
         
         if ($stmt->execute()) {
-            // Log the application deletion
-            logApplicationAction('deleted', $application_id, $app_data['name']);
+            // Log the user deletion
+            logApplicationAction('deleted', $user_id, $user_data['username']);
             
             $stmt->close();
             // Close connection before redirect since we're exiting
             $conn->close();
-            header("Location: dashboard.php?deleted=" . urlencode($application_id));
+            header("Location: dashboard.php?deleted=" . urlencode($user_id));
             exit();
         } else {
-            $error = "Error deleting application. Please try again.";
+            $error = "Error deleting user. Please try again.";
         }
         $stmt->close();
     } else {
-        $error = "Application not found.";
+        $error = "User not found.";
     }
 }
 
-// Fetch application data for confirmation
-$sql = "SELECT application_id, name, email, status FROM applicants WHERE application_id = ?";
+// Fetch user data for confirmation
+$sql = "SELECT user_id, username, email, status FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $application_id);
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 1) {
-    $application_data = $result->fetch_assoc();
+    $user_data = $result->fetch_assoc();
 } else {
     header("Location: dashboard.php");
     exit();
@@ -86,7 +86,7 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Application - Admin</title>
+    <title>Delete User - Admin</title>
     <?php include 'navbar.php'; ?>
     <style>
         <?php echo getNavbarCSS(); ?>

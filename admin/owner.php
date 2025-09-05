@@ -238,6 +238,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "User not found!";
         }
     }
+    
+    // Add functionality to change user roles and delete users
+    if (isset($_POST['action']) && $_POST['action'] === 'change_role') {
+        $user_id = (int)$_POST['user_id'];
+        $new_role = $_POST['new_role'];
+        $update_role_sql = "UPDATE admin_users SET role = ? WHERE id = ?";
+        $stmt = $conn->prepare($update_role_sql);
+        $stmt->bind_param("si", $new_role, $user_id);
+        if ($stmt->execute()) {
+            $message = "User role updated successfully!";
+        } else {
+            $error = "Error updating user role: " . $conn->error;
+        }
+        $stmt->close();
+    }
+    if (isset($_POST['action']) && $_POST['action'] === 'delete_user') {
+        $user_id = (int)$_POST['user_id'];
+        $delete_user_sql = "DELETE FROM admin_users WHERE id = ?";
+        $stmt = $conn->prepare($delete_user_sql);
+        $stmt->bind_param("i", $user_id);
+        if ($stmt->execute()) {
+            $message = "User deleted successfully!";
+        } else {
+            $error = "Error deleting user: " . $conn->error;
+        }
+        $stmt->close();
+    }
 }
 
 // Get current maintenance status for both site and admin panel
@@ -866,6 +893,21 @@ $users_result = $conn->query($users_sql);
                                                     onclick="return confirm('Are you sure you want to <?= $user['active'] ? 'disable' : 'enable' ?> this user?')">
                                                 <?= $user['active'] ? 'Disable' : 'Enable' ?>
                                             </button>
+                                        </form>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="action" value="change_role">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <select name="new_role" required>
+                                                <option value="readonly_admin" <?= $user['role'] === 'readonly_admin' ? 'selected' : '' ?>>Read-Only Admin</option>
+                                                <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                                                <option value="super_admin" <?= $user['role'] === 'super_admin' ? 'selected' : '' ?>>Super Admin</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary">Change Role</button>
+                                        </form>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="action" value="delete_user">
+                                            <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
                                         </form>
                                     <?php else: ?>
                                         <span class="text-muted">Cannot modify</span>

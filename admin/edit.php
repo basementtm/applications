@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isCat = $_POST['isCat'] ?? '';
     $preferredLocation = trim($_POST['preferredLocation'] ?? '');
     $status = $_POST['status'] ?? '';
-    
+
     // Get current application data for comparison
     $current_sql = "SELECT * FROM applicants WHERE application_id = ?";
     $current_stmt = $conn->prepare($current_sql);

@@ -123,17 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_maintenance'])
 
 // Handle status updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    // Check if user has permission to update status
     if (isReadOnlyUser()) {
         header("Location: dashboard.php?error=access_denied");
         exit();
     }
-    
+
     $application_id = $_POST['application_id'] ?? '';
     $new_status = $_POST['new_status'] ?? '';
-    
+    $reason = $_POST['reason'] ?? 'N/A';
+
     if (!empty($application_id) && !empty($new_status)) {
-        // Get current application data for logging
         $current_sql = "SELECT name, status FROM applicants WHERE application_id = ?";
         $current_stmt = $conn->prepare($current_sql);
         $current_stmt->bind_param("s", $application_id);
@@ -141,23 +140,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $current_result = $current_stmt->get_result();
         $current_data = $current_result->fetch_assoc();
         $current_stmt->close();
-        
+
         if ($current_data) {
             $old_status = $current_data['status'];
             $applicant_name = $current_data['name'];
-            
-            // Update the status
-            $update_sql = "UPDATE applicants SET status = ? WHERE application_id = ?";
+
+            $update_sql = "UPDATE applicants SET status = ?, status_change_reason = ? WHERE application_id = ?";
             $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("ss", $new_status, $application_id);
+            $update_stmt->bind_param("sss", $new_status, $reason, $application_id);
             $update_stmt->execute();
             $update_stmt->close();
-            
-            // Log the status change
+
             logApplicationStatusChange($application_id, $application_id, $old_status, $new_status);
         }
-        
-        // Redirect to prevent form resubmission
+
         header("Location: dashboard.php?updated=" . urlencode($application_id));
         exit();
     }
@@ -225,6 +221,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_update'])) {
         
         // Redirect with success message
         header("Location: dashboard.php?bulk_updated=" . $affected_rows);
+        exit();
+    }
+}
+
+// Add bulk delete functionality
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bulk_delete'])) {
+    // Check if user has permission to bulk delete
+    if (isReadOnlyUser()) {
+        header("Location: dashboard.php?error=access_denied");
+        exit();
+    }
+
+    $selected_applications = $_POST['selected_applications'] ?? [];
+
+    if (!empty($selected_applications) && is_array($selected_applications)) {
+        // Perform bulk delete
+        $placeholders = str_repeat('?,', count($selected_applications) - 1) . '?';
+        $delete_sql = "DELETE FROM applicants WHERE application_id IN ($placeholders)";
+        $delete_stmt = $conn->prepare($delete_sql);
+
+        $types = str_repeat('s', count($selected_applications));
+        $delete_stmt->bind_param($types, ...$selected_applications);
+        $delete_stmt->execute();
+        $affected_rows = $delete_stmt->affected_rows;
+        $delete_stmt->close();
+
+        // Log the bulk delete action
+        logAction('ADMIN_BULK_DELETE', "Admin deleted {$affected_rows} applications", 'application', null, [
+            'deleted_count' => $affected_rows,
+            'application_ids' => $selected_applications
+        ]);
+
+        // Redirect with success message
+        header("Location: dashboard.php?bulk_deleted=" . $affected_rows);
         exit();
     }
 }
@@ -689,6 +719,39 @@ while ($row = $stats_result->fetch_assoc()) {
                 overflow-x: auto;
             }
         }
+
+        /* Reason Popup */
+        #reasonPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        #reasonPopup h3 {
+            margin-bottom: 15px;
+        }
+
+        #reasonPopup textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        #reasonPopup .btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -796,8 +859,13 @@ while ($row = $stats_result->fetch_assoc()) {
             <div class="bulk-actions" style="margin: 20px 0; padding: 15px; background: var(--container-bg); border-radius: 8px; border: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                     <label style="font-weight: bold;">Bulk Actions:</label>
-                    <select name="bulk_status" id="bulkStatus" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                    <select name="bulk_action" id="bulkAction" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
                         <option value="">Select Action</option>
+                        <option value="bulk_status">Change Status</option>
+                        <option value="bulk_delete">Delete Applications</option>
+                    </select>
+                    <select name="bulk_status" id="bulkStatus" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                        <option value="">Select Status</option>
                         <option value="unreviewed">Set to Unreviewed</option>
                         <option value="stage2">Set to Stage 2</option>
                         <option value="stage3">Set to Stage 3</option>
@@ -809,6 +877,7 @@ while ($row = $stats_result->fetch_assoc()) {
                     <span id="selectedCount" style="color: var(--text-color); font-size: 0.9rem;">0 selected</span>
                 </div>
                 <input type="hidden" name="bulk_update" value="1">
+                <input type="hidden" name="bulk_delete" value="1">
             </div>
             <?php endif; ?>
 
@@ -855,7 +924,7 @@ while ($row = $stats_result->fetch_assoc()) {
                                 <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="application_id" value="<?= htmlspecialchars($app['application_id']) ?>">
-                                        <select name="new_status" onchange="this.form.submit()" style="width: auto; padding: 4px; font-size: 0.8rem;">
+                                        <select name="new_status" onchange="openReasonPopup('<?= htmlspecialchars($app['application_id']) ?>', this.value)" style="width: auto; padding: 4px; font-size: 0.8rem;">
                                             <option value="">Change Status</option>
                                             <option value="unreviewed" <?= $app['status'] === 'unreviewed' ? 'disabled' : '' ?>>Unreviewed</option>
                                             <option value="stage2" <?= $app['status'] === 'stage2' ? 'disabled' : '' ?>>Stage 2</option>
@@ -905,6 +974,16 @@ while ($row = $stats_result->fetch_assoc()) {
         <?php endif; ?>
     </div>
 
+    <!-- Add a popup for entering a reason -->
+    <div id="reasonPopup">
+        <h3>Provide a Reason</h3>
+        <textarea id="reasonInput" rows="4"></textarea>
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button id="cancelReason" class="btn btn-secondary">Cancel</button>
+            <button id="submitReason" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+
     <script>
         // Theme Switcher
         const themeSwitcher = document.getElementById("themeSwitcher");
@@ -936,6 +1015,7 @@ while ($row = $stats_result->fetch_assoc()) {
         const selectedCount = document.getElementById('selectedCount');
         const bulkSubmit = document.getElementById('bulkSubmit');
         const bulkStatus = document.getElementById('bulkStatus');
+        const bulkAction = document.getElementById('bulkAction');
         const bulkForm = document.getElementById('bulkForm');
 
         // Select All functionality
@@ -973,21 +1053,81 @@ while ($row = $stats_result->fetch_assoc()) {
         bulkSubmit.addEventListener('click', function(e) {
             e.preventDefault();
             const checkedCount = document.querySelectorAll('.app-checkbox:checked').length;
-            const statusText = bulkStatus.options[bulkStatus.selectedIndex].text;
-            
+            const action = bulkAction.value;
+
             if (checkedCount === 0) {
                 alert('Please select at least one application.');
                 return;
             }
-            
-            if (bulkStatus.value === '') {
+
+            if (action === '') {
                 alert('Please select an action.');
                 return;
             }
-            
-            if (confirm(`Are you sure you want to ${statusText.toLowerCase()} for ${checkedCount} selected application(s)?`)) {
-                bulkForm.submit();
+
+            if (action === 'bulk_delete') {
+                if (confirm(`Are you sure you want to delete ${checkedCount} selected application(s)? This action cannot be undone.`)) {
+                    bulkForm.submit();
+                }
+            } else if (action === 'bulk_status') {
+                const statusText = bulkStatus.options[bulkStatus.selectedIndex].text;
+                if (confirm(`Are you sure you want to ${statusText.toLowerCase()} for ${checkedCount} selected application(s)?`)) {
+                    bulkForm.submit();
+                }
             }
+        });
+
+        // Reason Popup
+        const reasonPopup = document.getElementById('reasonPopup');
+        const reasonInput = document.getElementById('reasonInput');
+        const cancelReason = document.getElementById('cancelReason');
+        const submitReason = document.getElementById('submitReason');
+
+        let currentApplicationId = null;
+        let currentNewStatus = null;
+
+        function openReasonPopup(applicationId, newStatus) {
+            currentApplicationId = applicationId;
+            currentNewStatus = newStatus;
+            reasonInput.value = '';
+            reasonPopup.style.display = 'block';
+        }
+
+        cancelReason.addEventListener('click', () => {
+            reasonPopup.style.display = 'none';
+        });
+
+        submitReason.addEventListener('click', () => {
+            const reason = reasonInput.value.trim() || 'N/A';
+            reasonPopup.style.display = 'none';
+
+            // Submit the form with the reason
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+
+            const applicationIdInput = document.createElement('input');
+            applicationIdInput.name = 'application_id';
+            applicationIdInput.value = currentApplicationId;
+            form.appendChild(applicationIdInput);
+
+            const newStatusInput = document.createElement('input');
+            newStatusInput.name = 'new_status';
+            newStatusInput.value = currentNewStatus;
+            form.appendChild(newStatusInput);
+
+            const reasonInputField = document.createElement('input');
+            reasonInputField.name = 'reason';
+            reasonInputField.value = reason;
+            form.appendChild(reasonInputField);
+
+            const updateStatusInput = document.createElement('input');
+            updateStatusInput.name = 'update_status';
+            updateStatusInput.value = '1';
+            form.appendChild(updateStatusInput);
+
+            document.body.appendChild(form);
+            form.submit();
         });
 
         // Initialize

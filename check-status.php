@@ -368,7 +368,7 @@ $conn->close();
 $status_display = [
     'unreviewed' => ['🕐', 'Under Review', 'Your application is being reviewed by our team.', '#ff69b4'],
     'denied' => ['❌', 'Application Denied', 'Unfortunately, your application was not successful at this time.', '#ff4757'],
-    'stage2' => ['📞', 'Stage 2 (Interview)', 'Congratulations! You\'ve been selected for an interview. Please check your email for details.', '#ffa502'],
+    'stage2' => ['📞', 'Stage 2 (Interview)', 'Congratulations! You\'ve been selected for an interview. Please await for more information.', '#ffa502'],
     'stage3' => ['⭐', 'Stage 3 (Final Review)', 'Your application and interview is in the final review stage.', '#3742fa'],
     'accepted' => ['✅', 'Accepted', 'Congratulations! Your application has been accepted!', '#2ed573'],
     'invalid' => ['⚠️', 'Invalid Application', 'This application contained invalid information (usually email) or the application has been flagged for review.', '#e67e22']
@@ -633,6 +633,12 @@ $status_display = [
           <span class="detail-value"><?= htmlspecialchars($application_data['preferredLocation']) ?></span>
         </div>
         <?php endif; ?>
+        <div class="detail-row">
+          <span class="detail-label">Reason for Status Change:</span>
+          <span class="detail-value">
+            <?= htmlspecialchars($application_data['status_change_reason'] ?? 'N/A') ?>
+          </span>
+        </div>
       </div>
 
     <?php elseif ($errorMsg): ?>
