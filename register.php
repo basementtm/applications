@@ -1,8 +1,21 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
 // Include database connection
 require_once '/var/www/config/db_config.php';
+
+// Debug: Check if connection was established
+if (!isset($conn)) {
+    die('Database connection variable $conn not found. Check db_config.php');
+}
+if ($conn === null) {
+    die('Database connection is null. Check database credentials.');
+}
+
 require_once 'user_auth.php';
 
 // Redirect if already logged in

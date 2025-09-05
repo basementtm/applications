@@ -7,6 +7,15 @@ session_start();
 
 // Include database connection
 require_once '/var/www/config/db_config.php';
+
+// Debug: Check if connection was established
+if (!isset($conn)) {
+    die('Database connection variable $conn not found. Check db_config.php');
+}
+if ($conn === null) {
+    die('Database connection is null. Check database credentials.');
+}
+
 require_once 'user_auth.php';
 
 // Redirect if already logged in
@@ -46,12 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error_message = 'Username and password are required.';
     } else {
-        // Check user credentials
-        $sql = "SELECT id, username, email, password_hash, role, active, two_factor_enabled FROM users WHERE (username = ? OR email = ?) AND active = 1";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $username, $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Check if database connection exists
+        if (!isset($conn) || $conn === null) {
+            $error_message = 'Database connection error. Please try again later.';
+        } else {
+            // Check user credentials
+            $sql = "SELECT id, username, email, password_hash, role, active, two_factor_enabled FROM users WHERE (username = ? OR email = ?) AND active = 1";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ss", $username, $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
         
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
@@ -76,10 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error_message = 'Invalid username or password.';
             }
-        } else {
-            $error_message = 'Invalid username or password.';
+            $stmt->close();
         }
-        $stmt->close();
     }
 }
 ?>
