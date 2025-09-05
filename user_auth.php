@@ -287,7 +287,7 @@ function getUserNavbarCSS() {
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 80px 20px 20px 20px;
+            padding: 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
         }
@@ -305,9 +305,6 @@ function getUserNavbarCSS() {
             opacity: 0;
             transform: translateY(-10px);
             animation: fadeSlideDown 0.8s forwards;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
         }
 
         @keyframes fadeSlideDown {

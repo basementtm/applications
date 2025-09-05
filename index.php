@@ -622,7 +622,7 @@ if ($form_maintenance_active && !$is_admin) {
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      min-height: calc(100vh - 80px);
+      min-height: 100vh;
       padding: 20px;
       flex-direction: column;
     }
