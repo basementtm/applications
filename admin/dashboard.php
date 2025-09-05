@@ -840,6 +840,13 @@ while ($row = $stats_result->fetch_assoc()) {
             border-radius: 8px;
             transition: all 0.3s ease;
             min-width: 100px;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        #confirmPopup .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         /* Custom Alert Popup */
@@ -1302,6 +1309,7 @@ while ($row = $stats_result->fetch_assoc()) {
         let confirmCallback = null;
 
         function showConfirmation(message, callback) {
+            console.log('showConfirmation called with:', message, callback);
             confirmMessage.textContent = message;
             confirmCallback = callback;
             confirmPopup.style.display = 'block';
@@ -1318,9 +1326,12 @@ while ($row = $stats_result->fetch_assoc()) {
             hideConfirmation();
         });
 
-        confirmOK.addEventListener('click', () => {
+        confirmOK.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('OK button clicked, callback:', confirmCallback);
             hideConfirmation();
-            if (confirmCallback) {
+            if (confirmCallback && typeof confirmCallback === 'function') {
                 confirmCallback();
             }
         });
@@ -1361,6 +1372,30 @@ while ($row = $stats_result->fetch_assoc()) {
         };
 
         // Add event listeners for delete buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Re-attach event listeners after page load
+            attachDeleteButtonListeners();
+        });
+
+        function attachDeleteButtonListeners() {
+            const deleteButtons = document.querySelectorAll('.delete-app-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const appId = this.getAttribute('data-app-id');
+                    console.log('Delete button clicked for app ID:', appId);
+                    
+                    showConfirmation('Are you sure you want to delete this application?', () => {
+                        console.log('Confirmation accepted, redirecting to delete.php?id=' + appId);
+                        window.location.href = 'delete.php?id=' + appId;
+                    });
+                });
+            });
+        }
+
+        // Also attach using event delegation as backup
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('delete-app-btn') || e.target.closest('.delete-app-btn')) {
                 e.preventDefault();
@@ -1372,6 +1407,9 @@ while ($row = $stats_result->fetch_assoc()) {
                 });
             }
         });
+
+        // Call the function to attach listeners
+        attachDeleteButtonListeners();
 
         // Initialize
         updateSelectedCount();
