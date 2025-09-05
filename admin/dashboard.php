@@ -1074,7 +1074,7 @@ while ($row = $stats_result->fetch_assoc()) {
                                     </form>
                                     <a href="view.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">👁️</a>
                                     <a href="edit.php?id=<?= urlencode($app['application_id']) ?>" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.8rem;">✏️</a>
-                                    <a href="#" class="btn btn-sm" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" onclick="showConfirmation('Are you sure you want to delete this application?', () => { window.location.href = 'delete.php?id=<?= urlencode($app['application_id']) ?>'; }); return false;">🗑️</a>
+                                    <a href="#" class="btn btn-sm delete-app-btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: var(--danger-color); color: white;" data-app-id="<?= urlencode($app['application_id']) ?>">🗑️</a>
                                 </div>
                             </td>
                             <?php else: ?>
@@ -1359,6 +1359,19 @@ while ($row = $stats_result->fetch_assoc()) {
                 };
             });
         };
+
+        // Add event listeners for delete buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-app-btn') || e.target.closest('.delete-app-btn')) {
+                e.preventDefault();
+                const deleteBtn = e.target.classList.contains('delete-app-btn') ? e.target : e.target.closest('.delete-app-btn');
+                const appId = deleteBtn.getAttribute('data-app-id');
+                
+                showConfirmation('Are you sure you want to delete this application?', () => {
+                    window.location.href = 'delete.php?id=' + appId;
+                });
+            }
+        });
 
         // Initialize
         updateSelectedCount();
