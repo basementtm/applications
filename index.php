@@ -1,5 +1,5 @@
 <?php
-// Start session to check for admin login
+// Start session to check for user login
 session_start();
 
 // Database maintenance mode check with fallback
@@ -11,8 +11,16 @@ if (file_exists('admin/action_logger.php')) {
     require_once 'admin/action_logger.php';
 }
 
-// Check if user is logged in as admin
-$is_admin = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+// Include unified user authentication system
+require_once 'user_auth.php';
+
+// Check user authentication status
+$is_logged_in = isLoggedIn();
+$is_admin = isAdmin();
+$current_user = $is_logged_in ? getUserData() : null;
+
+// Check for logout message
+$logout_message = isset($_GET['logout']) && $_GET['logout'] == '1';
 
 // Function to log visitor activity
 function logVisitor($conn, $page = 'main_form', $action = 'view') {
@@ -1314,6 +1322,9 @@ if ($form_maintenance_active && !$is_admin) {
         grid-template-columns: 1fr;
       }
     }
+
+    /* User Navigation Styles */
+    <?php echo getUserNavbarCSS(); ?>
   </style>
 </head>
 <body>
@@ -1325,6 +1336,12 @@ if ($form_maintenance_active && !$is_admin) {
   <div class="admin-panel-button" id="adminPanelButton" title="Go to Admin Panel">
     👑
   </div>
+  <?php endif; ?>
+
+  <?php if ($logout_message): ?>
+    <div id="logout-banner" style="background-color: var(--success-color); color: white; padding: 10px; text-align: center; margin-bottom: 20px; border-radius: 8px;">
+      ✅ You have been successfully logged out. Thank you for visiting!
+    </div>
   <?php endif; ?>
 
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
@@ -1342,6 +1359,9 @@ if ($form_maintenance_active && !$is_admin) {
       <?= $emoji ?> <?= htmlspecialchars($banner_settings['text']) ?>
     </div>
   <?php endif; ?>
+
+  <!-- User Navigation -->
+  <?php renderUserNavbar('index.php', true); ?>
 
   <div class="main-container">
     <div id="form-container">
@@ -1496,6 +1516,9 @@ if ($form_maintenance_active && !$is_admin) {
   
   <!-- Privacy Policy Notification System -->
   <script src="includes/privacy-notifications.js"></script>
+  
+  <!-- User Navigation JavaScript -->
+  <?php echo getUserNavbarJS(); ?>
   
   <?php
   // Close database connection at the end

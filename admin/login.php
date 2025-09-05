@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-// Include action logging functions
-require_once 'action_logger.php';
-
-// If already logged in, redirect to dashboard
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-    header("Location: dashboard.php");
-    exit();
-}
+// Redirect to the unified login system
+header("Location: ../login.php?redirect=admin/dashboard.php");
+exit();
+?>
 
 $error = '';
 $require_2fa = false;

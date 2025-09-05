@@ -5,17 +5,14 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Include auth functions for user status checking
-require_once 'auth_functions.php';
+// Include unified user authentication system
+require_once '../user_auth.php';
 
 // Include action logging functions
 require_once 'action_logger.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
-    exit();
-}
+// Check if user is logged in and is admin
+requireAdmin('login.php');
 
 // Check if user is still active (not disabled)
 checkUserStatus();
@@ -26,8 +23,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check maintenance mode - only allow Emma to access during maintenance
-if (isset($_SESSION['admin_username']) && $_SESSION['admin_username'] !== 'emma') {
+// Check maintenance mode - only allow super admin/owner to access during maintenance
+if (!isOwner()) {
     try {
         $table_check = $conn->query("SHOW TABLES LIKE 'site_settings'");
         if ($table_check && $table_check->num_rows > 0) {

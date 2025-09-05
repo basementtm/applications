@@ -1,5 +1,5 @@
 <?php
-// Start session for potential logging
+// Start session for potential logging and user authentication
 session_start();
 
 // Database maintenance mode check with fallback
@@ -8,6 +8,14 @@ $conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
 // Include action logger for logging
 require_once 'admin/action_logger.php';
+
+// Include unified user authentication system
+require_once 'user_auth.php';
+
+// Check user authentication status
+$is_logged_in = isLoggedIn();
+$current_user = $is_logged_in ? getUserData() : null;
+$user_id = $current_user ? $current_user['id'] : null;
 
 // Function to log visitor activity
 function logVisitor($conn, $page = 'submit_form', $action = 'submit') {
@@ -315,10 +323,10 @@ $randomSuffix = str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
 $applicationId = 'APP-' . $timestamp . '-' . $randomSuffix;
 
 // Insert into database
-$sql = "INSERT INTO applicants (application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO applicants (application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssisssiss", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status);
+$stmt->bind_param("ssssisssissi", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status, $user_id);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
@@ -336,6 +344,14 @@ if ($success) {
 }
 
 $stmt->close();
+
+// If successful submission and user is logged in, optionally redirect to dashboard
+if ($success && $is_logged_in && isset($_POST['redirect_to_dashboard'])) {
+    $conn->close();
+    header("Location: dashboard.php?status=application_submitted");
+    exit();
+}
+
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -496,8 +512,14 @@ $conn->close();
         📋 Application ID: <?= htmlspecialchars($applicationId) ?>
       </div>
       <p>Thanks <?= htmlspecialchars($name) ?> for "applying"! Check your email in a few hours, or use the application checker.</p>
+      <?php if ($is_logged_in): ?>
+        <p><strong>🎉 Great news!</strong> Since you're logged in, this application has been linked to your account. You can view all your applications in your dashboard.</p>
+      <?php endif; ?>
       <p><small>Keep your application ID for reference. You might need it later. It won't be shown to you again.</small></p>
       <div class="button-container">
+        <?php if ($is_logged_in): ?>
+        <a class="button" href="dashboard.php">🏠 View Dashboard</a>
+        <?php endif; ?>
         <a class="button secondary" href="status-check.html?id=<?= urlencode($applicationId) ?>">📋 Check Status</a>
         <a class="button" href="https://girlskissing.dev">Return to Form</a>
       </div>
