@@ -335,7 +335,7 @@ function getUserNavbarCSS() {
         .nav-dropdown {
             position: relative;
             display: inline-block;
-            z-index: 10000;
+            z-index: 100000;
         }
 
         .nav-toggle {
@@ -351,6 +351,8 @@ function getUserNavbarCSS() {
             display: flex;
             align-items: center;
             gap: 8px;
+            position: relative;
+            z-index: 100000;
         }
 
         .nav-toggle:hover {
@@ -368,8 +370,8 @@ function getUserNavbarCSS() {
             border: 1px solid var(--border-color);
             border-radius: 10px;
             box-shadow: 0 8px 25px var(--shadow-color);
-            z-index: 99999;
-            min-width: 200px;
+            z-index: 999999;
+            min-width: 220px;
             overflow: hidden;
             margin-top: 5px;
         }

@@ -77,6 +77,8 @@ $current_page = 'dashboard.php';
             border-radius: 10px;
             box-shadow: 0 4px 15px var(--shadow-color);
             border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 1;
         }
         
         .dashboard-card h3 {
@@ -311,13 +313,13 @@ $current_page = 'dashboard.php';
         </div>
         
         <!-- Quick Actions -->
-        <div class="dashboard-card">
+        <div class="dashboard-card" style="position: relative; z-index: 1;">
             <h3>⚡ Quick Actions</h3>
             <div class="quick-actions">
                 <a href="index.php" class="action-btn">
                     📝 Submit New Application
                 </a>
-                <a href="status.php" class="action-btn secondary">
+                <a href="status-check.html" class="action-btn secondary">
                     📊 Check Application Status
                 </a>
                 <a href="settings.php" class="action-btn secondary">
@@ -349,11 +351,11 @@ $current_page = 'dashboard.php';
                         </div>
                         <div class="application-details">
                             <strong><?php echo htmlspecialchars($app['name']); ?></strong> • <?php echo htmlspecialchars($app['email']); ?>
-                            <?php if ($app['cage_nights']): ?>
-                                <br>Cage Nights: <?php echo htmlspecialchars($app['cage_nights']); ?>
+                            <?php if ($app['cage']): ?>
+                                <br>Nights in Cage:: <?php echo htmlspecialchars($app['cage']); ?>
                             <?php endif; ?>
-                            <?php if ($app['current_cat']): ?>
-                                <br>Current Cat: <?php echo htmlspecialchars($app['current_cat']); ?>
+                            <?php if ($app['isCat']): ?>
+                                <br>Cat: <?php echo htmlspecialchars($app['isCat']); ?>
                             <?php endif; ?>
                         </div>
                         <div class="application-date">

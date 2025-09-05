@@ -326,7 +326,7 @@ $applicationId = 'APP-' . $timestamp . '-' . $randomSuffix;
 $sql = "INSERT INTO applicants (application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status, user_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssisssissi", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status, $user_id);
+$stmt->bind_param("sssissssissi", $applicationId, $name, $email, $gfphone, $reason, $cage, $isCat, $owner, $preferredLocation, $agreeTerms, $status, $user_id);
 
 $success = $stmt->execute();
 $errorMsg = $stmt->error;
@@ -391,15 +391,17 @@ $conn->close();
       padding: 20px;
       text-align: center;
       transition: background-color 0.3s ease, color 0.3s ease;
+      box-sizing: border-box;
     }
     .container {
       background-color: var(--container-bg);
       padding: 30px 40px;
       border-radius: 15px;
       box-shadow: 0 4px 10px var(--shadow-color);
-      max-width: 400px;
+      max-width: 500px;
       width: 100%;
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
     }
     h1 {
       color: var(--primary-pink);
@@ -414,6 +416,8 @@ $conn->close();
       font-weight: bold;
       font-size: 1.1rem;
       transition: background-color 0.3s ease;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
     p {
       margin: 15px 0;
@@ -422,15 +426,16 @@ $conn->close();
     }
     a.button {
       display: inline-block;
-      margin: 10px 5px;
-      padding: 12px 25px;
+      margin: 5px;
+      padding: 12px 15px;
       background-color: var(--secondary-pink);
       color: white;
       text-decoration: none;
       border-radius: 8px;
       transition: all 0.3s ease;
-      min-width: 120px;
+      min-width: 100px;
       text-align: center;
+      font-size: 0.95rem;
     }
     a.button:hover {
       background-color: var(--primary-pink);
@@ -451,11 +456,13 @@ $conn->close();
       flex-direction: column;
       gap: 10px;
       align-items: center;
+      width: 100%;
     }
 
     @media (min-width: 480px) {
       .button-container {
         flex-direction: row;
+        flex-wrap: wrap;
         justify-content: center;
       }
     }
@@ -488,7 +495,8 @@ $conn->close();
 
     @media (max-width: 768px) {
       .container {
-        padding: 20px 25px;
+        padding: 20px;
+        max-width: calc(100% - 30px);
       }
 
       .theme-switcher {
@@ -497,6 +505,15 @@ $conn->close();
         font-size: 20px;
         bottom: 15px;
         right: 15px;
+      }
+      
+      .application-id {
+        font-size: 0.95rem;
+        padding: 10px;
+      }
+      
+      p {
+        font-size: 0.95rem;
       }
     }
   </style>
@@ -521,14 +538,14 @@ $conn->close();
         <a class="button" href="dashboard.php">🏠 View Dashboard</a>
         <?php endif; ?>
         <a class="button secondary" href="status-check.html?id=<?= urlencode($applicationId) ?>">📋 Check Status</a>
-        <a class="button" href="https://girlskissing.dev">Return to Form</a>
+        <a class="button" href="index.php">Return to Form</a>
       </div>
     <?php else: ?>
       <h1>❌ error</h1>
       <p>it's either you broke something or i did</p>
       <p>Error: <?= htmlspecialchars($errorMsg) ?></p>
       <div class="button-container">
-        <a class="button" href="https://girlskissing.dev">Return to Form</a>
+        <a class="button" href="index.php">Return to Form</a>
       </div>
     <?php endif; ?>
   </div>

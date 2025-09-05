@@ -103,12 +103,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - girlskissing.dev</title>
     <style>
+        :root {
+            --bg-color: #ffc0cb;
+            --container-bg: #fff0f5;
+            --text-color: #333;
+            --primary-pink: #ff1493;
+            --secondary-pink: #ff69b4;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            --input-bg: #fff;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffc0cb;
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
         }
@@ -119,16 +130,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            flex-direction: column;
+            box-sizing: border-box;
         }
         
         .container {
-            max-width: 400px;
-            background-color: #fff0f5;
-            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--container-bg);
+            padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            margin-top: 60px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            box-sizing: border-box;
         }
         
         .login-header {
@@ -137,13 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .login-header h2 {
-            color: #ff1493;
+            color: var(--primary-pink);
             margin: 0 0 10px 0;
             font-size: 1.8rem;
         }
         
         .login-header p {
-            color: #333;
+            color: var(--text-color);
             margin: 0;
             opacity: 0.8;
         }
@@ -163,19 +175,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group input[type="email"],
         .form-group input[type="password"] {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ccc;
+            padding: 14px;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 1rem;
-            background-color: white;
-            color: #333;
+            background-color: var(--input-bg);
+            color: var(--text-color);
             transition: border-color 0.3s ease;
             box-sizing: border-box;
         }
         
         .form-group input:focus {
             outline: none;
-            border-color: #ff1493;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 5px rgba(255, 20, 147, 0.3);
         }
         
         .checkbox-group {
@@ -198,8 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .login-btn {
             width: 100%;
-            padding: 12px;
-            background-color: #ff1493;
+            padding: 14px;
+            background-color: var(--primary-pink);
             color: white;
             border: none;
             border-radius: 8px;
@@ -207,23 +220,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-sizing: border-box;
         }
         
         .login-btn:hover {
-            background-color: #ff69b4;
+            background-color: var(--secondary-pink);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         
         .register-link {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px solid #ccc;
+            border-top: 1px solid var(--border-color);
         }
         
         .register-link a {
-            color: #ff1493;
+            color: var(--primary-pink);
             text-decoration: none;
             font-weight: bold;
         }
@@ -263,6 +277,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .login-options a:hover {
             text-decoration: underline;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 30px 25px;
+            }
+            
+            .login-header h2 {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px 20px;
+            }
+            
+            .form-group input[type="text"],
+            .form-group input[type="email"],
+            .form-group input[type="password"] {
+                padding: 12px;
+            }
+            
+            .login-btn {
+                padding: 12px;
+            }
         }
     </style>
 </head>
