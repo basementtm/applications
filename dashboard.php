@@ -10,41 +10,15 @@ require_once 'user_auth.php';
 // Check if user is logged in
 requireLogin();
 
-// Debug user ID
-$debug_user_id = $_SESSION['user_id'] ?? 'No user ID in session';
-
-// Database connection check
-$debug_conn_status = "Not connected";
-global $conn;
-if (isset($conn) && $conn) {
-    if (!$conn->connect_error) {
-        $debug_conn_status = "Connected successfully";
-    } else {
-        $debug_conn_status = "Connection failed: " . $conn->connect_error;
-    }
+// Establish database connection
+$conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 // Get user data
 $user_data = getUserData();
 $applications = getUserApplications();
-
-// Debug applications count
-$debug_apps_count = count($applications);
-
-// Direct query to get applications count
-$debug_direct_count = "Unknown";
-if (isset($conn) && $conn && !$conn->connect_error) {
-    $debug_direct_query = "SELECT COUNT(*) as total FROM applicants WHERE user_id = " . (int)$_SESSION['user_id'];
-    $debug_result = $conn->query($debug_direct_query);
-    if ($debug_result) {
-        $debug_row = $debug_result->fetch_assoc();
-        $debug_direct_count = $debug_row['total'];
-    } else {
-        $debug_direct_count = "Query failed: " . $conn->error;
-    }
-} else {
-    $debug_direct_count = "No valid connection";
-}
 
 // Check for welcome message
 $show_welcome = isset($_GET['welcome']) && $_GET['welcome'] == '1';
@@ -381,36 +355,11 @@ $current_page = 'dashboard.php';
                     <span class="icon">📝</span>
                     <h4>No Applications Yet</h4>
                     <p>You haven't submitted any applications yet. Ready to get started?</p>
-                    <!-- Debug info visible to all users temporarily while debugging -->
-                    <div style="text-align: left; background-color: #f8f9fa; padding: 10px; margin: 15px 0; border-radius: 5px; font-size: 0.9rem;">
-                        <strong>Debug Info:</strong><br>
-                        User ID: <?php echo $debug_user_id; ?><br>
-                        Applications count from function: <?php echo $debug_apps_count; ?><br>
-                        Applications count direct query: <?php echo $debug_direct_count; ?><br>
-                        <?php if (isset($conn) && $conn && !$conn->connect_error): ?>
-                            <strong>Database connection:</strong> OK<br>
-                            <?php 
-                            // Display one raw application if available for debugging
-                            $debug_raw_app_query = "SELECT * FROM applicants WHERE user_id = " . (int)$_SESSION['user_id'] . " LIMIT 1";
-                            $debug_raw_app_result = $conn->query($debug_raw_app_query);
-                            if ($debug_raw_app_result && $debug_raw_app_result->num_rows > 0): 
-                                $debug_raw_app = $debug_raw_app_result->fetch_assoc();
-                            ?>
-                            <strong>Raw application data:</strong><br>
-                            <pre style="font-size: 0.8rem; overflow: auto; max-height: 200px;"><?php print_r($debug_raw_app); ?></pre>
-                            <?php else: ?>
-                            <strong>No raw application data found</strong>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <strong>Database connection:</strong> FAILED
-                        <?php endif; ?>
-                    </div>
                     <a href="index.php" class="action-btn">Submit Your First Application</a>
                 </div>
             <?php else: ?>
-                <?php foreach ($applications as $app): 
-                    if (!$app) { continue; } // Skip if $app is null
-                ?>
+                <?php foreach ($applications as $app): ?>
+                    <?php if (is_array($app)): ?>
                     <div class="application-item">
                         <div class="application-header">
                             <span class="application-id">#<?php echo htmlspecialchars($app['application_id']); ?></span>
@@ -443,6 +392,7 @@ $current_page = 'dashboard.php';
                             Submitted: <?php echo date('M j, Y g:i A', strtotime($app['created_at'])); ?>
                         </div>
                     </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
