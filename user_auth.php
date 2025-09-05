@@ -200,7 +200,7 @@ function renderUserNavbar($current_page = '', $is_main_site = false) {
             $nav_items['settings.php'] = ['⚙️', 'Settings'];
         }
         $nav_items['privacy-policy.php'] = ['📜', 'Privacy Policy'];
-        $nav_items['status.php'] = ['📊', 'Application Status'];
+        $nav_items['check-status.html'] = ['📊', 'Application Status'];
         
         if ($is_admin) {
             $nav_items['admin/dashboard.php'] = ['👑', 'Admin Panel'];
