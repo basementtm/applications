@@ -89,13 +89,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         <?php echo getUserNavbarCSS(); ?>
         
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            flex-direction: column;
+        }
+        
         .container {
             max-width: 400px;
-            margin: 50px auto;
             background-color: var(--container-bg);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 8px 25px var(--shadow-color);
+            margin-top: 60px;
         }
         
         .login-header {
@@ -217,21 +226,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
         }
         
-        .back-link {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .back-link a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        
-        .back-link a:hover {
-            text-decoration: underline;
-        }
-        
         .login-options {
             margin-top: 20px;
             text-align: center;
@@ -249,11 +243,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <div class="back-link">
-        <a href="index.php">← Back to Application Form</a>
-    </div>
+    <!-- User Navigation -->
+    <?php renderUserNavbar('login.php', true); ?>
     
-    <div class="container">
+    <div class="main-container">
+        <div class="container">
         <div class="login-header">
             <h2>🔐 Welcome Back</h2>
             <p>Sign in to your account</p>
@@ -294,5 +288,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Don't have an account? <a href="register.php">Create one here</a>
         </div>
     </div>
+    </div>
+    
+    <!-- Include navbar JavaScript -->
+    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>

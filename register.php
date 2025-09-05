@@ -86,13 +86,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         <?php echo getUserNavbarCSS(); ?>
         
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            flex-direction: column;
+        }
+        
         .container {
             max-width: 400px;
-            margin: 50px auto;
             background-color: var(--container-bg);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 8px 25px var(--shadow-color);
+            margin-top: 60px;
         }
         
         .register-header {
@@ -200,29 +209,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             opacity: 0.7;
             margin-top: 5px;
         }
-        
-        .back-link {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .back-link a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        
-        .back-link a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
-    <div class="back-link">
-        <a href="index.php">← Back to Application Form</a>
-    </div>
+    <!-- User Navigation -->
+    <?php renderUserNavbar('register.php', true); ?>
     
-    <div class="container">
+    <div class="main-container">
+        <div class="container">
         <div class="register-header">
             <h2>🌸 Create Account</h2>
             <p>Join us to track your applications</p>
@@ -266,5 +260,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Already have an account? <a href="login.php">Login here</a>
         </div>
     </div>
+    </div>
+    
+    <!-- Include navbar JavaScript -->
+    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>
