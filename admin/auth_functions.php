@@ -7,6 +7,23 @@ function checkUserStatus() {
         return false; // Not logged in
     }
     
+    // Check session timeout based on remember me setting
+    if (isset($_SESSION['login_time'])) {
+        $login_time = $_SESSION['login_time'];
+        $remember_me = $_SESSION['remember_me'] ?? false;
+        $current_time = time();
+        
+        // Set timeout based on remember me option
+        $timeout = $remember_me ? (30 * 24 * 60 * 60) : (24 * 60 * 60); // 30 days or 24 hours
+        
+        if (($current_time - $login_time) > $timeout) {
+            // Session has expired
+            session_destroy();
+            header("Location: login.php?error=session_expired");
+            exit();
+        }
+    }
+    
     // Check if user account is still active
     if (isset($_SESSION['admin_id'])) {
         // Include database config

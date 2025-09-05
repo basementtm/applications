@@ -23,6 +23,9 @@ if (isset($_GET['error'])) {
         case 'account_not_found':
             $error = "Your account no longer exists.";
             break;
+        case 'session_expired':
+            $error = "Your session has expired. Please log in again.";
+            break;
     }
 }
 
@@ -48,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'login') {
                 $username = $_POST['username'] ?? '';
                 $password = $_POST['password'] ?? '';
+                $remember_me = isset($_POST['remember_me']) && $_POST['remember_me'] === 'on';
                 
                 if (!empty($username) && !empty($password)) {
                     // First check if user exists (regardless of active status)
@@ -69,10 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 // Check if 2FA is enabled
                                 if ($admin['two_factor_enabled']) {
                                     $_SESSION['temp_user_data'] = $admin;
+                                    $_SESSION['remember_me'] = $remember_me;
                                     $require_2fa = true;
                                 } else {
                                     // Complete login
-                                    completeLogin($conn, $admin);
+                                    completeLogin($conn, $admin, 'password', $remember_me);
                                 }
                             }
                         } else {
@@ -107,8 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($verified) {
                         unset($_SESSION['temp_user_data']);
+                        $remember_me = $_SESSION['remember_me'] ?? false;
+                        unset($_SESSION['remember_me']);
                         $method = !empty($verification_code) ? '2fa_totp' : '2fa_backup';
-                        completeLogin($conn, $admin, $method);
+                        completeLogin($conn, $admin, $method, $remember_me);
                     } else {
                         $error = "Invalid verification code or backup code.";
                         // Log failed 2FA attempt
@@ -133,11 +140,24 @@ if (isset($_SESSION['temp_user_data'])) {
     $temp_user_data = $_SESSION['temp_user_data'];
 }
 
-function completeLogin($conn, $admin, $method = 'password') {
+function completeLogin($conn, $admin, $method = 'password', $remember_me = false) {
+    // Set session lifetime based on remember me option
+    if ($remember_me) {
+        // Extend session to 30 days
+        ini_set('session.gc_maxlifetime', 30 * 24 * 60 * 60);
+        session_set_cookie_params(30 * 24 * 60 * 60);
+    } else {
+        // Default session lifetime (browser session)
+        ini_set('session.gc_maxlifetime', 24 * 60 * 60); // 24 hours
+        session_set_cookie_params(0); // Browser session
+    }
+    
     $_SESSION['admin_logged_in'] = true;
     $_SESSION['admin_id'] = $admin['id'];
     $_SESSION['admin_username'] = $admin['username'];
     $_SESSION['admin_role'] = $admin['role'];
+    $_SESSION['remember_me'] = $remember_me;
+    $_SESSION['login_time'] = time();
     
     // Update last login
     $update_sql = "UPDATE admin_users SET last_login = NOW() WHERE id = ?";
@@ -150,7 +170,8 @@ function completeLogin($conn, $admin, $method = 'password') {
     logLoginAttempt($conn, $admin['username'], $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '', true, $method);
     
     // Also log to new admin action logging system
-    logAction('ADMIN_LOGIN_SUCCESS', "Admin user '{$admin['username']}' logged in successfully", 'admin_user', $admin['id'], ['method' => $method]);
+    $additional_data = ['method' => $method, 'remember_me' => $remember_me];
+    logAction('ADMIN_LOGIN_SUCCESS', "Admin user '{$admin['username']}' logged in successfully" . ($remember_me ? ' (remembered session)' : ''), 'admin_user', $admin['id'], $additional_data);
     
     header("Location: dashboard.php");
     exit();
@@ -516,6 +537,11 @@ function logLoginAttempt($conn, $username, $ip, $userAgent, $success, $method, $
                 <div class="form-group">
                     <label for="password">Password:</label>
                     <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
+                    <input type="checkbox" id="remember_me" name="remember_me" style="width: auto; margin: 0; transform: scale(1.2);">
+                    <label for="remember_me" style="margin: 0; font-weight: normal; cursor: pointer; color: var(--text-color);">Remember me for 30 days</label>
                 </div>
                 
                 <button type="submit" class="btn">🔓 Login</button>
