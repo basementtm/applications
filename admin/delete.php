@@ -21,57 +21,57 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$user_id = $_GET['id'] ?? '';
+$application_id = $_GET['id'] ?? '';
 $confirm = $_GET['confirm'] ?? '';
 
-if (empty($user_id)) {
+if (empty($application_id)) {
     header("Location: dashboard.php");
     exit();
 }
 
-// If confirmed, delete the user
+// If confirmed, delete the application
 if ($confirm === 'yes') {
-    // First get the user data for logging
-    $fetch_sql = "SELECT username FROM users WHERE user_id = ?";
+    // First get the application data for logging
+    $fetch_sql = "SELECT name FROM applicants WHERE application_id = ?";
     $fetch_stmt = $conn->prepare($fetch_sql);
-    $fetch_stmt->bind_param("i", $user_id);
+    $fetch_stmt->bind_param("s", $application_id);
     $fetch_stmt->execute();
     $fetch_result = $fetch_stmt->get_result();
-    $user_data = $fetch_result->fetch_assoc();
+    $application_data = $fetch_result->fetch_assoc();
     $fetch_stmt->close();
     
-    if ($user_data) {
-        $sql = "DELETE FROM users WHERE user_id = ?";
+    if ($application_data) {
+        $sql = "DELETE FROM applicants WHERE application_id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
+        $stmt->bind_param("s", $application_id);
         
         if ($stmt->execute()) {
-            // Log the user deletion
-            logApplicationAction('deleted', $user_id, $user_data['username']);
+            // Log the application deletion
+            logApplicationAction('deleted', $application_id, $application_data['name']);
             
             $stmt->close();
             // Close connection before redirect since we're exiting
             $conn->close();
-            header("Location: dashboard.php?deleted=" . urlencode($user_id));
+            header("Location: dashboard.php?deleted=" . urlencode($application_id));
             exit();
         } else {
-            $error = "Error deleting user. Please try again.";
+            $error = "Error deleting application. Please try again.";
         }
         $stmt->close();
     } else {
-        $error = "User not found.";
+        $error = "Application not found.";
     }
 }
 
-// Fetch user data for confirmation
-$sql = "SELECT user_id, username, email, status FROM users WHERE user_id = ?";
+// Fetch application data for confirmation
+$sql = "SELECT application_id, name, email, status FROM applicants WHERE application_id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("s", $application_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 1) {
-    $user_data = $result->fetch_assoc();
+    $application_data = $result->fetch_assoc();
 } else {
     header("Location: dashboard.php");
     exit();
