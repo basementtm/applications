@@ -5,12 +5,25 @@ ini_set('display_errors', 1);
 
 session_start();
 
-// Include database connection
-require_once '/var/www/config/db_config.php';
+// Try different database config paths
+$db_config_paths = [
+    '/var/www/config/db_config.php',
+    '../config/db_config.php',
+    './config/db_config.php',
+    'config/db_config.php'
+];
+
+$conn = null;
+foreach ($db_config_paths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        break;
+    }
+}
 
 // Debug: Check if connection was established
 if (!isset($conn)) {
-    die('Database connection variable $conn not found. Check db_config.php');
+    die('Database connection variable $conn not found. Tried paths: ' . implode(', ', $db_config_paths));
 }
 if ($conn === null) {
     die('Database connection is null. Check database credentials.');
@@ -136,13 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .login-header h2 {
-            color: var(--primary-pink);
+            color: #ff1493;
             margin: 0 0 10px 0;
             font-size: 1.8rem;
         }
         
         .login-header p {
-            color: var(--text-color);
+            color: #333;
             margin: 0;
             opacity: 0.8;
         }
@@ -198,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .login-btn {
             width: 100%;
             padding: 12px;
-            background-color: var(--primary-pink);
+            background-color: #ff1493;
             color: white;
             border: none;
             border-radius: 8px;
@@ -209,20 +222,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .login-btn:hover {
-            background-color: var(--secondary-pink);
+            background-color: #ff69b4;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--shadow-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .register-link {
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid #ccc;
         }
         
         .register-link a {
-            color: var(--primary-pink);
+            color: #ff1493;
             text-decoration: none;
             font-weight: bold;
         }
@@ -232,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .error-message {
-            background-color: var(--danger-color);
+            background-color: #dc3545;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -241,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .success-message {
-            background-color: var(--success-color);
+            background-color: #28a745;
             color: white;
             padding: 10px;
             border-radius: 5px;
