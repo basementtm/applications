@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Create new user account
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
             
-            $insert_sql = "INSERT INTO users (username, email, password_hash, role, active, two_factor_enabled, created_at) 
+            $insert_sql = "INSERT INTO users (username, email, password, role, active, two_factor_enabled, created_at) 
                           VALUES (?, ?, ?, 'user', 1, 0, CURRENT_TIMESTAMP)";
             $stmt = $conn->prepare($insert_sql);
             $stmt->bind_param("sss", $username, $email, $password_hash);

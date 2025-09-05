@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error_message = 'Database connection error. Please try again later.';
         } else {
             // Check user credentials
-            $sql = "SELECT id, username, email, password_hash, role, active, two_factor_enabled FROM users WHERE (username = ? OR email = ?) AND active = 1";
+            $sql = "SELECT id, username, email, password, role, active, two_factor_enabled FROM users WHERE (username = ? OR email = ?) AND active = 1";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ss", $username, $username);
             $stmt->execute();
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
             
-            if (password_verify($password, $user['password_hash'])) {
+            if (password_verify($password, $user['password'])) {
                 // Successful login - start session
                 startUserSession($user, $remember_me);
                 
