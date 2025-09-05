@@ -371,5 +371,4 @@ function getNavbarJS() {
         </script>
     ';
 }
-}
 ?>
