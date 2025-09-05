@@ -346,7 +346,7 @@ if ($maintenance_active) {
           padding: 40px; 
           border-radius: 15px; 
           box-shadow: 0 4px 10px var(--shadow-color); 
-          max-width: 600px; 
+          max-width: 1400px; 
           transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         h1 { 
@@ -858,7 +858,7 @@ if ($form_maintenance_active && !$is_admin) {
       border-radius: 15px;
       box-shadow: 0 4px 10px var(--shadow-color);
       text-align: center;
-      max-width: 400px;
+      max-width: 1400px;
       width: 90%;
       box-sizing: border-box;
       opacity: 0;
