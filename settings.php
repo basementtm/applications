@@ -95,36 +95,15 @@ $theme = $_COOKIE['theme'] ?? 'light';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Settings</title>
     <style>
-        :root {
-            --bg-color: #ffc0cb;
-            --container-bg: #fff0f5;
-            --text-color: #333;
-            --primary-pink: #ff1493;
-            --secondary-pink: #ff69b4;
-            --border-color: #ccc;
-            --shadow-color: rgba(0,0,0,0.1);
-            --input-bg: #fff0f5;
-            --success-color: #2ed573;
-            --danger-color: #ff4757;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #2d1b2e;
-            --container-bg: #3d2b3e;
-            --text-color: #e0d0e0;
-            --primary-pink: #ff6bb3;
-            --secondary-pink: #d147a3;
-            --border-color: #666;
-            --shadow-color: rgba(0,0,0,0.3);
-            --input-bg: #4a3a4a;
-        }
-        
+        <?php echo getUserNavbarCSS(); ?>
+        /* Using root variables from getUserNavbarCSS */
         body {
             font-family: Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
+            padding-top: 80px; /* Adjust for fixed navbar */
         }
         .container {
             max-width: 1000px;
@@ -385,6 +364,8 @@ $theme = $_COOKIE['theme'] ?? 'light';
     </style>
 </head>
 <body>
+    <?php renderUserNavbar('settings.php'); ?>
+    
     <div class="container">
         <!-- Theme Settings Section -->
         <div class="theme-section">
@@ -538,6 +519,8 @@ $theme = $_COOKIE['theme'] ?? 'light';
             }
         });
     </script>
+    
+    <?php echo getUserNavbarJS(); ?>
 </body>
 </html>
 
