@@ -731,6 +731,11 @@ while ($row = $stats_result->fetch_assoc()) {
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(5px);
             z-index: 999;
+            pointer-events: none;
+        }
+
+        #blurOverlay.active {
+            pointer-events: auto;
         }
 
         #reasonPopup {
@@ -1136,8 +1141,8 @@ while ($row = $stats_result->fetch_assoc()) {
         <h3>⚠️ Confirmation Required</h3>
         <p id="confirmMessage"></p>
         <div class="button-group">
-            <button type="button" id="confirmCancel" class="btn btn-secondary">Cancel</button>
-            <button type="button" id="confirmOK" class="btn btn-danger">OK</button>
+            <button type="button" id="confirmCancel" class="btn btn-secondary" onclick="handleConfirmCancel()">Cancel</button>
+            <button type="button" id="confirmOK" class="btn btn-danger" onclick="handleConfirmOK()">OK</button>
         </div>
     </div>
 
@@ -1306,34 +1311,86 @@ while ($row = $stats_result->fetch_assoc()) {
         const confirmCancel = document.getElementById('confirmCancel');
         const confirmOK = document.getElementById('confirmOK');
 
+        // Debug: Check if elements exist
+        console.log('Popup elements found:');
+        console.log('confirmPopup:', !!confirmPopup);
+        console.log('confirmMessage:', !!confirmMessage);
+        console.log('confirmCancel:', !!confirmCancel);
+        console.log('confirmOK:', !!confirmOK);
+
         let confirmCallback = null;
 
+        // Global functions for onclick handlers
+        window.handleConfirmCancel = function() {
+            console.log('handleConfirmCancel called');
+            hideConfirmation();
+        };
+
+        window.handleConfirmOK = function() {
+            console.log('handleConfirmOK called');
+            console.log('confirmCallback exists:', !!confirmCallback);
+            
+            if (confirmCallback && typeof confirmCallback === 'function') {
+                console.log('Executing callback...');
+                try {
+                    confirmCallback();
+                    console.log('Callback executed successfully');
+                } catch (error) {
+                    console.error('Error executing callback:', error);
+                }
+            } else {
+                console.log('No valid callback found');
+            }
+            
+            hideConfirmation();
+        };
+
         function showConfirmation(message, callback) {
-            console.log('showConfirmation called with:', message, callback);
+            console.log('showConfirmation called with message:', message);
+            console.log('Callback function:', callback);
+            
             confirmMessage.textContent = message;
             confirmCallback = callback;
+            
+            // Ensure popup is visible and on top
             confirmPopup.style.display = 'block';
+            confirmPopup.style.zIndex = '10000';
             blurOverlay.style.display = 'block';
+            blurOverlay.classList.add('active');
+            
+            console.log('Popup should now be visible');
+            console.log('confirmOK element:', confirmOK);
+            console.log('confirmCancel element:', confirmCancel);
         }
 
         function hideConfirmation() {
+            console.log('hideConfirmation called');
             confirmPopup.style.display = 'none';
             blurOverlay.style.display = 'none';
+            blurOverlay.classList.remove('active');
             confirmCallback = null;
         }
 
-        confirmCancel.addEventListener('click', () => {
+        confirmCancel.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Cancel button clicked');
             hideConfirmation();
         });
 
-        confirmOK.addEventListener('click', (e) => {
+        confirmOK.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('OK button clicked, callback:', confirmCallback);
-            hideConfirmation();
+            console.log('OK button clicked, callback exists:', !!confirmCallback);
+            
             if (confirmCallback && typeof confirmCallback === 'function') {
+                console.log('Executing callback...');
                 confirmCallback();
+            } else {
+                console.log('No valid callback found');
             }
+            
+            hideConfirmation();
         });
 
         // Custom Alert Popup
@@ -1379,6 +1436,8 @@ while ($row = $stats_result->fetch_assoc()) {
 
         function attachDeleteButtonListeners() {
             const deleteButtons = document.querySelectorAll('.delete-app-btn');
+            console.log('Found', deleteButtons.length, 'delete buttons');
+            
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -1387,10 +1446,12 @@ while ($row = $stats_result->fetch_assoc()) {
                     const appId = this.getAttribute('data-app-id');
                     console.log('Delete button clicked for app ID:', appId);
                     
-                    showConfirmation('Are you sure you want to delete this application?', () => {
-                        console.log('Confirmation accepted, redirecting to delete.php?id=' + appId);
+                    const deleteCallback = function() {
+                        console.log('About to redirect to: delete.php?id=' + appId);
                         window.location.href = 'delete.php?id=' + appId;
-                    });
+                    };
+                    
+                    showConfirmation('Are you sure you want to delete this application?', deleteCallback);
                 });
             });
         }
