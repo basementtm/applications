@@ -1334,11 +1334,7 @@ if ($form_maintenance_active && !$is_admin) {
     🌙
   </div>
   
-  <?php if ($is_admin): ?>
-  <div class="admin-panel-button" id="adminPanelButton" title="Go to Admin Panel">
-    👑
-  </div>
-  <?php endif; ?>
+
 
   <?php if ($banner_settings['enabled'] && !empty($banner_settings['text'])): ?>
     <?php
