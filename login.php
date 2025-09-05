@@ -71,6 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Successful login - start session
                 startUserSession($user, $remember_me);
                 
+                // Debug info - uncomment to see what's happening
+                // echo "<pre>Session data: "; print_r($_SESSION); echo "</pre>";
+                // echo "<pre>User data: "; print_r($user); echo "</pre>";
+                // echo "isAdmin(): " . (isAdmin() ? "YES" : "NO") . "<br>";
+                // echo "Role: " . ($_SESSION['user_role'] ?? 'not set') . "<br>";
+                // exit();
+                
                 // Determine redirect location
                 $redirect_url = 'dashboard.php';
                 if (isAdmin()) {

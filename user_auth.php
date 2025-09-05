@@ -58,7 +58,10 @@ function isAdmin() {
     
     // Check both new and legacy admin role session variables
     $role = $_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? '';
-    return in_array($role, ['readonly_admin', 'admin', 'super_admin']);
+    
+    // Accept various forms of admin roles
+    $admin_roles = ['readonly_admin', 'admin', 'super_admin', 'readonly', 'editor', 'owner'];
+    return in_array(strtolower($role), $admin_roles);
 }
 
 function isReadOnlyUser() {

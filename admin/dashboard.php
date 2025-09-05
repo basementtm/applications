@@ -8,6 +8,12 @@ ini_set('display_errors', 1);
 // Include unified user authentication system
 require_once '../user_auth.php';
 
+// Debug info - uncomment to see session data
+// echo "<pre>Session data: "; print_r($_SESSION); echo "</pre>";
+// echo "isAdmin(): " . (isAdmin() ? "YES" : "NO") . "<br>";
+// echo "Role: " . ($_SESSION['user_role'] ?? $_SESSION['admin_role'] ?? 'not set') . "<br>";
+// exit();
+
 // Include action logging functions
 require_once 'action_logger.php';
 
