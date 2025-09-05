@@ -1476,6 +1476,8 @@ while ($row = $stats_result->fetch_assoc()) {
         updateSelectedCount();
     </script>
     
+    <?php echo getNavbarJS(); ?>
+    
     <?php
     // Close database connection at the end
     if (isset($conn)) {

@@ -55,15 +55,23 @@ function renderAdminNavbar($currentPage = '') {
         echo '<span class="maintenance-badge" title="Maintenance Mode Active - Applications Closed">🚧 MAINTENANCE</span>';
     }
     
+    // Navigation dropdown
+    echo '<div class="nav-dropdown">';
+    echo '<button class="nav-toggle" id="navToggle">☰ Menu</button>';
+    echo '<div class="nav-menu" id="navMenu">';
+    
     // Render navigation buttons
     foreach ($navItems as $page => $details) {
         $icon = $details[0];
         $title = $details[1];
-        $activeClass = ($currentPage === $page) ? ' btn-active' : '';
-        echo '<a href="' . $page . '" class="btn btn-secondary btn-sm' . $activeClass . '">' . $icon . ' ' . $title . '</a>';
+        $activeClass = ($currentPage === $page) ? ' nav-active' : '';
+        echo '<a href="' . $page . '" class="nav-item' . $activeClass . '">' . $icon . ' ' . $title . '</a>';
     }
     
-    echo '<a href="logout.php" class="btn btn-primary btn-sm">🚪 Logout</a>';
+    echo '<a href="logout.php" class="nav-item nav-logout">🚪 Logout</a>';
+    echo '</div>';
+    echo '</div>';
+    
     echo '</div>';
     echo '</div>';
 }
@@ -125,14 +133,109 @@ function getNavbarCSS() {
 
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             flex-wrap: wrap;
+            position: relative;
         }
 
         .header-actions span {
             margin-right: 10px;
             font-weight: bold;
+        }
+
+        /* Navigation Dropdown */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .nav-toggle {
+            background-color: var(--primary-pink);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-toggle:hover {
+            background-color: var(--secondary-pink);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .nav-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            z-index: 1000;
+            min-width: 200px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .nav-menu.show {
+            display: block;
+            animation: dropDown 0.3s ease-out;
+        }
+
+        @keyframes dropDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+
+        .nav-item:last-child {
+            border-bottom: none;
+        }
+
+        .nav-item:hover {
+            background-color: var(--secondary-pink);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-active {
+            background-color: var(--primary-pink);
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-logout {
+            background-color: var(--danger-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-logout:hover {
+            background-color: #ff3838;
         }
 
         .maintenance-badge {
@@ -225,7 +328,48 @@ function getNavbarCSS() {
             .header-actions {
                 justify-content: center;
             }
+
+            .nav-menu {
+                right: auto;
+                left: 0;
+                width: 100%;
+            }
         }
     ';
+}
+
+// JavaScript for dropdown functionality
+function getNavbarJS() {
+    return '
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const navToggle = document.getElementById("navToggle");
+            const navMenu = document.getElementById("navMenu");
+            
+            if (navToggle && navMenu) {
+                navToggle.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    navMenu.classList.toggle("show");
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener("click", function(e) {
+                    if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+                        navMenu.classList.remove("show");
+                    }
+                });
+                
+                // Close menu when clicking on a nav item
+                const navItems = navMenu.querySelectorAll(".nav-item");
+                navItems.forEach(item => {
+                    item.addEventListener("click", function() {
+                        navMenu.classList.remove("show");
+                    });
+                });
+            }
+        });
+        </script>
+    ';
+}
 }
 ?>

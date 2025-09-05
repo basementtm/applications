@@ -470,6 +470,8 @@ $stmt->close();
         });
     </script>
     
+    <?php echo getNavbarJS(); ?>
+    
     <?php
     // Close database connection at the end
     if (isset($conn)) {
