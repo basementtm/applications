@@ -5,7 +5,7 @@
  */
 
 // Include necessary files
-require_once '../config/db.php';
+require_once '/var/www/config/db_config.php';
 
 // Set content type to JSON
 header('Content-Type: application/json');

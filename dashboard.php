@@ -2,7 +2,7 @@
 session_start();
 
 // Include required files
-require_once 'includes/db.php';
+require_once '/var/www/config/db_config.php';
 require_once 'user_auth.php';
 
 // Check if user is logged in

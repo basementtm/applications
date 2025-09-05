@@ -1,4 +1,7 @@
 <?php
+// Include database connection
+require_once '/var/www/config/db_config.php';
+
 // Unified User Authentication Functions
 // This replaces admin-specific auth functions with a unified system
 

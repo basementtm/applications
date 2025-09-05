@@ -2,7 +2,7 @@
 session_start();
 
 // Include database connection
-require_once 'includes/db.php';
+require_once '/var/www/config/db_config.php';
 require_once 'user_auth.php';
 
 // Redirect if already logged in
