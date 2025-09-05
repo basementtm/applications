@@ -305,6 +305,8 @@ function getUserNavbarCSS() {
             opacity: 0;
             transform: translateY(-10px);
             animation: fadeSlideDown 0.8s forwards;
+            overflow: visible;
+            z-index: 10001;
         }
 
         @keyframes fadeSlideDown {
@@ -333,6 +335,7 @@ function getUserNavbarCSS() {
         .nav-dropdown {
             position: relative;
             display: inline-block;
+            z-index: 10000;
         }
 
         .nav-toggle {
