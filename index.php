@@ -1026,7 +1026,7 @@ if ($form_maintenance_active && !$is_admin) {
     .checkbox-container {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
       margin: 15px 0;
       cursor: pointer;
@@ -1407,23 +1407,12 @@ if ($form_maintenance_active && !$is_admin) {
 
       <div class="form-group">
   <label class="checkbox-container">
-    I agree to the terms of the Privacy Policy
     <input type="checkbox" name="agreeTerms" id="agreeTerms" required>
     <span class="checkmark"></span>
+    I agree to the terms of the Privacy Policy
   </label>
 </div>
-
       <button type="submit">Submit</button>
-
-      <p style="margin-top: 15px; font-size: 0.9rem; text-align: center;">
-        <a href="privacy-policy.html" style="color:var(--primary-pink); text-decoration:underline;">
-          🔒 Privacy Policy
-        </a>
-        &nbsp;|&nbsp;
-        <a href="status-check.html" style="color:var(--primary-pink); text-decoration:underline;">
-          📋 Check Application Status
-        </a>
-      </p>
     </form>
     </div>
 
