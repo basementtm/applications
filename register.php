@@ -5,28 +5,13 @@ ini_set('display_errors', 1);
 
 session_start();
 
-// Try different database config paths
-$db_config_paths = [
-    '/var/www/config/db_config.php',
-    '../config/db_config.php',
-    './config/db_config.php',
-    'config/db_config.php'
-];
+// Include database connection
+include('/var/www/config/db_config.php');
+$conn = new mysqli($DB_SERVER, $DB_USER, $DB_PASSWORD, $DB_NAME);
 
-$conn = null;
-foreach ($db_config_paths as $path) {
-    if (file_exists($path)) {
-        require_once $path;
-        break;
-    }
-}
-
-// Debug: Check if connection was established
-if (!isset($conn)) {
-    die('Database connection variable $conn not found. Tried paths: ' . implode(', ', $db_config_paths));
-}
-if ($conn === null) {
-    die('Database connection is null. Check database credentials.');
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 require_once 'user_auth.php';
