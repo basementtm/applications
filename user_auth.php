@@ -146,7 +146,7 @@ function getUserApplications($user_id = null) {
     }
     
     $id = $user_id ?? $_SESSION['user_id'];
-    $sql = "SELECT application_id, name, email, status, cage, isCat, created_at 
+    $sql = "SELECT application_id, name, email, gfphone, reason, cage, isCat, owner, preferredLocation, agreeTerms, status, created_at 
             FROM applicants 
             WHERE user_id = ? 
             ORDER BY created_at DESC";

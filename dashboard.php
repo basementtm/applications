@@ -1,5 +1,7 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Include required files
 require_once '/var/www/config/db_config.php';
@@ -8,9 +10,30 @@ require_once 'user_auth.php';
 // Check if user is logged in
 requireLogin();
 
+// Debug user ID
+$debug_user_id = $_SESSION['user_id'] ?? 'No user ID in session';
+
 // Get user data
 $user_data = getUserData();
 $applications = getUserApplications();
+
+// Debug applications count
+$debug_apps_count = count($applications);
+
+// Let's check the database connection and try to get applications directly
+global $conn;
+if (isset($conn) && $conn && !$conn->connect_error) {
+    $debug_direct_query = "SELECT COUNT(*) as total FROM applicants WHERE user_id = " . (int)$_SESSION['user_id'];
+    $debug_result = $conn->query($debug_direct_query);
+    if ($debug_result) {
+        $debug_row = $debug_result->fetch_assoc();
+        $debug_direct_count = $debug_row['total'];
+    } else {
+        $debug_direct_count = "Query failed: " . $conn->error;
+    }
+} else {
+    $debug_direct_count = "No valid connection";
+}
 
 // Check for welcome message
 $show_welcome = isset($_GET['welcome']) && $_GET['welcome'] == '1';
@@ -332,6 +355,15 @@ $current_page = 'dashboard.php';
                     <span class="icon">📝</span>
                     <h4>No Applications Yet</h4>
                     <p>You haven't submitted any applications yet. Ready to get started?</p>
+                    <!-- Debug info only visible to admins -->
+                    <?php if (isAdmin()): ?>
+                    <div style="text-align: left; background-color: #f8f9fa; padding: 10px; margin: 15px 0; border-radius: 5px; font-size: 0.9rem;">
+                        <strong>Debug Info (Admin Only):</strong><br>
+                        User ID: <?php echo $debug_user_id; ?><br>
+                        Applications count from function: <?php echo $debug_apps_count; ?><br>
+                        Applications count direct query: <?php echo $debug_direct_count; ?>
+                    </div>
+                    <?php endif; ?>
                     <a href="index.php" class="action-btn">Submit Your First Application</a>
                 </div>
             <?php else: ?>
@@ -345,10 +377,10 @@ $current_page = 'dashboard.php';
                         </div>
                         <div class="application-details">
                             <strong><?php echo htmlspecialchars($app['name']); ?></strong> • <?php echo htmlspecialchars($app['email']); ?>
-                            <?php if ($app['cage']): ?>
-                                <br>Nights in Cage:: <?php echo htmlspecialchars($app['cage']); ?>
+                            <?php if (!empty($app['cage'])): ?>
+                                <br>Nights in Cage: <?php echo htmlspecialchars($app['cage']); ?>
                             <?php endif; ?>
-                            <?php if ($app['isCat']): ?>
+                            <?php if (!empty($app['isCat'])): ?>
                                 <br>Cat: <?php echo htmlspecialchars($app['isCat']); ?>
                             <?php endif; ?>
                         </div>
